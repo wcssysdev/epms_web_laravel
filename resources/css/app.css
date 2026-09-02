@@ -96,5 +96,6 @@
 @plugin "daisyui" {
     themes: ["light", "dark"];
     defaultTheme: "light";
+    darkTheme: "dark";
     logs: false;
 }

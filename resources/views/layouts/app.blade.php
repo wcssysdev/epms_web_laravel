@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      data-theme="light"
       x-data="appLayout()"
+      :data-theme="isDark ? 'dark' : 'light'"
       :class="{ 'dark': isDark }">
 <head>
     <meta charset="UTF-8"/>
@@ -8,6 +10,19 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <title>@yield('title', 'Dashboard') — EPMS IOI</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>"/>
+    {{-- Prevent dark mode flash: apply theme BEFORE page renders --}}
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
@@ -82,7 +97,14 @@
             sidebarOpen: window.innerWidth >= 1024,
             toggleDark() {
                 this.isDark = !this.isDark;
-                localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+                const theme = this.isDark ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+                document.documentElement.setAttribute('data-theme', theme);
+                if (this.isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             },
             init() {
                 window.addEventListener('resize', () => {
