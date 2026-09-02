@@ -97,7 +97,7 @@
 
                 {{-- Submit Button --}}
                 <button type="submit"
-                        class="btn btn-primary w-full"
+                        class="btn btn-primary w-full btn-md"
                         :disabled="loading">
                     <span x-show="!loading">Login</span>
                     <span x-show="loading" class="loading loading-spinner loading-sm"></span>

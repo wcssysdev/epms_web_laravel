@@ -5,14 +5,35 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Primary color: matches rgba(87,80,241) from original HTML */
+    --color-primary: #5750f1;
+    --color-primary-dark: #4740d4;
+
+    /* Gray dark for dark mode bg */
+    --color-gray-dark: #1a2231;
 }
 
-/* daisyUI theme override - custom EPMS colors */
+/* Custom scrollbar for sidebar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; }
+
+/* Sidebar gray-dark bg */
+.dark\:bg-gray-dark { background-color: var(--color-gray-dark); }
+.bg-gray-dark { background-color: var(--color-gray-dark); }
+
+/* text-primary */
+.text-primary { color: var(--color-primary) !important; }
+.hover\:text-primary:hover { color: var(--color-primary) !important; }
+.bg-primary { background-color: var(--color-primary) !important; }
+.border-primary { border-color: var(--color-primary) !important; }
+.focus-visible\:border-primary:focus-visible { border-color: var(--color-primary) !important; }
+
 @plugin "daisyui" {
     themes: ["light", "dark"];
     defaultTheme: "light";
-    darkTheme: "dark";
     logs: false;
 }

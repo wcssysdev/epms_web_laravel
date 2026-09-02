@@ -1,69 +1,63 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       x-data="appLayout()"
-      :data-theme="theme">
+      :class="{ 'dark': isDark }">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
-    <meta name="user-id" content="{{ auth()->id() }}"/>
-
     <title>@yield('title', 'Dashboard') — EPMS IOI</title>
-
-    {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>"/>
-
-    {{-- Vite Assets --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    {{-- Page-specific styles --}}
     @stack('styles')
 </head>
 
-<body class="bg-base-200 min-h-screen">
+<body class="bg-gray-100 dark:bg-[#020d1a] min-h-screen">
 
-{{-- ── DRAWER LAYOUT (sidebar + main) ────────────────────────────────────── --}}
-<div class="drawer lg:drawer-open">
-    <input id="sidebar-drawer" type="checkbox" class="drawer-toggle"/>
+<div class="min-h-screen">
 
-    {{-- Main Content Area --}}
-    <div class="drawer-content flex flex-col min-h-screen">
+    {{-- ── SIDEBAR (fixed) ──────────────────────────────────────────────── --}}
+    @include('partials.sidebar')
+
+    {{-- ── MAIN CONTENT (offset by sidebar width) ──────────────────────── --}}
+    <div class="transition-all duration-200 ease-linear"
+         :class="sidebarOpen ? 'ml-[290px]' : 'ml-0'">
 
         {{-- Topbar --}}
         @include('partials.topbar')
 
         {{-- Page Content --}}
-        <main class="flex-1 p-6">
+        <main class="mx-auto w-full overflow-auto p-4 md:p-6 2xl:p-10 max-w-screen-2xl">
 
             {{-- Breadcrumb --}}
             @hasSection('breadcrumb')
-            <div class="text-sm breadcrumbs mb-4">
-                <ul>
-                    <li><a href="{{ route('dashboard') }}">Home</a></li>
+            <nav class="mb-4">
+                <ol class="flex items-center gap-2 text-sm">
+                    <li><a class="font-medium text-gray-500 hover:text-primary" href="{{ route('dashboard') }}">Home /</a></li>
                     @yield('breadcrumb')
-                </ul>
+                </ol>
+            </nav>
+            @endif
+
+            {{-- Page Header --}}
+            @hasSection('page-title')
+            <div class="mb-8">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">@yield('page-title')</h1>
+                        @hasSection('page-subtitle')
+                        <p class="mt-1 text-gray-500 dark:text-gray-400">@yield('page-subtitle')</p>
+                        @endif
+                    </div>
+                    @hasSection('page-actions')
+                    <div class="flex items-center gap-2">@yield('page-actions')</div>
+                    @endif
+                </div>
             </div>
             @endif
 
             {{-- Flash Messages --}}
             @include('partials.flash-messages')
-
-            {{-- Page Title --}}
-            @hasSection('page-title')
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-base-content">@yield('page-title')</h1>
-                    @hasSection('page-subtitle')
-                    <p class="text-base-content/50 text-sm mt-0.5">@yield('page-subtitle')</p>
-                    @endif
-                </div>
-                @hasSection('page-actions')
-                <div class="flex items-center gap-2">
-                    @yield('page-actions')
-                </div>
-                @endif
-            </div>
-            @endif
 
             {{-- Main Slot --}}
             @yield('content')
@@ -71,53 +65,35 @@
         </main>
 
         {{-- Footer --}}
-        <footer class="footer footer-center p-3 bg-base-100 border-t border-base-200 text-xs text-base-content/40">
-            <p>EPMS IOI v{{ config('app.version') }} &copy; {{ date('Y') }}</p>
+        <footer class="border-t border-gray-200 bg-white px-6 py-3 text-center text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-dark">
+            EPMS IOI v{{ config('app.version') }} &copy; {{ date('Y') }}
         </footer>
 
     </div>
-
-    {{-- Sidebar Drawer --}}
-    <div class="drawer-side z-40">
-        <label for="sidebar-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        @include('partials.sidebar')
-    </div>
 </div>
 
-{{-- ── ALPINE.JS GLOBAL SCRIPTS ───────────────────────────────────────────── --}}
 <script>
-    // Dark mode component
-    function darkMode() {
-        return {
-            isDark: localStorage.getItem('theme') === 'dark',
-            toggle() {
-                this.isDark = !this.isDark;
-                const theme = this.isDark ? 'dark' : 'light';
-                localStorage.setItem('theme', theme);
-                document.documentElement.setAttribute('data-theme', theme);
-            }
-        }
-    }
-
-    // App layout component
     function appLayout() {
-        const saved = localStorage.getItem('theme') || 'light';
+        const saved = localStorage.getItem('theme');
+        const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
         return {
-            theme: saved,
+            isDark: isDark,
+            sidebarOpen: window.innerWidth >= 1024,
+            toggleDark() {
+                this.isDark = !this.isDark;
+                localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+            },
             init() {
-                // Apply saved theme immediately
-                document.documentElement.setAttribute('data-theme', this.theme);
+                // Responsive: close sidebar on small screens
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth < 1024) this.sidebarOpen = false;
+                    else this.sidebarOpen = true;
+                });
             }
         }
     }
-
-    // Axios CSRF setup for AJAX calls
-    window.axios && (window.axios.defaults.headers.common['X-CSRF-TOKEN'] =
-        document.querySelector('meta[name="csrf-token"]')?.content);
 </script>
 
-{{-- Page-specific scripts --}}
 @stack('scripts')
-
 </body>
 </html>
