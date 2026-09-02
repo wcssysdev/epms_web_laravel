@@ -56,10 +56,17 @@
 
 /* ─────────────────────────────────────────────────────────────────────────
    OVERRIDE: Disable daisyUI auto dark mode from OS preference
+   daisyUI v5 uses @media(prefers-color-scheme:dark) to apply dark theme.
+   We override it: ONLY apply dark when data-theme="dark" is explicitly set.
    ───────────────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="dark"]) {
         color-scheme: light;
+        /* Reset all daisyUI dark CSS vars back to light values */
+        --b1: oklch(100% 0 0);
+        --b2: oklch(96.1% 0 0);
+        --b3: oklch(92.4% 0 0);
+        --bc: oklch(27.8% 0.029 256.85);
     }
 }
 

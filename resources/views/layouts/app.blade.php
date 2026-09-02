@@ -9,17 +9,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <title>@yield('title', 'Dashboard') — EPMS IOI</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>"/>
-    {{-- Prevent dark mode flash: apply theme BEFORE page renders --}}
+    {{-- Theme: set BEFORE CSS loads to prevent flash --}}
     <script>
         (function() {
-            var theme = localStorage.getItem('theme');
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.documentElement.classList.remove('dark');
-            }
+            var t = localStorage.getItem('theme');
+            // Default always LIGHT unless explicitly saved as dark
+            document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
