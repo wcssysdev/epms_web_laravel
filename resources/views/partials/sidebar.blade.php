@@ -68,14 +68,17 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 @php
                                 $masterLinks = [
-                                    'Estate'   => 'masters.estate.index',
-                                    'Division' => 'masters.division.index',
-                                    'Block'    => 'masters.block.index',
-                                    'Employee' => 'masters.employee.index',
-                                    'Activity' => '#',
-                                    'Material' => '#',
-                                    'Vendor'   => '#',
-                                    'Device'   => '#',
+                                    'Estate'       => 'masters.estate.index',
+                                    'Division'     => 'masters.division.index',
+                                    'Block'        => 'masters.block.index',
+                                    'Employee'     => 'masters.employee.index',
+                                    'Activity'     => 'masters.activity.index',
+                                    'Material'     => 'masters.material.index',
+                                    'Vendor'       => 'masters.vendor.index',
+                                    'Device'       => 'masters.device.index',
+                                    'Worktype'     => 'masters.worktype.index',
+                                    'Work Center'  => 'masters.work_center.index',
+                                    'Cost Center'  => 'masters.cost_center.index',
                                 ];
                                 @endphp
                                 @foreach($masterLinks as $label => $routeName)
@@ -121,10 +124,10 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
-                                <li><a href="#" class="sidebar-subitem">Gang Employee</a></li>
-                                <li><a href="#" class="sidebar-subitem">Field Staff</a></li>
-                                <li><a href="#" class="sidebar-subitem">Mandor Employee</a></li>
-                                <li><a href="#" class="sidebar-subitem">Field Assistant Division</a></li>
+                                <li><a href="{{ route('grouping.gang_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.gang_employee') ? 'font-semibold text-primary' : '' }}">Gang Employee</a></li>
+                                <li><a href="{{ route('grouping.field_staff.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_staff') ? 'font-semibold text-primary' : '' }}">Field Staff</a></li>
+                                <li><a href="{{ route('grouping.mandor_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.mandor_employee') ? 'font-semibold text-primary' : '' }}">Mandor Employee</a></li>
+                                <li><a href="{{ route('grouping.field_assistant_division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_assistant') ? 'font-semibold text-primary' : '' }}">Field Assistant Division</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -173,7 +176,7 @@
 
                         {{-- Activity Log --}}
                         <li>
-                            <a href="#" class="sidebar-item {{ $route === 'admin.audit' ? 'active' : '' }}">
+                            <a href="{{ route('admin.audit.index') }}" class="sidebar-item {{ $route === 'admin.audit.index' ? 'active' : '' }}">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
                                     <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
                                 </svg>
@@ -194,7 +197,7 @@
 
                         {{-- Retrieve Master Data --}}
                         <li>
-                            <a href="#" class="sidebar-item">
+                            <a href="{{ route('admin.retrieve-master.index') }}" class="sidebar-item {{ str_starts_with($route,'admin.retrieve-master') ? 'active' : '' }}">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
                                     <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
                                 </svg>
@@ -204,7 +207,7 @@
 
                         {{-- Delete Pictures --}}
                         <li>
-                            <a href="#" class="sidebar-item">
+                            <a href="{{ route('admin.delete-pictures.index') }}" class="sidebar-item {{ str_starts_with($route,'admin.delete-pictures') ? 'active' : '' }}">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
                                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                 </svg>

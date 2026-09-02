@@ -1,0 +1,1 @@
+@include('admin.masters._shared.index')

@@ -6,10 +6,32 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ConfigController;
+// Grouping
+use App\Http\Controllers\Admin\Grouping\GangEmployeeController;
+use App\Http\Controllers\Admin\Grouping\FieldStaffController;
+use App\Http\Controllers\Admin\Grouping\MandorEmployeeController;
+use App\Http\Controllers\Admin\Grouping\FieldAssistantDivisionController;
+// Sprint 6 Utilities
+use App\Http\Controllers\Admin\AuditTrailController;
+use App\Http\Controllers\Admin\RetrieveMasterDataController;
+use App\Http\Controllers\Admin\DeletePicturesController;
+// Masters — company-scoped
 use App\Http\Controllers\Admin\Masters\EstateController;
 use App\Http\Controllers\Admin\Masters\DivisionController;
 use App\Http\Controllers\Admin\Masters\BlockController;
 use App\Http\Controllers\Admin\Masters\EmployeeController;
+use App\Http\Controllers\Admin\Masters\ActivityController;
+use App\Http\Controllers\Admin\Masters\VendorController;
+use App\Http\Controllers\Admin\Masters\MaterialController;
+use App\Http\Controllers\Admin\Masters\DeviceController;
+use App\Http\Controllers\Admin\Masters\WorktypeController;
+use App\Http\Controllers\Admin\Masters\WorkCenterController;
+use App\Http\Controllers\Admin\Masters\CostCenterController;
+// Masters — global lookups
+use App\Http\Controllers\Admin\Masters\AttendanceController;
+use App\Http\Controllers\Admin\Masters\UomController;
+use App\Http\Controllers\Admin\Masters\HarvestMethodController;
+use App\Http\Controllers\Admin\Masters\MovementTypeController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -105,11 +127,109 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/lookup',        [EmployeeController::class, 'lookup'])->name('lookup');
         });
 
+        // ── Activity ──────────────────────────────────────────────────────────
+        Route::prefix('activity')->name('activity.')->group(function () use ($masterRoutes) {
+            $masterRoutes('activity', ActivityController::class);
+        });
+
+        // ── Vendor ────────────────────────────────────────────────────────────
+        Route::prefix('vendor')->name('vendor.')->group(function () use ($masterRoutes) {
+            $masterRoutes('vendor', VendorController::class);
+            Route::post('/generate-qr', [VendorController::class, 'generateQr'])->name('generate-qr');
+            Route::get('/lookup',       [VendorController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Material ──────────────────────────────────────────────────────────
+        Route::prefix('material')->name('material.')->group(function () use ($masterRoutes) {
+            $masterRoutes('material', MaterialController::class);
+            Route::post('/generate-qr', [MaterialController::class, 'generateQr'])->name('generate-qr');
+            Route::get('/lookup',       [MaterialController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Device ────────────────────────────────────────────────────────────
+        Route::prefix('device')->name('device.')->group(function () use ($masterRoutes) {
+            $masterRoutes('device', DeviceController::class);
+            Route::get('/add',         [DeviceController::class, 'add'])->name('add');
+            Route::post('/save',       [DeviceController::class, 'save'])->name('save');
+            Route::get('/{id}/edit',   [DeviceController::class, 'edit'])->name('edit');
+            Route::put('/{id}',        [DeviceController::class, 'update'])->name('update');
+            Route::delete('/{id}',     [DeviceController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Worktype ──────────────────────────────────────────────────────────
+        Route::prefix('worktype')->name('worktype.')->group(function () use ($masterRoutes) {
+            $masterRoutes('worktype', WorktypeController::class);
+        });
+
+        // ── Work Center ───────────────────────────────────────────────────────
+        Route::prefix('work_center')->name('work_center.')->group(function () use ($masterRoutes) {
+            $masterRoutes('work_center', WorkCenterController::class);
+            Route::get('/lookup', [WorkCenterController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Cost Center ───────────────────────────────────────────────────────
+        Route::prefix('cost_center')->name('cost_center.')->group(function () use ($masterRoutes) {
+            $masterRoutes('cost_center', CostCenterController::class);
+            Route::get('/lookup', [CostCenterController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Global Lookups (Super/Country Admin manage, all roles read) ───────
+        Route::prefix('global')->name('global.')->group(function () {
+
+            // Reusable macro for global CRUD
+            $globalRoutes = function (string $controller) {
+                Route::get('/',           [$controller, 'index'])->name('index');
+                Route::get('/datatable',  [$controller, 'getDatatable'])->name('datatable');
+                Route::get('/add',        [$controller, 'add'])->name('add');
+                Route::post('/save',      [$controller, 'save'])->name('save');
+                Route::get('/{id}/edit',  [$controller, 'edit'])->name('edit');
+                Route::put('/{id}',       [$controller, 'update'])->name('update');
+                Route::delete('/{id}',    [$controller, 'destroy'])->name('destroy');
+                Route::get('/generate-csv', [$controller, 'generateCsv'])->name('generate-csv');
+                Route::get('/lookup',     [$controller, 'lookup'])->name('lookup');
+            };
+
+            Route::prefix('attendance')->name('attendance.')->group(fn() => $globalRoutes(AttendanceController::class));
+            Route::prefix('uom')->name('uom.')->group(fn() => $globalRoutes(UomController::class));
+            Route::prefix('harvest_method')->name('harvest_method.')->group(fn() => $globalRoutes(HarvestMethodController::class));
+            Route::prefix('movement_type')->name('movement_type.')->group(fn() => $globalRoutes(MovementTypeController::class));
+
+        });
+
     });
 
     // ── Grouping routes ────────────────────────────────────────────────────
     Route::middleware(['role:50'])->prefix('grouping')->name('grouping.')->group(function () {
-        // TODO Sprint 5: Gang Employee, Field Staff, Mandor, Asst Manager
+
+        // Reusable macro for grouping CRUD
+        $groupRoutes = function (string $controller) {
+            Route::get('/',           [$controller, 'index'])->name('index');
+            Route::get('/datatable',  [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/create',     [$controller, 'create'])->name('create');
+            Route::post('/',          [$controller, 'store'])->name('store');
+            Route::get('/{id}/edit',  [$controller, 'edit'])->name('edit');
+            Route::put('/{id}',       [$controller, 'update'])->name('update');
+            Route::delete('/{id}',    [$controller, 'destroy'])->name('destroy');
+        };
+
+        Route::prefix('gang_employee')->name('gang_employee.')->group(function () use ($groupRoutes) {
+            $groupRoutes(GangEmployeeController::class);
+            Route::get('/gang-codes', [GangEmployeeController::class, 'gangCodes'])->name('gang-codes');
+        });
+
+        Route::prefix('field_staff')->name('field_staff.')->group(function () use ($groupRoutes) {
+            $groupRoutes(FieldStaffController::class);
+        });
+
+        Route::prefix('mandor_employee')->name('mandor_employee.')->group(function () use ($groupRoutes) {
+            $groupRoutes(MandorEmployeeController::class);
+        });
+
+        Route::prefix('field_assistant_division')->name('field_assistant_division.')->group(function () use ($groupRoutes) {
+            $groupRoutes(FieldAssistantDivisionController::class);
+            Route::get('/managers', [FieldAssistantDivisionController::class, 'managers'])->name('managers');
+        });
+
     });
 
     // ── Planning routes ────────────────────────────────────────────────────
@@ -125,6 +245,26 @@ Route::middleware(['auth.check'])->group(function () {
     // ── Reporting routes ───────────────────────────────────────────────────
     Route::prefix('reporting')->name('reporting.')->group(function () {
         // TODO Sprint 7+
+    });
+
+    // ── Audit Trail ────────────────────────────────────────────────────────
+    Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
+        Route::get('/',          [AuditTrailController::class, 'index'])->name('index');
+        Route::get('/datatable', [AuditTrailController::class, 'getDatatable'])->name('datatable');
+    });
+
+    // ── Retrieve Master Data ────────────────────────────────────────────────
+    Route::prefix('admin/retrieve-master')->name('admin.retrieve-master.')->group(function () {
+        Route::get('/',          [RetrieveMasterDataController::class, 'index'])->name('index');
+        Route::post('/sync',     [RetrieveMasterDataController::class, 'sync'])->name('sync');
+        Route::post('/sync-all', [RetrieveMasterDataController::class, 'syncAll'])->name('sync-all');
+    });
+
+    // ── Delete Pictures (Company Admin+) ───────────────────────────────────
+    Route::middleware(['role:30'])->prefix('admin/delete-pictures')->name('admin.delete-pictures.')->group(function () {
+        Route::get('/',        [DeletePicturesController::class, 'index'])->name('index');
+        Route::post('/count',  [DeletePicturesController::class, 'count'])->name('count');
+        Route::post('/delete', [DeletePicturesController::class, 'delete'])->name('delete');
     });
 
 });
