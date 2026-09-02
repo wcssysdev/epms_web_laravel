@@ -19,7 +19,7 @@
                     <div class="flex h-8 w-8 items-center justify-center rounded bg-primary text-white text-xs font-bold shrink-0">
                         🌴
                     </div>
-                    <span class="text-2xl font-bold text-gray-900 dark:text-white">EPMS WEB</span>
+                    <span class="text-2xl font-bold sidebar-logo-text">EPMS WEB</span>
                 </div>
             </a>
         </div>
@@ -29,7 +29,7 @@
 
             {{-- ── MAIN section ─────────────────────────────────────────── --}}
             <div class="mb-6">
-                <h2 class="mb-5 text-sm font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                <h2 class="mb-5 text-sm font-medium uppercase tracking-widest sidebar-section-title">
                     {{ strtoupper(session('role_name', 'User')) }}
                 </h2>
                 <nav>
@@ -207,7 +207,7 @@
 
             {{-- ── HELP section ──────────────────────────────────────────── --}}
             <div class="mb-6">
-                <h2 class="mb-5 text-sm font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">HELP</h2>
+                <h2 class="mb-5 text-sm font-medium uppercase tracking-widest sidebar-section-title">HELP</h2>
                 <nav>
                     <ul class="space-y-2">
                         <li>

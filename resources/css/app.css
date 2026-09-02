@@ -7,75 +7,162 @@
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --color-primary: #5750f1;
-    --color-gray-dark: #1a2231;
 }
 
-/*
- * CRITICAL: Override daisyUI dark mode media query.
- * daisyUI v5 by default applies dark theme when OS is dark.
- * We force light theme unless [data-theme="dark"] is explicitly set.
- */
+/* ─────────────────────────────────────────────────────────────────────────
+   EPMS CSS VARIABLES — controlled by data-theme attribute (not prefers-color-scheme)
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* LIGHT theme (default) */
+:root,
+[data-theme="light"] {
+    --epms-bg:           #f3f4f6;
+    --epms-header-bg:    #ffffff;
+    --epms-sidebar-bg:   #ffffff;
+    --epms-border:       #e5e7eb;
+    --epms-text:         #111827;
+    --epms-text-muted:   #6b7280;
+    --epms-hover-bg:     #f3f4f6;
+    --epms-pill-bg:      #f3f4f6;
+    --epms-pill-dot:     #ffffff;
+    --epms-pill-border:  #e5e7eb;
+    --epms-icon-btn-bg:  #f9fafb;
+    --epms-icon-btn-border: #e5e7eb;
+    --epms-dropdown-bg:  #ffffff;
+    --epms-toggle-btn-bg: #f9fafb;
+    --epms-toggle-btn-border: #e5e7eb;
+    color-scheme: light;
+}
+
+/* DARK theme */
+[data-theme="dark"] {
+    --epms-bg:           #020d1a;
+    --epms-header-bg:    #1a2231;
+    --epms-sidebar-bg:   #1a2231;
+    --epms-border:       #374151;
+    --epms-text:         #f9fafb;
+    --epms-text-muted:   #9ca3af;
+    --epms-hover-bg:     rgba(255,255,255,0.08);
+    --epms-pill-bg:      #374151;
+    --epms-pill-dot:     #4b5563;
+    --epms-pill-border:  transparent;
+    --epms-icon-btn-bg:  #111827;
+    --epms-icon-btn-border: #374151;
+    --epms-dropdown-bg:  #1f2937;
+    --epms-toggle-btn-bg: #111827;
+    --epms-toggle-btn-border: #374151;
+    color-scheme: dark;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   OVERRIDE: Disable daisyUI auto dark mode from OS preference
+   ───────────────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="dark"]) {
         color-scheme: light;
     }
 }
-/* ── Sidebar & layout ------------------------------------------------------ */
-.dark\:bg-gray-dark  { background-color: #1a2231; }
-.bg-gray-dark        { background-color: #1a2231; }
-.dark\:bg-\[#020d1a\] { background-color: #020d1a; }
 
-/* ── Primary color helpers -------------------------------------------------- */
-.text-primary                { color: #5750f1 !important; }
-.hover\:text-primary:hover   { color: #5750f1 !important; }
-.bg-primary                  { background-color: #5750f1 !important; }
-.border-primary              { border-color: #5750f1 !important; }
-.focus-visible\:border-primary:focus-visible { border-color: #5750f1 !important; }
-
-/* ── Sidebar menu active state ---------------------------------------------- */
-.sidebar-active {
-    background-color: rgba(87, 80, 241, 0.07);
-    color: #5750f1;
-}
-.dark .sidebar-active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
+/* ─────────────────────────────────────────────────────────────────────────
+   LAYOUT
+   ───────────────────────────────────────────────────────────────────────── */
+body {
+    background-color: var(--epms-bg);
 }
 
-/* ── Sidebar menu hover ----------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   SIDEBAR
+   ───────────────────────────────────────────────────────────────────────── */
+aside {
+    background-color: var(--epms-sidebar-bg) !important;
+    border-color: var(--epms-border) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TOPBAR HEADER
+   ───────────────────────────────────────────────────────────────────────── */
+header {
+    background-color: var(--epms-header-bg) !important;
+    border-color: var(--epms-border) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TOPBAR BUTTONS
+   ───────────────────────────────────────────────────────────────────────── */
+.epms-toggle-btn {
+    background-color: var(--epms-toggle-btn-bg);
+    border-color: var(--epms-toggle-btn-border);
+    color: var(--epms-text);
+}
+.epms-toggle-btn:hover {
+    background-color: var(--epms-hover-bg);
+}
+
+.epms-icon-btn {
+    background-color: var(--epms-icon-btn-bg);
+    border-color: var(--epms-icon-btn-border);
+    color: var(--epms-text);
+}
+.epms-icon-btn:hover { color: #5750f1; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DARK MODE PILL TOGGLE
+   ───────────────────────────────────────────────────────────────────────── */
+.epms-pill-toggle {
+    background-color: var(--epms-pill-bg);
+    color: var(--epms-text);
+}
+.epms-pill-indicator {
+    background-color: var(--epms-pill-dot);
+    border-color: var(--epms-pill-border);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DROPDOWN
+   ───────────────────────────────────────────────────────────────────────── */
+.epms-dropdown {
+    background-color: var(--epms-dropdown-bg);
+    border-color: var(--epms-border);
+}
+.epms-dropdown-item {
+    color: var(--epms-text);
+}
+.epms-dropdown-item:hover {
+    background-color: var(--epms-hover-bg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SIDEBAR MENU ITEMS
+   ───────────────────────────────────────────────────────────────────────── */
 .sidebar-item {
-    border-radius: 0.5rem;         /* rounded-lg */
-    padding: 0.75rem 0.875rem;     /* py-3 px-3.5 */
+    border-radius: 0.5rem;
+    padding: 0.75rem 0.875rem;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     width: 100%;
     transition: background-color 0.2s, color 0.2s;
-    color: #6b7280;                /* text-gray-500 */
+    color: var(--epms-text-muted);
     text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
 }
 .sidebar-item:hover {
-    background-color: #f3f4f6;    /* gray-100 */
-    color: #111827;               /* gray-900 */
-}
-.dark .sidebar-item {
-    color: #9ca3af;               /* dark gray text */
-}
-.dark .sidebar-item:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: #fff;
+    background-color: var(--epms-hover-bg);
+    color: var(--epms-text);
 }
 .sidebar-item.active {
     background-color: rgba(87, 80, 241, 0.07);
     color: #5750f1;
 }
-.dark .sidebar-item.active {
-    background-color: rgba(255,255,255,0.1);
-    color: #fff;
+[data-theme="dark"] .sidebar-item.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 
-/* ── Sidebar submenu items -------------------------------------------------- */
 .sidebar-subitem {
     display: flex;
     align-items: center;
@@ -83,30 +170,55 @@
     padding: 0.5rem 0.875rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--epms-text-muted);
     text-decoration: none;
     transition: background-color 0.2s, color 0.2s;
 }
 .sidebar-subitem:hover {
-    background-color: #f3f4f6;
-    color: #111827;
-}
-.dark .sidebar-subitem { color: #9ca3af; }
-.dark .sidebar-subitem:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: #fff;
+    background-color: var(--epms-hover-bg);
+    color: var(--epms-text);
 }
 
-/* ── Custom scrollbar ------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   SIDEBAR SECTION HEADING & LOGO TEXT
+   ───────────────────────────────────────────────────────────────────────── */
+.sidebar-section-title {
+    color: var(--epms-text-muted);
+}
+.sidebar-logo-text {
+    color: var(--epms-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CUSTOM SCROLLBAR
+   ───────────────────────────────────────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar       { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
-.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--epms-border); border-radius: 2px; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   PRIMARY COLOR HELPERS
+   ───────────────────────────────────────────────────────────────────────── */
+.text-primary              { color: #5750f1 !important; }
+.hover\:text-primary:hover { color: #5750f1 !important; }
+.bg-primary                { background-color: #5750f1 !important; }
+.border-primary            { border-color: #5750f1 !important; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   MAIN CONTENT AREA
+   ───────────────────────────────────────────────────────────────────────── */
+main {
+    color: var(--epms-text);
+}
+footer {
+    background-color: var(--epms-header-bg);
+    border-color: var(--epms-border);
+    color: var(--epms-text-muted);
+}
 
 @plugin "daisyui" {
     themes: ["light", "dark"];
     defaultTheme: "light";
-    darkTheme: "dark";
     prefersDarkMode: false;
     logs: false;
 }
