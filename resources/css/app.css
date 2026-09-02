@@ -10,6 +10,16 @@
     --color-gray-dark: #1a2231;
 }
 
+/*
+ * CRITICAL: Override daisyUI dark mode media query.
+ * daisyUI v5 by default applies dark theme when OS is dark.
+ * We force light theme unless [data-theme="dark"] is explicitly set.
+ */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="dark"]) {
+        color-scheme: light;
+    }
+}
 /* ── Sidebar & layout ------------------------------------------------------ */
 .dark\:bg-gray-dark  { background-color: #1a2231; }
 .bg-gray-dark        { background-color: #1a2231; }
@@ -97,5 +107,6 @@
     themes: ["light", "dark"];
     defaultTheme: "light";
     darkTheme: "dark";
+    prefersDarkMode: false;
     logs: false;
 }

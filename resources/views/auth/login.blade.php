@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" x-data="loginPage()" :data-theme="theme">
+<html lang="en" data-theme="light" x-data="loginPage()" :data-theme="theme">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <title>Login — EPMS IOI</title>
     <script>
+        // Apply saved theme BEFORE CSS loads — prevent flash
         (function() {
             var t = localStorage.getItem('theme');
+            // Default is LIGHT — only go dark if explicitly saved
             document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
         })();
     </script>
@@ -140,10 +142,11 @@
     function loginPage() {
         return {
             loading: false,
-            theme: localStorage.getItem('theme') || 'light',
+            theme: localStorage.getItem('theme') || 'light',  // default LIGHT
             toggleTheme() {
                 this.theme = this.theme === 'light' ? 'dark' : 'light';
                 localStorage.setItem('theme', this.theme);
+                document.documentElement.setAttribute('data-theme', this.theme);
             }
         }
     }
