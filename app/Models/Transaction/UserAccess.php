@@ -22,7 +22,7 @@ class UserAccess extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
-    // ── Relationships ────────────────────────────────────────────────
+    // ── Relationships ─────────────────────────────────────────────────────────
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -43,7 +43,7 @@ class UserAccess extends Model
         return $this->belongsTo(Country::class, 'country_id');
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
     public function isSuperAdmin(): bool
     {
         return is_null($this->country_id) && is_null($this->company_id);

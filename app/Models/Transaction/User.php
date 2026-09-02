@@ -4,7 +4,6 @@ namespace App\Models\Transaction;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Global\Company;
 use App\Models\Global\Role;
@@ -33,23 +32,13 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
     ];
 
-    // ── Relationships ────────────────────────────────────────────────
+    // ── Relationships ─────────────────────────────────────────────────────────
     public function access(): HasOne
     {
         return $this->hasOne(UserAccess::class, 'user_id');
     }
 
-    public function role(): ?Role
-    {
-        return $this->access?->role;
-    }
-
-    public function company(): ?Company
-    {
-        return $this->access?->company;
-    }
-
-    // ── Computed Helpers ─────────────────────────────────────────────
+    // ── Computed Attributes ───────────────────────────────────────────────────
     public function getCompanyIdAttribute(): ?int
     {
         return $this->access?->company_id;
@@ -60,11 +49,6 @@ class User extends Authenticatable
         return $this->access?->country_id;
     }
 
-    public function getRoleIdAttribute(): ?int
-    {
-        return $this->access?->role_id;
-    }
-
     public function getRoleLevelAttribute(): int
     {
         return $this->access?->role?->level ?? 99;
@@ -73,6 +57,11 @@ class User extends Authenticatable
     public function getRoleNameAttribute(): string
     {
         return $this->access?->role?->role_name ?? 'Unknown';
+    }
+
+    public function getRoleCodeAttribute(): string
+    {
+        return $this->access?->role?->role_code ?? '';
     }
 
     public function getCompanyNameAttribute(): string
@@ -100,13 +89,12 @@ class User extends Authenticatable
         return $this->companyConfig?->sap_client ?? '000';
     }
 
-    /** Company config for the user's company */
     public function getCompanyConfigAttribute(): ?CompanyConfig
     {
         return $this->access?->company?->config;
     }
 
-    // ── Permission Checks ────────────────────────────────────────────
+    // ── Permission Checks ─────────────────────────────────────────────────────
     public function isSuperAdmin(): bool
     {
         return $this->access?->isSuperAdmin() ?? false;
@@ -130,19 +118,22 @@ class User extends Authenticatable
     public function canAccessCompany(int $companyId): bool
     {
         if ($this->isSuperAdmin()) return true;
-
         if ($this->isCountryAdmin()) {
             $company = Company::find($companyId);
             return $company?->country_id === $this->country_id;
         }
-
         return $this->company_id === $companyId;
     }
 
-    // ── Auth Helpers ─────────────────────────────────────────────────
+    // ── Auth Helpers ──────────────────────────────────────────────────────────
     public function updateLastLogin(): void
     {
         $this->update(['last_login_at' => now()]);
+    }
+
+    public function clearToken(): void
+    {
+        $this->update(['user_token' => null]);
     }
 
     public function setPasswordAttribute(string $value): void
@@ -152,9 +143,32 @@ class User extends Authenticatable
             : $value;
     }
 
-    // ── Scopes ───────────────────────────────────────────────────────
+    // ── Scopes ────────────────────────────────────────────────────────────────
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope users visible to the given actor (respect company scope).
+     */
+    public function scopeVisibleTo($query, User $actor)
+    {
+        if ($actor->isSuperAdmin()) {
+            return $query;
+        }
+
+        if ($actor->isCountryAdmin()) {
+            // Show users in all companies within this country
+            $companyIds = Company::where('country_id', $actor->country_id)->pluck('id');
+            return $query->whereHas('access', fn($q) =>
+                $q->whereIn('company_id', $companyIds)
+            );
+        }
+
+        // Company Admin — only own company
+        return $query->whereHas('access', fn($q) =>
+            $q->where('company_id', $actor->company_id)
+        );
     }
 }

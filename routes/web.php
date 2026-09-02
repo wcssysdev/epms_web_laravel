@@ -38,8 +38,15 @@ Route::middleware(['auth.check'])->group(function () {
 
         // User Management
         Route::prefix('users')->name('users.')->group(function () {
-            Route::get('/',               [UserController::class, 'index'])->name('index');
-            // TODO Sprint 1: create, store, edit, update, destroy, reset-password
+            Route::get('/',                         [UserController::class, 'index'])->name('index');
+            Route::get('/datatable',                [UserController::class, 'getDatatable'])->name('datatable');
+            Route::get('/create',                   [UserController::class, 'create'])->name('create');
+            Route::post('/',                        [UserController::class, 'store'])->name('store');
+            Route::get('/{user}/edit',              [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}',                   [UserController::class, 'update'])->name('update');
+            Route::post('/{user}/reset-password',   [UserController::class, 'resetPassword'])->name('reset-password');
+            Route::post('/{user}/toggle-active',    [UserController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/{user}/reset-session',    [UserController::class, 'resetSession'])->name('reset-session');
         });
 
         // Estate Settings / Config
