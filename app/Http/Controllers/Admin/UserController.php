@@ -286,24 +286,25 @@ class UserController extends BaseController
     {
         $config = $this->companyConfig;
 
+        $isPalm    = (bool) ($config?->system_is_palm    ?? false);
+        $isCoconut = (bool) ($config?->system_is_coconut ?? false);
+        $isDurian  = (bool) ($config?->system_is_durian  ?? false);
+        $isRubber  = (bool) ($config?->system_is_rubber  ?? false);
+
         return Role::active()
-            ->where('level', '>=', 30) // Cannot assign super/country admin via UI
-            ->where(function ($q) use ($config) {
-                $q->whereNull('required_system_type')
-                  ->orWhere(function ($q2) use ($config) {
-                      $q2->where('required_system_type', 'palm')
-                         ->where(fn($x) => $config?->system_is_palm ? $x : $x->whereRaw('1=0'));
-                  })
-                  ->orWhere(function ($q2) use ($config) {
-                      $q2->where('required_system_type', 'coconut')
-                         ->where(fn($x) => $config?->system_is_coconut ? $x : $x->whereRaw('1=0'));
-                  })
-                  ->orWhere(function ($q2) use ($config) {
-                      $q2->where('required_system_type', 'durian')
-                         ->where(fn($x) => $config?->system_is_durian ? $x : $x->whereRaw('1=0'));
-                  });
+            ->where('level', '>=', 30)
+            ->where(function ($q) use ($isPalm, $isCoconut, $isDurian, $isRubber) {
+                // Always include roles with no system type requirement
+                $q->whereNull('required_system_type');
+
+                // Include type-specific roles only if that system is enabled
+                if ($isPalm)    $q->orWhere('required_system_type', 'palm');
+                if ($isCoconut) $q->orWhere('required_system_type', 'coconut');
+                if ($isDurian)  $q->orWhere('required_system_type', 'durian');
+                if ($isRubber)  $q->orWhere('required_system_type', 'rubber');
             })
             ->orderBy('level')
+            ->orderBy('role_name')
             ->get();
     }
 
