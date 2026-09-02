@@ -132,7 +132,43 @@
 
 @endsection
 
+@push('styles')
+{{-- DataTables CSS --}}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+
+<style>
+    .btn-action {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; border-radius: 6px; border: 1px solid;
+        transition: opacity 0.15s; cursor: pointer; background: none;
+    }
+    .btn-action:hover { opacity: 0.75; }
+    .btn-edit    { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+    .btn-warning { background: #fffbeb; border-color: #fde68a; color: #d97706; }
+    .btn-danger  { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .btn-success { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+    .btn-info    { background: #f0f9ff; border-color: #bae6fd; color: #0284c7; }
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        background: var(--epms-header-bg); color: var(--epms-text);
+        border: 1px solid var(--epms-border); border-radius: 8px;
+        padding: 4px 10px; font-size: 13px;
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate { color: var(--epms-text-muted); font-size: 13px; margin-top: 12px; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 6px !important; padding: 4px 10px !important; color: var(--epms-text) !important; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: #5750f1 !important; border-color: #5750f1 !important; color: white !important; }
+    table.dataTable thead th { border-bottom: 1px solid var(--epms-border) !important; }
+    table.dataTable tbody td { padding: 10px 12px !important; vertical-align: middle; }
+    table.dataTable.no-footer { border-bottom: none; }
+</style>
+@endpush
+
 @push('scripts')
+{{-- jQuery + DataTables JS --}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
 <script>
 // ── DataTables init ────────────────────────────────────────────────────────
 $(document).ready(function () {
@@ -287,65 +323,4 @@ function showToast(message, type = 'success') {
 }
 </script>
 
-{{-- DataTables CSS --}}
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
-
-{{-- DataTables JS --}}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-{{-- Action button styles --}}
-<style>
-    .btn-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px; height: 30px;
-        border-radius: 6px;
-        border: 1px solid;
-        transition: opacity 0.15s;
-        cursor: pointer;
-    }
-    .btn-action:hover { opacity: 0.75; }
-    .btn-edit    { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
-    .btn-warning { background: #fffbeb; border-color: #fde68a; color: #d97706; }
-    .btn-danger  { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
-    .btn-success { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
-    .btn-info    { background: #f0f9ff; border-color: #bae6fd; color: #0284c7; }
-    /* DataTables styling */
-    .dataTables_wrapper .dataTables_filter input,
-    .dataTables_wrapper .dataTables_length select {
-        background: var(--epms-header-bg);
-        color: var(--epms-text);
-        border: 1px solid var(--epms-border);
-        border-radius: 8px;
-        padding: 4px 10px;
-        font-size: 13px;
-    }
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate {
-        color: var(--epms-text-muted);
-        font-size: 13px;
-        margin-top: 12px;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        border-radius: 6px !important;
-        padding: 4px 10px !important;
-        color: var(--epms-text) !important;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #5750f1 !important;
-        border-color: #5750f1 !important;
-        color: white !important;
-    }
-    table.dataTable thead th {
-        border-bottom: 1px solid var(--epms-border) !important;
-    }
-    table.dataTable tbody td {
-        padding: 10px 12px !important;
-        vertical-align: middle;
-    }
-    table.dataTable.no-footer { border-bottom: none; }
-</style>
 @endpush
