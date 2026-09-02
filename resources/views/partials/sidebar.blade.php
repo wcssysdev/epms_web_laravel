@@ -1,9 +1,16 @@
 @php
     $roleLevel   = session('role_level', 99);
+    $roleCode    = session('role_code', '');
     $isPalm      = session('is_palm', false);
     $isCoconut   = session('is_coconut', false);
     $isDurian    = session('is_durian', false);
     $route       = request()->route()?->getName() ?? '';
+    $isItStaff   = $roleCode === 'it_staff';
+    // Access flags mirror the route middleware gating
+    $canMasters  = $roleLevel <= 40 || $isItStaff;   // Estate Manager + IT Staff
+    $canGrouping = $roleLevel <= 50 || $isItStaff;   // Asst Manager + IT Staff
+    $canPlanning = $roleLevel <= 50;                 // Asst Manager + Estate Manager
+    $canApproval = $roleLevel <= 40;                 // Estate Manager
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -49,6 +56,62 @@
                 </nav>
             </div>
 
+            {{-- ── Planning (Asst Manager 50 + Estate Manager 40) ────────── --}}
+            @if($canPlanning)
+            <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'planning.') ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                </svg>
+                                <span>Planning</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('planning.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                                <li><a href="{{ route('planning.harvesting_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.harvesting_plan') ? 'font-semibold text-primary' : '' }}">Harvesting Plan</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            @endif
+
+            {{-- ── Approval (Estate Manager 40) ──────────────────────────── --}}
+            @if($canApproval)
+            <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                                <span>Approval</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('approval.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            @endif
+
+            @if($canMasters)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'masters.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -106,7 +169,10 @@
                 </nav>
             </div>
 
-            {{-- ── Grouping (collapsible) ───────────────────────────────── --}}
+            @endif {{-- /canMasters --}}
+
+            {{-- ── Grouping (Asst Manager 50 + IT Staff) ─────────────────── --}}
+            @if($canGrouping)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'grouping.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -133,6 +199,8 @@
                     </ul>
                 </nav>
             </div>
+
+            @endif {{-- /canGrouping --}}
 
             {{-- ── Standalone items ─────────────────────────────────────── --}}
             <div class="mb-6">

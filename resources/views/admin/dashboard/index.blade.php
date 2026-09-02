@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard')
 
-@section('page-title', 'Admin Dashboard')
+@section('page-title', session('role_name', 'Dashboard'))
 @section('page-subtitle', 'Welcome back, ' . session('user_name', 'User'))
 
 @section('content')

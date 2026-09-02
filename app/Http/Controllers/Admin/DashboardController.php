@@ -45,14 +45,43 @@ class DashboardController extends BaseController
 
     private function getQuickAccessCards(int $roleLevel): array
     {
+        $isItStaff = $this->currentUser?->role_code === 'it_staff';
+
         $cards = [
+            // ── Planning (Asst Manager 50 + Estate Manager 40) ──────────────
+            [
+                'icon'  => '📝',
+                'title' => 'Workplan',
+                'desc'  => 'Plan daily field activities and submit for approval',
+                'route' => 'planning.workplan.index',
+                'color' => 'bg-teal-50 dark:bg-teal-900/20',
+                'min_level' => 50,
+            ],
+            [
+                'icon'  => '🌾',
+                'title' => 'Harvesting Plan',
+                'desc'  => 'Set harvesting targets per block',
+                'route' => 'planning.harvesting_plan.index',
+                'color' => 'bg-lime-50 dark:bg-lime-900/20',
+                'min_level' => 50,
+            ],
+            // ── Approval (Estate Manager 40) ────────────────────────────────
+            [
+                'icon'  => '✅',
+                'title' => 'Workplan Approval',
+                'desc'  => 'Review and approve published workplans',
+                'route' => 'approval.workplan.index',
+                'color' => 'bg-emerald-50 dark:bg-emerald-900/20',
+                'min_level' => 40,
+            ],
+            // ── Master & Admin ──────────────────────────────────────────────
             [
                 'icon'  => '📁',
                 'title' => 'Master Data',
-                'desc'  => 'Manage master data: activities, blocks, divisions, employees, and more',
-                'route' => '#',
+                'desc'  => 'Manage activities, blocks, divisions, employees, and more',
+                'route' => 'masters.estate.index',
                 'color' => 'bg-yellow-50 dark:bg-yellow-900/20',
-                'min_level' => 70,
+                'min_level' => 40,
             ],
             [
                 'icon'  => '🏠',
@@ -70,11 +99,12 @@ class DashboardController extends BaseController
                 'color' => 'bg-blue-50 dark:bg-blue-900/20',
                 'min_level' => 30,
             ],
+            // ── Grouping (Asst Manager 50 + IT Staff) ───────────────────────
             [
                 'icon'  => '👥',
                 'title' => 'Field Assistant Division',
                 'desc'  => 'Assign field assistants to divisions',
-                'route' => '#',
+                'route' => 'grouping.field_assistant_division.index',
                 'color' => 'bg-orange-50 dark:bg-orange-900/20',
                 'min_level' => 50,
             ],
@@ -82,7 +112,7 @@ class DashboardController extends BaseController
                 'icon'  => '🧑‍🤝‍🧑',
                 'title' => 'Field Staff',
                 'desc'  => 'Manage field staff and gang assignments',
-                'route' => '#',
+                'route' => 'grouping.field_staff.index',
                 'color' => 'bg-purple-50 dark:bg-purple-900/20',
                 'min_level' => 50,
             ],
@@ -90,7 +120,7 @@ class DashboardController extends BaseController
                 'icon'  => '👫',
                 'title' => 'Gang Employee',
                 'desc'  => 'Manage gang employee groupings',
-                'route' => '#',
+                'route' => 'grouping.gang_employee.index',
                 'color' => 'bg-cyan-50 dark:bg-cyan-900/20',
                 'min_level' => 50,
             ],
@@ -98,7 +128,7 @@ class DashboardController extends BaseController
                 'icon'  => '📋',
                 'title' => 'Mandor Employee',
                 'desc'  => 'Manage mandor (foreman) to employee assignments',
-                'route' => '#',
+                'route' => 'grouping.mandor_employee.index',
                 'color' => 'bg-indigo-50 dark:bg-indigo-900/20',
                 'min_level' => 50,
             ],
@@ -112,7 +142,19 @@ class DashboardController extends BaseController
             ],
         ];
 
-        // Filter cards by role level
-        return array_filter($cards, fn($card) => $roleLevel <= $card['min_level']);
+        // Filter cards by role level, granting IT Staff master + grouping access
+        return array_values(array_filter($cards, function ($card) use ($roleLevel, $isItStaff) {
+            if ($roleLevel <= $card['min_level']) {
+                return true;
+            }
+            // IT Staff (level 60) also gets Master Data + Grouping cards
+            if ($isItStaff && in_array($card['title'], [
+                'Master Data', 'Field Assistant Division', 'Field Staff',
+                'Gang Employee', 'Mandor Employee',
+            ], true)) {
+                return true;
+            }
+            return false;
+        }));
     }
 }

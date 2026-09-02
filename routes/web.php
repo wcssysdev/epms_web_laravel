@@ -32,6 +32,11 @@ use App\Http\Controllers\Admin\Masters\AttendanceController;
 use App\Http\Controllers\Admin\Masters\UomController;
 use App\Http\Controllers\Admin\Masters\HarvestMethodController;
 use App\Http\Controllers\Admin\Masters\MovementTypeController;
+// Planning (Estate Manager 40 + Asst Manager 50)
+use App\Http\Controllers\Planning\WorkplanController;
+use App\Http\Controllers\Planning\HarvestingPlanController;
+// Approval (Estate Manager 40)
+use App\Http\Controllers\Approval\WorkplanApprovalController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -85,8 +90,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Masters routes (Estate Manager level 40 and above) ────────────────
-    Route::middleware(['role:40'])->prefix('masters')->name('masters.')->group(function () {
+    // ── Masters routes (Estate Manager level 40 and above, plus IT Staff) ──
+    Route::middleware(['role:40,it_staff'])->prefix('masters')->name('masters.')->group(function () {
 
         // ── Macro: register standard master data routes ───────────────────────
         // Each master: index, datatable, upload, preview, save, cancel, replace, get-data, generate-csv
@@ -198,8 +203,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Grouping routes ────────────────────────────────────────────────────
-    Route::middleware(['role:50'])->prefix('grouping')->name('grouping.')->group(function () {
+    // ── Grouping routes (Asst Manager 50 and above, plus IT Staff) ─────────
+    Route::middleware(['role:50,it_staff'])->prefix('grouping')->name('grouping.')->group(function () {
 
         // Reusable macro for grouping CRUD
         $groupRoutes = function (string $controller) {
@@ -232,9 +237,49 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Planning routes ────────────────────────────────────────────────────
-    Route::middleware(['role:60'])->prefix('planning')->name('planning.')->group(function () {
-        // TODO Sprint 6+
+    // ── Planning routes (Asst Manager 50 + Estate Manager 40) ───────────────
+    Route::middleware(['role:50'])->prefix('planning')->name('planning.')->group(function () {
+
+        // ── Workplan ──────────────────────────────────────────────────────────
+        Route::prefix('workplan')->name('workplan.')->group(function () {
+            Route::get('/',              [WorkplanController::class, 'index'])->name('index');
+            Route::get('/create',        [WorkplanController::class, 'create'])->name('create');
+            Route::post('/',             [WorkplanController::class, 'store'])->name('store');
+            Route::get('/{id}',          [WorkplanController::class, 'show'])->name('show');
+            Route::get('/{id}/edit',     [WorkplanController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [WorkplanController::class, 'update'])->name('update');
+            Route::delete('/{id}',       [WorkplanController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/publish', [WorkplanController::class, 'publish'])->name('publish');
+            // AJAX helpers
+            Route::get('/ajax/blocks',     [WorkplanController::class, 'getBlocks'])->name('blocks');
+            Route::get('/ajax/activities', [WorkplanController::class, 'getActivities'])->name('activities');
+            Route::get('/ajax/block-info', [WorkplanController::class, 'getBlockInfo'])->name('block-info');
+            Route::get('/ajax/materials',  [WorkplanController::class, 'searchMaterials'])->name('materials');
+        });
+
+        // ── Harvesting Plan ─────────────────────────────────────────────────
+        Route::prefix('harvesting-plan')->name('harvesting_plan.')->group(function () {
+            Route::get('/',              [HarvestingPlanController::class, 'index'])->name('index');
+            Route::get('/create',        [HarvestingPlanController::class, 'create'])->name('create');
+            Route::post('/',             [HarvestingPlanController::class, 'store'])->name('store');
+            Route::get('/{id}/edit',     [HarvestingPlanController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [HarvestingPlanController::class, 'update'])->name('update');
+            Route::delete('/{id}',       [HarvestingPlanController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/approve', [HarvestingPlanController::class, 'approve'])->name('approve');
+            Route::get('/ajax/blocks',   [HarvestingPlanController::class, 'getBlocks'])->name('blocks');
+        });
+
+    });
+
+    // ── Approval routes (Estate Manager 40) ─────────────────────────────────
+    Route::middleware(['role:40'])->prefix('approval')->name('approval.')->group(function () {
+
+        Route::prefix('workplan')->name('workplan.')->group(function () {
+            Route::get('/',       [WorkplanApprovalController::class, 'index'])->name('index');
+            Route::get('/detail', [WorkplanApprovalController::class, 'detail'])->name('detail');
+            Route::post('/submit',[WorkplanApprovalController::class, 'submit'])->name('submit');
+        });
+
     });
 
     // ── Transactions routes ────────────────────────────────────────────────

@@ -9,16 +9,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Check that the authenticated user has a role level
- * less than or equal to the required level.
+ * less than or equal to the required level, OR matches one of the
+ * explicitly allowed role codes (useful for cross-cutting roles like IT Staff).
  *
  * Usage in routes:
- *   ->middleware('role:30')   // Company Admin and above
- *   ->middleware('role:20')   // Country Admin and above
- *   ->middleware('role:10')   // Super Admin only
+ *   ->middleware('role:30')            // Company Admin and above
+ *   ->middleware('role:20')            // Country Admin and above
+ *   ->middleware('role:10')            // Super Admin only
+ *   ->middleware('role:40,it_staff')   // level <= 40 OR role_code == it_staff
  */
 class CheckRoleLevel
 {
-    public function handle(Request $request, Closure $next, int $level = 70): Response
+    /**
+     * @param  int|string  $level         Required role level (lower = more privilege)
+     * @param  string      ...$allowedRoleCodes  Extra role codes granted access regardless of level
+     */
+    public function handle(Request $request, Closure $next, int|string $level = 70, string ...$allowedRoleCodes): Response
     {
         $user = Auth::user();
 
@@ -26,7 +32,11 @@ class CheckRoleLevel
             return redirect()->route('login');
         }
 
-        if ($user->role_level > $level) {
+        $level          = (int) $level;
+        $meetsLevel     = $user->role_level <= $level;
+        $meetsRoleCode  = $allowedRoleCodes !== [] && in_array($user->role_code, $allowedRoleCodes, true);
+
+        if (! $meetsLevel && ! $meetsRoleCode) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Forbidden. Insufficient role level.'], 403);
             }

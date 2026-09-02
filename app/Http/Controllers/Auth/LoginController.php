@@ -62,6 +62,7 @@ class LoginController extends Controller
             'username'     => $user->username,
             'role_level'   => $user->role_level,
             'role_name'    => $user->role_name,
+            'role_code'    => $user->role_code,
             'company_id'   => $user->company_id,
             'company_code' => $user->company_code,
             'company_name' => $user->company_name,
