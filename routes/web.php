@@ -6,6 +6,10 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Admin\Masters\EstateController;
+use App\Http\Controllers\Admin\Masters\DivisionController;
+use App\Http\Controllers\Admin\Masters\BlockController;
+use App\Http\Controllers\Admin\Masters\EmployeeController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -61,7 +65,46 @@ Route::middleware(['auth.check'])->group(function () {
 
     // ── Masters routes (Estate Manager level 40 and above) ────────────────
     Route::middleware(['role:40'])->prefix('masters')->name('masters.')->group(function () {
-        // TODO Sprint 2+: Estate, Division, Block, Employee, etc.
+
+        // ── Macro: register standard master data routes ───────────────────────
+        // Each master: index, datatable, upload, preview, save, cancel, replace, get-data, generate-csv
+        $masterRoutes = function (string $prefix, string $controller, array $extras = []) use (&$masterRoutes) {
+            Route::get('/',                   [$controller, 'index'])->name('index');
+            Route::get('/datatable',          [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/upload',             [$controller, 'upload'])->name('upload');
+            Route::post('/preview',           [$controller, 'preview'])->name('preview');
+            Route::post('/save-uploaded-data',[$controller, 'saveUploadedData'])->name('save-uploaded-data');
+            Route::get('/cancel',             [$controller, 'cancelUpload'])->name('cancel');
+            Route::post('/replace-master-data',[$controller,'replaceMasterData'])->name('replace-master-data');
+            Route::get('/get-master-data',    [$controller, 'getMasterData'])->name('get-master-data');
+            Route::get('/generate-csv',       [$controller, 'generateCsv'])->name('generate-csv');
+        };
+
+        // ── Estate ────────────────────────────────────────────────────────────
+        Route::prefix('estate')->name('estate.')->group(function () use ($masterRoutes) {
+            $masterRoutes('estate', EstateController::class);
+            Route::get('/lookup', [EstateController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Division ──────────────────────────────────────────────────────────
+        Route::prefix('division')->name('division.')->group(function () use ($masterRoutes) {
+            $masterRoutes('division', DivisionController::class);
+            Route::get('/by-estate/{estateCode}', [DivisionController::class, 'getByEstate'])->name('by-estate');
+        });
+
+        // ── Block ─────────────────────────────────────────────────────────────
+        Route::prefix('block')->name('block.')->group(function () use ($masterRoutes) {
+            $masterRoutes('block', BlockController::class);
+            Route::get('/by-division/{estateCode}/{divisionCode}', [BlockController::class, 'getByDivision'])->name('by-division');
+        });
+
+        // ── Employee ──────────────────────────────────────────────────────────
+        Route::prefix('employee')->name('employee.')->group(function () use ($masterRoutes) {
+            $masterRoutes('employee', EmployeeController::class);
+            Route::post('/generate-qr',  [EmployeeController::class, 'generateQr'])->name('generate-qr');
+            Route::get('/lookup',        [EmployeeController::class, 'lookup'])->name('lookup');
+        });
+
     });
 
     // ── Grouping routes ────────────────────────────────────────────────────

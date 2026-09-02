@@ -49,7 +49,6 @@
                 </nav>
             </div>
 
-            {{-- ── Master Data (collapsible) ────────────────────────────── --}}
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'masters.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -67,12 +66,25 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
-                                @foreach([
-                                    'Estate','Division','Block','Employee',
-                                    'Activity','Material','Vendor','Device',
-                                ] as $label)
+                                @php
+                                $masterLinks = [
+                                    'Estate'   => 'masters.estate.index',
+                                    'Division' => 'masters.division.index',
+                                    'Block'    => 'masters.block.index',
+                                    'Employee' => 'masters.employee.index',
+                                    'Activity' => '#',
+                                    'Material' => '#',
+                                    'Vendor'   => '#',
+                                    'Device'   => '#',
+                                ];
+                                @endphp
+                                @foreach($masterLinks as $label => $routeName)
                                 <li>
-                                    <a href="#" class="sidebar-subitem">{{ $label }}</a>
+                                    @php $href = ($routeName !== '#' && \Illuminate\Support\Facades\Route::has($routeName)) ? route($routeName) : '#'; @endphp
+                                    <a href="{{ $href }}"
+                                       class="sidebar-subitem {{ str_starts_with($route, 'masters.'.strtolower($label)) ? 'font-semibold text-primary' : '' }}">
+                                        {{ $label }}
+                                    </a>
                                 </li>
                                 @endforeach
                                 @if($isPalm)
