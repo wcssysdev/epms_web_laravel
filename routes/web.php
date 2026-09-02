@@ -37,6 +37,11 @@ use App\Http\Controllers\Planning\WorkplanController;
 use App\Http\Controllers\Planning\HarvestingPlanController;
 // Approval (Estate Manager 40)
 use App\Http\Controllers\Approval\WorkplanApprovalController;
+use App\Http\Controllers\Approval\OvertimeApprovalController;
+use App\Http\Controllers\Approval\UnplannedActivityApprovalController;
+use App\Http\Controllers\Approval\OphApprovalController;
+use App\Http\Controllers\Approval\CoconutHarvestingChitApprovalController;
+use App\Http\Controllers\Planning\CoconutHarvestingPlanController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -269,15 +274,60 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/ajax/blocks',   [HarvestingPlanController::class, 'getBlocks'])->name('blocks');
         });
 
+        // ── Coconut Harvesting Plan (coconut-enabled companies) ─────────────
+        Route::prefix('coconut-harvesting-plan')->name('coconut_harvesting_plan.')->group(function () {
+            Route::get('/',              [CoconutHarvestingPlanController::class, 'index'])->name('index');
+            Route::get('/create',        [CoconutHarvestingPlanController::class, 'create'])->name('create');
+            Route::post('/',             [CoconutHarvestingPlanController::class, 'store'])->name('store');
+            Route::get('/{id}/edit',     [CoconutHarvestingPlanController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [CoconutHarvestingPlanController::class, 'update'])->name('update');
+            Route::delete('/{id}',       [CoconutHarvestingPlanController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/approve', [CoconutHarvestingPlanController::class, 'approve'])->name('approve');
+            Route::get('/ajax/blocks',   [CoconutHarvestingPlanController::class, 'getBlocks'])->name('blocks');
+        });
+
     });
 
     // ── Approval routes (Estate Manager 40) ─────────────────────────────────
     Route::middleware(['role:40'])->prefix('approval')->name('approval.')->group(function () {
 
+        // Workplan approval is Estate-Manager-only
         Route::prefix('workplan')->name('workplan.')->group(function () {
             Route::get('/',       [WorkplanApprovalController::class, 'index'])->name('index');
             Route::get('/detail', [WorkplanApprovalController::class, 'detail'])->name('detail');
             Route::post('/submit',[WorkplanApprovalController::class, 'submit'])->name('submit');
+        });
+
+    });
+
+    // ── Approval routes shared with Assistant Manager (level 50) ────────────
+    Route::middleware(['role:50'])->prefix('approval')->name('approval.')->group(function () {
+
+        // Overtime — Asst Manager (division-scoped)
+        Route::prefix('overtime')->name('overtime.')->group(function () {
+            Route::get('/',        [OvertimeApprovalController::class, 'index'])->name('index');
+            Route::post('/submit', [OvertimeApprovalController::class, 'submit'])->name('submit');
+        });
+
+        // Unplanned Activity — Asst Manager (division-scoped)
+        Route::prefix('unplanned-activity')->name('unplanned_activity.')->group(function () {
+            Route::get('/',            [UnplannedActivityApprovalController::class, 'index'])->name('index');
+            Route::get('/{id}',        [UnplannedActivityApprovalController::class, 'detail'])->name('detail');
+            Route::post('/submit',     [UnplannedActivityApprovalController::class, 'submit'])->name('submit');
+        });
+
+        // OPH — Estate Manager (all) or Asst Manager (division-scoped)
+        Route::prefix('oph')->name('oph.')->group(function () {
+            Route::get('/',        [OphApprovalController::class, 'index'])->name('index');
+            Route::get('/{id}',    [OphApprovalController::class, 'detail'])->name('detail');
+            Route::post('/submit', [OphApprovalController::class, 'submit'])->name('submit');
+        });
+
+        // Harvesting Chit (Coconut) — Estate/Asst Manager (coconut-enabled)
+        Route::prefix('coconut-chit')->name('coconut_chit.')->group(function () {
+            Route::get('/',        [CoconutHarvestingChitApprovalController::class, 'index'])->name('index');
+            Route::get('/{id}',    [CoconutHarvestingChitApprovalController::class, 'detail'])->name('detail');
+            Route::post('/submit', [CoconutHarvestingChitApprovalController::class, 'submit'])->name('submit');
         });
 
     });

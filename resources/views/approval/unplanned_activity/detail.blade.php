@@ -1,0 +1,25 @@
+@include('approval._shared.detail', [
+    'title'     => 'Unplanned Activity Detail',
+    'subtitle'  => $workdone->id,
+    'backRoute' => 'approval.unplanned_activity.index',
+    'info'      => [
+        'Date'       => $workdone->workdone_date?->format('d M Y'),
+        'Division'   => $workdone->division_code,
+        'Activity'   => trim(($workdone->activity_code ?? '') . ' - ' . ($workdone->activity_name ?? '')),
+        'Block'      => $workdone->block_code ?: '—',
+        'Mandor'     => $workdone->mandor_employee_name ?: '—',
+        'Employee'   => $workdone->employee_name ?: '—',
+        'Mandays'    => $workdone->mandays,
+        'Qty'        => $workdone->qty,
+        'Status'     => $workdone->statusLabel(),
+        'Note'       => $workdone->description ?: '—',
+    ],
+    'lineTitle'   => 'Materials',
+    'lineHeaders' => ['Material Code', 'Material Name', 'Qty'],
+    'lines'       => $materials,
+    'lineRow'     => fn($m) => [
+        $m->material_code,
+        $m->material_name,
+        $m->qty,
+    ],
+])

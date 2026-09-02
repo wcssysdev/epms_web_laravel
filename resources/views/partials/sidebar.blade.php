@@ -77,6 +77,9 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 <li><a href="{{ route('planning.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
                                 <li><a href="{{ route('planning.harvesting_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.harvesting_plan') ? 'font-semibold text-primary' : '' }}">Harvesting Plan</a></li>
+                                @if($isCoconut)
+                                <li><a href="{{ route('planning.coconut_harvesting_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.coconut_harvesting_plan') ? 'font-semibold text-primary' : '' }}">Coconut Harvesting Plan</a></li>
+                                @endif
                             </ul>
                         </li>
                     </ul>
@@ -84,8 +87,8 @@
             </div>
             @endif
 
-            {{-- ── Approval (Estate Manager 40) ──────────────────────────── --}}
-            @if($canApproval)
+            {{-- ── Approval (Estate Manager 40 + Asst Manager 50) ────────── --}}
+            @if($canPlanning)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -103,7 +106,15 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                @if($canApproval)
                                 <li><a href="{{ route('approval.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                                @endif
+                                <li><a href="{{ route('approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
+                                <li><a href="{{ route('approval.unplanned_activity.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.unplanned_activity') ? 'font-semibold text-primary' : '' }}">Unplanned Activity</a></li>
+                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                @if($isCoconut)
+                                <li><a href="{{ route('approval.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.coconut_chit') ? 'font-semibold text-primary' : '' }}">Harvesting Chit (Coconut)</a></li>
+                                @endif
                             </ul>
                         </li>
                     </ul>

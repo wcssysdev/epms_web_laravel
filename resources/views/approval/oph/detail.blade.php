@@ -1,0 +1,27 @@
+@include('approval._shared.detail', [
+    'title'     => 'OPH Detail',
+    'subtitle'  => $oph->id,
+    'backRoute' => 'approval.oph.index',
+    'info'      => [
+        'Card ID'      => $oph->oph_card_id ?: '—',
+        'Division'     => $oph->division_code,
+        'Block'        => $oph->block_code ?: '—',
+        'TPH'          => $oph->tph_code ?: '—',
+        'Mandor'       => $oph->mandor_employee_name ?: '—',
+        'Kerani Panen' => $oph->kerani_panen_employee_name ?: '—',
+        'Total Bunches'=> number_format((int) $oph->bunches_total),
+        'Loose Fruits' => $oph->loose_fruits,
+        'Status'       => $oph->statusLabel(),
+        'Created By'   => $oph->created_by,
+    ],
+    'lineTitle'   => 'Harvesters',
+    'lineHeaders' => ['Employee', 'Name', 'Percentage', 'Bunches', 'Est. Tonnage'],
+    'lines'       => $persons,
+    'lineRow'     => fn($p) => [
+        $p->employee_code,
+        $p->employee_name,
+        $p->percentage,
+        $p->total_bunches,
+        $p->estimate_tonnage,
+    ],
+])
