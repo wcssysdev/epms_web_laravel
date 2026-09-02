@@ -51,8 +51,10 @@ Route::middleware(['auth.check'])->group(function () {
 
         // Estate Settings / Config
         Route::prefix('config')->name('config.')->group(function () {
-            Route::get('/', [ConfigController::class, 'index'])->name('index');
-            // TODO Sprint 2: store
+            Route::get('/',             [ConfigController::class, 'index'])->name('index');
+            Route::put('/',             [ConfigController::class, 'update'])->name('update');
+            Route::post('/test-sap',    [ConfigController::class, 'testSapConnection'])->name('test-sap');
+            Route::post('/toggle-lock', [ConfigController::class, 'toggleSystemLock'])->name('toggle-lock');
         });
 
     });

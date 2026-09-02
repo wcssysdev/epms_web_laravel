@@ -28,32 +28,60 @@ class CompanyConfig extends Model
     ];
 
     protected $casts = [
-        'system_is_palm'             => 'boolean',
-        'system_is_coconut'          => 'boolean',
-        'system_is_rubber'           => 'boolean',
-        'system_is_durian'           => 'boolean',
-        'have_internet_connection'   => 'boolean',
-        'fdn_oph'                    => 'boolean',
-        'is_fixed_platform'          => 'boolean',
-        'is_lock_system'             => 'boolean',
-        'allowed_attendance_codes'   => 'array',
-        'additional_settings'        => 'array',
-        'cutter_distribution_value'  => 'float',
-        'carrier_distribution_value' => 'float',
+        'system_is_palm'              => 'boolean',
+        'system_is_coconut'           => 'boolean',
+        'system_is_rubber'            => 'boolean',
+        'system_is_durian'            => 'boolean',
+        'have_internet_connection'    => 'boolean',
+        'fdn_oph'                     => 'boolean',
+        'is_fixed_platform'           => 'boolean',
+        'is_lock_system'              => 'boolean',
+        'allowed_attendance_codes'    => 'array',
+        'additional_settings'         => 'array',
+        'cutter_distribution_value'   => 'float',
+        'carrier_distribution_value'  => 'float',
+        'cutter_lf_distribution_value'  => 'float',
+        'carrier_lf_distribution_value' => 'float',
+        'daily_overtime_max_limit'    => 'integer',
+        'max_oph_restan'              => 'integer',
+        'integration_type'            => 'integer',
     ];
 
-    // ── Relationships ────────────────────────────────────────────────
+    // ── Relationships ─────────────────────────────────────────────────────────
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────
-    public function getAdditionalSetting(string $key, mixed $default = null): mixed
+    // ── Accessors ─────────────────────────────────────────────────────────────
+    public function getSapClientAttribute($value): string
     {
-        return $this->additional_settings[$key] ?? $default;
+        return $value ?? '000';
     }
 
+    public function getIntegrationTypeLabelAttribute(): string
+    {
+        return match ((int) $this->integration_type) {
+            1 => 'SAP',
+            2 => 'Pinfosys',
+            default => 'Unknown',
+        };
+    }
+
+    // ── Additional Settings Helpers ───────────────────────────────────────────
+    public function getAdditionalSetting(string $key, mixed $default = null): mixed
+    {
+        return ($this->additional_settings ?? [])[$key] ?? $default;
+    }
+
+    public function setAdditionalSetting(string $key, mixed $value): void
+    {
+        $settings = $this->additional_settings ?? [];
+        $settings[$key] = $value;
+        $this->additional_settings = $settings;
+    }
+
+    // ── System Type ───────────────────────────────────────────────────────────
     public function isSystemEnabled(string $type): bool
     {
         return match ($type) {
@@ -65,8 +93,56 @@ class CompanyConfig extends Model
         };
     }
 
-    public function getSapClientAttribute($value): string
+    public function getEnabledSystemTypes(): array
     {
-        return $value ?? '000';
+        $types = [];
+        if ($this->system_is_palm)    $types[] = 'Palm';
+        if ($this->system_is_coconut) $types[] = 'Coconut';
+        if ($this->system_is_rubber)  $types[] = 'Rubber';
+        if ($this->system_is_durian)  $types[] = 'Durian';
+        return $types;
+    }
+
+    // ── Distribution Validation ───────────────────────────────────────────────
+    public function isCutterCarrierValid(): bool
+    {
+        return ($this->cutter_distribution_value + $this->carrier_distribution_value) == 100;
+    }
+
+    // ── SAP Connection Test ───────────────────────────────────────────────────
+    public function testSapConnection(): array
+    {
+        if (empty($this->sap_api_url)) {
+            return ['success' => false, 'message' => 'SAP API URL is not configured.'];
+        }
+
+        try {
+            $ch = curl_init($this->sap_api_url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_USERPWD        => $this->sap_user_id . ':' . $this->sap_password,
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error    = curl_error($ch);
+            curl_close($ch);
+
+            if ($error) {
+                return ['success' => false, 'message' => "Connection failed: {$error}"];
+            }
+
+            if ($httpCode >= 200 && $httpCode < 500) {
+                return ['success' => true,  'message' => "Connected successfully (HTTP {$httpCode})"];
+            }
+
+            return ['success' => false, 'message' => "Server returned HTTP {$httpCode}"];
+
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Exception: ' . $e->getMessage()];
+        }
     }
 }

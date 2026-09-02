@@ -41,3 +41,8 @@ Thumbs.db
 !storage/framework/views/.gitkeep
 !storage/logs/.gitkeep
 !bootstrap/cache/.gitkeep
+/nbproject/private/
+
+# IDE project files
+/nbproject/
+/.nbproject/
