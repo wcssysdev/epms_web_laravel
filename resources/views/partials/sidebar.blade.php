@@ -182,6 +182,33 @@
 
             @endif {{-- /canMasters --}}
 
+            {{-- ── Transactions (Asst Manager 50 + Estate Manager 40) ────── --}}
+            @if($canPlanning)
+            <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'transactions.') ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                                </svg>
+                                <span>Transactions</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('transactions.gi_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.gi_plan') ? 'font-semibold text-primary' : '' }}">GI Plan</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            @endif
+
             {{-- ── Grouping (Asst Manager 50 + IT Staff) ─────────────────── --}}
             @if($canGrouping)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'grouping.') ? 'true':'false' }} }">

@@ -42,6 +42,8 @@ use App\Http\Controllers\Approval\UnplannedActivityApprovalController;
 use App\Http\Controllers\Approval\OphApprovalController;
 use App\Http\Controllers\Approval\CoconutHarvestingChitApprovalController;
 use App\Http\Controllers\Planning\CoconutHarvestingPlanController;
+// Transactions
+use App\Http\Controllers\Transaction\GiPlanController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -332,9 +334,23 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Transactions routes ────────────────────────────────────────────────
-    Route::middleware(['role:70'])->prefix('transactions')->name('transactions.')->group(function () {
-        // TODO Sprint 6+
+    // ── Transactions routes (Asst Manager 50 and above) ─────────────────────
+    Route::middleware(['role:50'])->prefix('transactions')->name('transactions.')->group(function () {
+
+        // ── GI Plan (Goods Issue Plan) ──────────────────────────────────────
+        Route::prefix('gi-plan')->name('gi_plan.')->group(function () {
+            Route::get('/',              [GiPlanController::class, 'index'])->name('index');
+            Route::get('/create',        [GiPlanController::class, 'create'])->name('create');
+            Route::post('/',             [GiPlanController::class, 'store'])->name('store');
+            Route::get('/{id}',          [GiPlanController::class, 'show'])->name('show');
+            Route::get('/{id}/edit',     [GiPlanController::class, 'edit'])->name('edit');
+            Route::put('/{id}',          [GiPlanController::class, 'update'])->name('update');
+            Route::delete('/{id}',       [GiPlanController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/publish', [GiPlanController::class, 'publish'])->name('publish');
+            Route::post('/{id}/approve', [GiPlanController::class, 'approve'])->name('approve');
+            Route::get('/ajax/materials',[GiPlanController::class, 'searchMaterials'])->name('materials');
+        });
+
     });
 
     // ── Reporting routes ───────────────────────────────────────────────────
