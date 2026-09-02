@@ -44,6 +44,11 @@ use App\Http\Controllers\Approval\CoconutHarvestingChitApprovalController;
 use App\Http\Controllers\Planning\CoconutHarvestingPlanController;
 // Transactions
 use App\Http\Controllers\Transaction\GiPlanController;
+// Transaction monitoring (read-only)
+use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
+use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
+use App\Http\Controllers\Transaction\Monitoring\OvertimeMonitoringController;
+use App\Http\Controllers\Transaction\Monitoring\WorkdoneMonitoringController;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PUBLIC — Auth routes (no auth required)
@@ -349,6 +354,20 @@ Route::middleware(['auth.check'])->group(function () {
             Route::post('/{id}/publish', [GiPlanController::class, 'publish'])->name('publish');
             Route::post('/{id}/approve', [GiPlanController::class, 'approve'])->name('approve');
             Route::get('/ajax/materials',[GiPlanController::class, 'searchMaterials'])->name('materials');
+        });
+
+        // ── Monitoring (read-only lists) ────────────────────────────────────
+        Route::prefix('monitoring')->name('monitoring.')->group(function () {
+            $monitor = function (string $prefix, string $controller) {
+                Route::prefix($prefix)->name($prefix.'.')->group(function () use ($controller) {
+                    Route::get('/',          [$controller, 'index'])->name('index');
+                    Route::get('/datatable', [$controller, 'getDatatable'])->name('datatable');
+                });
+            };
+            $monitor('oph',        OphMonitoringController::class);
+            $monitor('attendance', AttendanceMonitoringController::class);
+            $monitor('overtime',   OvertimeMonitoringController::class);
+            $monitor('workdone',   WorkdoneMonitoringController::class);
         });
 
     });

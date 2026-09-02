@@ -202,6 +202,13 @@
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 <li><a href="{{ route('transactions.gi_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.gi_plan') ? 'font-semibold text-primary' : '' }}">GI Plan</a></li>
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Monitoring</span>
+                                </li>
+                                <li><a href="{{ route('transactions.monitoring.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.oph') ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                <li><a href="{{ route('transactions.monitoring.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
+                                <li><a href="{{ route('transactions.monitoring.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
+                                <li><a href="{{ route('transactions.monitoring.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.workdone') ? 'font-semibold text-primary' : '' }}">Workdone</a></li>
                             </ul>
                         </li>
                     </ul>
