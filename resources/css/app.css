@@ -6,31 +6,92 @@
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-
-    /* Primary color: matches rgba(87,80,241) from original HTML */
     --color-primary: #5750f1;
-    --color-primary-dark: #4740d4;
-
-    /* Gray dark for dark mode bg */
     --color-gray-dark: #1a2231;
 }
 
-/* Custom scrollbar for sidebar */
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+/* ── Sidebar & layout ------------------------------------------------------ */
+.dark\:bg-gray-dark  { background-color: #1a2231; }
+.bg-gray-dark        { background-color: #1a2231; }
+.dark\:bg-\[#020d1a\] { background-color: #020d1a; }
+
+/* ── Primary color helpers -------------------------------------------------- */
+.text-primary                { color: #5750f1 !important; }
+.hover\:text-primary:hover   { color: #5750f1 !important; }
+.bg-primary                  { background-color: #5750f1 !important; }
+.border-primary              { border-color: #5750f1 !important; }
+.focus-visible\:border-primary:focus-visible { border-color: #5750f1 !important; }
+
+/* ── Sidebar menu active state ---------------------------------------------- */
+.sidebar-active {
+    background-color: rgba(87, 80, 241, 0.07);
+    color: #5750f1;
+}
+.dark .sidebar-active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* ── Sidebar menu hover ----------------------------------------------------- */
+.sidebar-item {
+    border-radius: 0.5rem;         /* rounded-lg */
+    padding: 0.75rem 0.875rem;     /* py-3 px-3.5 */
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    transition: background-color 0.2s, color 0.2s;
+    color: #6b7280;                /* text-gray-500 */
+    text-decoration: none;
+}
+.sidebar-item:hover {
+    background-color: #f3f4f6;    /* gray-100 */
+    color: #111827;               /* gray-900 */
+}
+.dark .sidebar-item {
+    color: #9ca3af;               /* dark gray text */
+}
+.dark .sidebar-item:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+}
+.sidebar-item.active {
+    background-color: rgba(87, 80, 241, 0.07);
+    color: #5750f1;
+}
+.dark .sidebar-item.active {
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+/* ── Sidebar submenu items -------------------------------------------------- */
+.sidebar-subitem {
+    display: flex;
+    align-items: center;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+.sidebar-subitem:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+.dark .sidebar-subitem { color: #9ca3af; }
+.dark .sidebar-subitem:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+/* ── Custom scrollbar ------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar       { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; }
-
-/* Sidebar gray-dark bg */
-.dark\:bg-gray-dark { background-color: var(--color-gray-dark); }
-.bg-gray-dark { background-color: var(--color-gray-dark); }
-
-/* text-primary */
-.text-primary { color: var(--color-primary) !important; }
-.hover\:text-primary:hover { color: var(--color-primary) !important; }
-.bg-primary { background-color: var(--color-primary) !important; }
-.border-primary { border-color: var(--color-primary) !important; }
-.focus-visible\:border-primary:focus-visible { border-color: var(--color-primary) !important; }
 
 @plugin "daisyui" {
     themes: ["light", "dark"];

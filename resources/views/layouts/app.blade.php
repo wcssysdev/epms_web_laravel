@@ -74,8 +74,9 @@
 
 <script>
     function appLayout() {
+        // Default: light, kecuali user sudah pernah pilih dark
         const saved = localStorage.getItem('theme');
-        const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = saved === 'dark'; // TIDAK pakai prefers-color-scheme
         return {
             isDark: isDark,
             sidebarOpen: window.innerWidth >= 1024,
@@ -84,7 +85,6 @@
                 localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
             },
             init() {
-                // Responsive: close sidebar on small screens
                 window.addEventListener('resize', () => {
                     if (window.innerWidth < 1024) this.sidebarOpen = false;
                     else this.sidebarOpen = true;

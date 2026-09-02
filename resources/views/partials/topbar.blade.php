@@ -53,8 +53,8 @@
 
         {{-- Dark Mode Toggle (pill style) --}}
         <button x-on:click="toggleDark()"
-                class="group rounded-full bg-gray-100 p-[5px] text-gray-800 dark:bg-gray-900 dark:text-white">
-            <span class="sr-only">Toggle dark mode</span>
+                class="group rounded-full bg-gray-100 p-[5px] text-gray-800 dark:bg-gray-800 dark:text-white outline-none"
+                title="Toggle dark mode">
             <span class="relative flex gap-2.5" aria-hidden="true">
                 <span class="absolute size-[38px] rounded-full border border-gray-200 bg-white transition-all dark:translate-x-[48px] dark:border-none dark:bg-gray-700"></span>
                 {{-- Sun icon --}}
