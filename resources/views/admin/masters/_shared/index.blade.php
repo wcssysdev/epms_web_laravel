@@ -23,7 +23,7 @@
     </button>
 
     {{-- 2. Refresh Master Data From SAP --}}
-    <button type="button" @click="$store.masterSap.refreshFromMaster()" :disabled="$store.masterSap.busy"
+    <button type="button" @click="$store.masterSap.openRefreshModal()" :disabled="$store.masterSap.busy"
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50"
             style="border-color: var(--epms-border); color: var(--epms-text);">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': $store.masterSap.busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,6 +100,56 @@
         </div>
     </div>
 
+    {{-- Replace Master Data confirmation modal (mirrors CI4) --}}
+    <div x-show="$store.masterSap.showRefreshModal" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4" x-transition>
+        <div class="absolute inset-0 bg-black/50" @click="$store.masterSap.showRefreshModal = false"></div>
+        <div class="relative w-full max-w-md rounded-xl border shadow-xl z-10"
+             style="background: var(--epms-header-bg); border-color: var(--epms-border);">
+            <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--epms-border);">
+                <h3 class="text-base font-bold" style="color: var(--epms-text);">Replace {{ $resourceName }} Master Data Confirmation</h3>
+                <button @click="$store.masterSap.showRefreshModal = false" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-5 py-5 text-sm" style="color: var(--epms-text);">
+                <div class="space-y-1.5 mb-4">
+                    <div class="flex justify-between gap-4">
+                        <span style="color: var(--epms-text-muted);">Current Data on Local Server</span>
+                        <span class="font-medium">: <span x-text="$store.masterSap.currentRows"></span> data</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span style="color: var(--epms-text-muted);">Latest Data Available</span>
+                        <span class="font-bold" style="color: var(--epms-text);">: <span x-text="$store.masterSap.newRows"></span> data</span>
+                    </div>
+                </div>
+                <p style="color: var(--epms-text-muted);">Are you sure you want to replace current data with the latest data?</p>
+                <template x-if="$store.masterSap.newRows === 0">
+                    <p class="mt-2 text-xs text-amber-600">No staged data available. Run "Get All Data From SAP" first.</p>
+                </template>
+            </div>
+            <div class="flex justify-end gap-3 px-5 py-4 border-t" style="border-color: var(--epms-border);">
+                <button @click="$store.masterSap.showRefreshModal = false"
+                        class="flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Cancel
+                </button>
+                <button @click="$store.masterSap.confirmRefresh()"
+                        :disabled="$store.masterSap.busy || $store.masterSap.newRows === 0"
+                        class="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition disabled:opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': $store.masterSap.busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Yes, Replace Master Data
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Table Card --}}
     <div class="rounded-xl border shadow-sm overflow-hidden"
          style="background: var(--epms-header-bg); border-color: var(--epms-border);">
@@ -126,6 +176,7 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <style>
+    [x-cloak] { display: none !important; }
     .dataTables_wrapper .dataTables_filter input,
     .dataTables_wrapper .dataTables_length select {
         background: var(--epms-header-bg); color: var(--epms-text);
@@ -149,11 +200,12 @@
 // ── Shared SAP store (accessible from both page-actions and content sections) ──
 document.addEventListener('alpine:init', () => {
     Alpine.store('masterSap', {
-        busy:        false,   // false | 'get' | 'refresh'
-        sapMessage:  '',
-        sapSuccess:  false,
-        currentRows: {{ (int) $totalRows }},
-        newRows:     {{ (int) ($newRows ?? 0) }},
+        busy:            false,   // false | 'get' | 'refresh'
+        sapMessage:      '',
+        sapSuccess:      false,
+        currentRows:     {{ (int) $totalRows }},
+        newRows:         {{ (int) ($newRows ?? 0) }},
+        showRefreshModal: false,
 
         _csrf() { return document.querySelector('meta[name="csrf-token"]').content; },
 
@@ -186,10 +238,24 @@ document.addEventListener('alpine:init', () => {
             } finally { this.busy = false; }
         },
 
-        // STEP 2 — staging → master
-        async refreshFromMaster() {
+        // STEP 2 — open confirmation modal (refresh staging counts first)
+        async openRefreshModal() {
             if (this.busy) return;
-            if (!confirm('Refresh {{ $resourceName }} master from SAP staging? Current data will be replaced.')) return;
+            this.sapMessage = '';
+            // Sync latest current/staging counts before showing the modal
+            try {
+                const res  = await fetch('{{ route($routePrefix . ".staging-info") }}', {
+                    headers: { 'X-CSRF-TOKEN': this._csrf() }
+                });
+                const json = await res.json();
+                this._applyCounts(json);
+            } catch (e) { /* keep existing counts */ }
+            this.showRefreshModal = true;
+        },
+
+        // STEP 2 — confirmed: staging → master
+        async confirmRefresh() {
+            if (this.busy || this.newRows === 0) return;
             this.busy = 'refresh'; this.sapMessage = '';
             try {
                 const res  = await fetch('{{ route($routePrefix . ".refresh-from-master") }}', {
@@ -201,7 +267,10 @@ document.addEventListener('alpine:init', () => {
                 if (json.success) this._reloadTable();
             } catch (e) {
                 this.sapSuccess = false; this.sapMessage = 'Request failed: ' + e.message;
-            } finally { this.busy = false; }
+            } finally {
+                this.busy = false;
+                this.showRefreshModal = false;
+            }
         }
     });
 });
