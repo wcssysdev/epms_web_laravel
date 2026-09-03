@@ -77,7 +77,7 @@ class BlockController extends BaseMasterController
         if ($request->filled('division_code')) $query->where('division_code', $request->division_code);
         if ($request->filled('crop_type'))     $query->where('crop_type', $request->crop_type);
 
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // Lookup: blocks by division

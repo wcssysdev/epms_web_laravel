@@ -64,7 +64,7 @@ class DivisionController extends BaseMasterController
             $query->where('estate_code', $request->estate_code);
         }
 
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // Lookup: divisions by estate

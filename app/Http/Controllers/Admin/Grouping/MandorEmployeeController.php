@@ -48,6 +48,6 @@ class MandorEmployeeController extends BaseGroupingController
     {
         $query = $this->baseQuery()->orderBy('mandor_employee_code');
         if ($request->filled('mandor_code')) $query->where('mandor_employee_code', $request->mandor_code);
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 }

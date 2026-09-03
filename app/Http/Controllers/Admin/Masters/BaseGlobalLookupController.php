@@ -51,7 +51,7 @@ abstract class BaseGlobalLookupController extends BaseController
     public function getDatatable(): JsonResponse
     {
         $query = DB::table($this->tableName())->orderBy($this->primaryKey());
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // ── ADD form ──────────────────────────────────────────────────────────────

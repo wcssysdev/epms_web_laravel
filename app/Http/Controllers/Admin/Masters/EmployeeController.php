@@ -135,7 +135,7 @@ class EmployeeController extends BaseMasterController
         if ($request->filled('division_code')) $query->where('employee_division_code', $request->division_code);
         if ($request->filled('job_code'))      $query->where('employee_job_code', $request->job_code);
 
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // Generate QR Code

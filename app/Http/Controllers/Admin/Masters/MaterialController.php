@@ -61,7 +61,7 @@ class MaterialController extends BaseMasterController
         $query = $this->baseQuery()->orderBy('material_code');
         if ($request->filled('material_type')) $query->where('material_type', $request->material_type);
         if ($request->filled('plant_code'))    $query->where('plant_code', $request->plant_code);
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     public function generateQr(\Illuminate\Http\Request $request): JsonResponse

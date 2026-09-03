@@ -40,7 +40,7 @@ abstract class BaseGroupingController extends BaseController
     public function getDatatable(Request $request): JsonResponse
     {
         $query = $this->baseQuery();
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // ── CREATE form ───────────────────────────────────────────────────────────

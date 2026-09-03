@@ -46,6 +46,6 @@ class FieldStaffController extends BaseGroupingController
     {
         $query = $this->baseQuery()->orderBy('field_staff_gang_code')->orderBy('field_staff_employee_code');
         if ($request->filled('gang_code')) $query->where('field_staff_gang_code', $request->gang_code);
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 }

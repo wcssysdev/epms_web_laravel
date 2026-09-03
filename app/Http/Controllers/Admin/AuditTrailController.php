@@ -64,7 +64,7 @@ class AuditTrailController extends BaseController
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        return DataTables::queryBuilder($query)
+        return DataTables::query($query)
             ->addIndexColumn()
             ->addColumn('transaction_type_label', function ($row) {
                 return self::TYPE_LABELS[$row->transaction_type] ?? $row->transaction_type;

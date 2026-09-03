@@ -50,7 +50,7 @@ class FieldAssistantDivisionController extends BaseGroupingController
         $query = $this->baseQuery()->orderBy('assistant_manager_code')->orderBy('division_code');
         if ($request->filled('manager_code')) $query->where('assistant_manager_code', $request->manager_code);
         if ($request->filled('division_code')) $query->where('division_code', $request->division_code);
-        return DataTables::queryBuilder($query)->addIndexColumn()->make(true);
+        return DataTables::query($query)->addIndexColumn()->make(true);
     }
 
     // Get managers dropdown

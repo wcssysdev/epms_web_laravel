@@ -117,7 +117,7 @@ abstract class BaseMasterController extends BaseController
     {
         $query = $this->baseQuery()->orderByDesc('id');
 
-        return DataTables::queryBuilder($query)
+        return DataTables::query($query)
             ->addIndexColumn()
             ->make(true);
     }
