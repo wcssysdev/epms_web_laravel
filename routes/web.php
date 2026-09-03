@@ -42,6 +42,10 @@ use App\Http\Controllers\Admin\Masters\CoconutMaterialController;
 use App\Http\Controllers\Admin\Masters\WbsController;
 use App\Http\Controllers\Admin\Masters\VraController;
 use App\Http\Controllers\Admin\Masters\MeasPointController;
+// Masters — batch 4 (multi-column SAP)
+use App\Http\Controllers\Admin\Masters\SalesOrderController;
+use App\Http\Controllers\Admin\Masters\PurchaseOrderController;
+use App\Http\Controllers\Admin\Masters\MaintenanceOrderController;
 // Masters — CRUD-only (no SAP/CSV)
 use App\Http\Controllers\Admin\Masters\BinController;
 use App\Http\Controllers\Admin\Masters\ConfirmationTextController;
@@ -255,6 +259,18 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('meas_point')->name('meas_point.')->group(function () use ($masterRoutes) {
             $masterRoutes('meas_point', MeasPointController::class);
             Route::get('/lookup', [MeasPointController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('sales_order')->name('sales_order.')->group(function () use ($masterRoutes) {
+            $masterRoutes('sales_order', SalesOrderController::class);
+            Route::get('/lookup', [SalesOrderController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('purchase_order')->name('purchase_order.')->group(function () use ($masterRoutes) {
+            $masterRoutes('purchase_order', PurchaseOrderController::class);
+            Route::get('/lookup', [PurchaseOrderController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('maint_order')->name('maint_order.')->group(function () use ($masterRoutes) {
+            $masterRoutes('maint_order', MaintenanceOrderController::class);
+            Route::get('/lookup', [MaintenanceOrderController::class, 'lookup'])->name('lookup');
         });
 
         // ── CRUD-only masters (no SAP/CSV) ────────────────────────────────────

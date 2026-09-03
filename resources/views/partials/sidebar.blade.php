@@ -160,6 +160,7 @@
                                     'WBS'                  => 'masters.wbs.index',
                                     'BIN'                  => 'masters.bin.index',
                                     'Confirmation Text'    => 'masters.confirmation_text.index',
+                                    'Sales Order'          => 'masters.sales_order.index',
                                 ];
                                 @endphp
                                 @foreach($masterLinks as $label => $routeName)
@@ -252,6 +253,8 @@
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 <li><a href="{{ route('masters.sloc.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.sloc') ? 'font-semibold text-primary' : '' }}">Storage Location</a></li>
+                                <li><a href="{{ route('masters.purchase_order.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.purchase_order') ? 'font-semibold text-primary' : '' }}">Purchase Order List</a></li>
+                                <li><a href="{{ route('masters.maint_order.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.maint_order') ? 'font-semibold text-primary' : '' }}">Maintenance Order List</a></li>
                                 <li><a href="{{ route('masters.gl_account.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.gl_account') ? 'font-semibold text-primary' : '' }}">GL Account [Cost Center]</a></li>
                                 <li><a href="{{ route('masters.gla_order.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.gla_order') ? 'font-semibold text-primary' : '' }}">GL Account [Order]</a></li>
                             </ul>
