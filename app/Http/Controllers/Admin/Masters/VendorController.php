@@ -72,4 +72,20 @@ class VendorController extends BaseMasterController
             ->orderBy('vendor_code')->get(['vendor_code', 'vendor_name']);
         return $this->jsonSuccess('OK', $vendors);
     }
+
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EM_VENDOR_OUT',
+            'urn'     => 'ZEPMS_EM_VENDOR_OUT',
+            'filters' => ['WERKS' => '{plant_code}'],
+            'columns' => ['LIFNR', 'NAME1', 'WERKS'],
+            'mapping' => [
+                'vendor_code' => 'LIFNR',
+                'vendor_name' => 'NAME1',
+                'plant_code'  => 'WERKS',
+            ],
+        ];
+    }
 }

@@ -166,7 +166,43 @@ class SapService
             'STATS'  => 'ACTIVE',
             'WOPXD'  => '2099.12.31',
             'DEPNR'  => 'FIELD',
-            'LIFNR'  => '',
+            // Activity
+            'ACTVT_NO'    => 'ACT' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+            'ACTVT_NAME'  => 'SAMPLE ACTIVITY ' . $i,
+            'AMEIN'       => 'Hectare',
+            'AMEIN2'      => 'HA',
+            'BLOCK'       => 'X',
+            'COST_CENTER' => '',
+            'AUC'         => '',
+            'ORDER_NUMBER'=> '',
+            'BLOCK_LC'    => '',
+            'BLOCK_IMMATURE' => '',
+            'BLOCK_SCOUT' => '',
+            'BLOCK_MATURE'=> 'X',
+            'WRK_GRP'     => 'GRP' . $i,
+            'DTWBS'       => '',
+            // Vendor
+            'LIFNR'  => 'VEND' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+            // Material
+            'MATNR'  => 'MAT' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+            'MAKTX'  => 'SAMPLE MATERIAL ' . $i,
+            'MEINS'  => 'KG',
+            'MTART'  => 'ZFER',
+            'MATKL'  => 'GRP' . $i,
+            'LGORT'  => 'SL01',
+            'CHARG'  => '',
+            // Worktype
+            'AUART'  => 'WT' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
+            'BEZEI'  => 'SAMPLE WORKTYPE ' . $i,
+            // Work Center
+            'ARBPL'  => 'WC' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+            'KTEXT'  => 'SAMPLE WORK CENTER ' . $i,
+            // Cost Center
+            'KOSTL'  => 'CC' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+            'LTEXT'  => 'SAMPLE COST CENTER ' . $i,
+            'GSBER'  => 'BA0' . $i,
+            'DATAB'  => '2020.01.01',
+            'DATBI'  => '2099.12.31',
             default  => 'VAL' . $i,
         };
     }

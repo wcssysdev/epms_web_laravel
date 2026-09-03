@@ -57,9 +57,36 @@ class CostCenterController extends BaseMasterController
         return $this->jsonSuccess('OK', $ccs);
     }
 
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    // Note: SAP URN differs from the staging table name (matches CI4).
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EM_COST_CENTER_OUT',
+            'urn'     => 'ZEPMS_COSTCENTER_OUT',
+            'filters' => ['WERKS' => '{plant_code}'],
+            'columns' => ['KOSTL', 'LTEXT', 'BUKRS', 'GSBER', 'DATAB', 'DATBI'],
+            'mapping' => [
+                'cc_code'  => 'KOSTL',
+                'cc_desc'  => 'LTEXT',
+                'cc_gsber' => 'GSBER',
+                // dates handled in transformSapRow
+            ],
+        ];
+    }
+
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $master['valid_from'] = $this->parseDate($staging['DATAB'] ?? '');
+        $master['valid_to']   = $this->parseDate($staging['DATBI'] ?? '');
+        return $master;
+    }
+
     private function parseDate(string $val): ?string
     {
-        if (empty($val)) return null;
+        $val = trim($val);
+        if ($val === '') return null;
+        $val = str_replace('.', '-', $val); // SAP dotted dates
         try { return \Carbon\Carbon::parse($val)->toDateString(); } catch (\Exception $e) { return null; }
     }
 }

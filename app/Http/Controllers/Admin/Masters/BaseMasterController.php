@@ -252,6 +252,7 @@ abstract class BaseMasterController extends BaseController
             $filters[$k] = is_string($v) ? strtr($v, [
                 '{country_code}' => $ctx['country_code'],
                 '{company_code}' => $ctx['company_code'],
+                '{plant_code}'   => $ctx['config']?->plant_code ?? '',
             ]) : $v;
         }
 

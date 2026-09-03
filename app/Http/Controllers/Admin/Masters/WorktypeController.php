@@ -32,4 +32,19 @@ class WorktypeController extends BaseMasterController
         if (empty($row['worktype_code'])) return 'Worktype Code is required.';
         return null;
     }
+
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_PM_WORKTYPE_OUT',
+            'urn'     => 'ZEPMS_PM_WORKTYPE_OUT',
+            'filters' => ['BUKRS' => '*', 'LAND1' => '{country_code}'],
+            'columns' => ['BUKRS', 'AUART', 'BEZEI'],
+            'mapping' => [
+                'worktype_code' => 'AUART',
+                'worktype_name' => 'BEZEI',
+            ],
+        ];
+    }
 }

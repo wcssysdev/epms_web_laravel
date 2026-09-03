@@ -174,6 +174,28 @@
                                 @if($isDurian)
                                 <li><a href="#" class="sidebar-subitem">Durian Variety</a></li>
                                 @endif
+
+                                {{-- Global lookups (shared across companies) --}}
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Global Lookups</span>
+                                </li>
+                                @php
+                                $globalLinks = [
+                                    'Attendance Type' => 'masters.global.attendance.index',
+                                    'UOM'             => 'masters.global.uom.index',
+                                    'Harvest Method'  => 'masters.global.harvest_method.index',
+                                    'Movement Type'   => 'masters.global.movement_type.index',
+                                ];
+                                @endphp
+                                @foreach($globalLinks as $label => $routeName)
+                                <li>
+                                    @php $ghref = \Illuminate\Support\Facades\Route::has($routeName) ? route($routeName) : '#'; @endphp
+                                    <a href="{{ $ghref }}"
+                                       class="sidebar-subitem {{ str_starts_with($route, substr($routeName, 0, strrpos($routeName, '.'))) ? 'font-semibold text-primary' : '' }}">
+                                        {{ $label }}
+                                    </a>
+                                </li>
+                                @endforeach
                             </ul>
                         </li>
                     </ul>

@@ -55,4 +55,22 @@ class WorkCenterController extends BaseMasterController
             ->orderBy('work_center_code')->get(['work_center_code', 'work_center_name']);
         return $this->jsonSuccess('OK', $wcs);
     }
+
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EM_WORK_CENTER_OUT',
+            'urn'     => 'ZEPMS_EM_WORK_CENTER_OUT',
+            'filters' => ['BUKRS' => '*', 'LAND1' => '{country_code}'],
+            'columns' => ['BUKRS', 'WERKS', 'ESTNR', 'SPART', 'ARBPL', 'KTEXT'],
+            'mapping' => [
+                'plant_code'       => 'WERKS',
+                'estate_code'      => 'ESTNR',
+                'division_code'    => 'SPART',
+                'work_center_code' => 'ARBPL',
+                'work_center_name' => 'KTEXT',
+            ],
+        ];
+    }
 }

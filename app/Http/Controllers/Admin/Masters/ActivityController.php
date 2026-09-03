@@ -61,4 +61,42 @@ class ActivityController extends BaseMasterController
         if (empty($row['activity_name'])) return 'Activity Name is required.';
         return null;
     }
+
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_ACTIVITY_OUT',
+            'urn'     => 'ZEPMS_ACTIVITY_OUT',
+            'filters' => [],   // CI4 sends no filters for activity
+            'columns' => ['ACTVT_NO', 'ACTVT_NAME', 'AMEIN', 'AMEIN2', 'BLOCK', 'COST_CENTER',
+                          'AUC', 'ORDER_NUMBER', 'BLOCK_LC', 'BLOCK_IMMATURE', 'BLOCK_SCOUT',
+                          'BLOCK_MATURE', 'WRK_GRP', 'DTWBS'],
+            'mapping' => [
+                'activity_code'      => 'ACTVT_NO',
+                'activity_name'      => 'ACTVT_NAME',
+                'activity_uom_name'  => 'AMEIN',
+                'activity_uom'       => 'AMEIN2',
+                // booleans + group handled in transformSapRow
+            ],
+        ];
+    }
+
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $x = fn ($v) => strtoupper(trim((string) $v)) === 'X';
+
+        $master['cost_by_block']        = $x($staging['BLOCK'] ?? '');
+        $master['cost_by_cost_center']  = $x($staging['COST_CENTER'] ?? '');
+        $master['cost_by_auc']          = $x($staging['AUC'] ?? '');
+        $master['cost_by_order_number'] = $x($staging['ORDER_NUMBER'] ?? '');
+        $master['block_is_lc']          = $x($staging['BLOCK_LC'] ?? '');
+        $master['block_is_immature']    = $x($staging['BLOCK_IMMATURE'] ?? '');
+        $master['block_is_scout']       = $x($staging['BLOCK_SCOUT'] ?? '');
+        $master['block_is_mature']      = $x($staging['BLOCK_MATURE'] ?? '');
+        $master['is_wbs_required']      = $x($staging['DTWBS'] ?? '');
+        $master['activity_group_code']  = trim((string) ($staging['WRK_GRP'] ?? '')) ?: 'BLANK';
+
+        return $master;
+    }
 }

@@ -84,4 +84,25 @@ class MaterialController extends BaseMasterController
         if ($request->filled('search')) $query->where(fn($q) => $q->where('material_code', 'ilike', "%{$request->search}%")->orWhere('material_name', 'ilike', "%{$request->search}%"));
         return $this->jsonSuccess('OK', $query->limit(50)->get(['material_code', 'material_name', 'material_uom', 'material_type']));
     }
+
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EM_MATERIAL_OUT',
+            'urn'     => 'ZEPMS_EM_MATERIAL_OUT',
+            'filters' => ['MATKL' => '*', 'WERKS' => '{plant_code}'],
+            'columns' => ['MATNR', 'MAKTX', 'WERKS', 'MEINS', 'MTART', 'MATKL', 'LGORT', 'CHARG'],
+            'mapping' => [
+                'material_code'  => 'MATNR',
+                'material_name'  => 'MAKTX',
+                'plant_code'     => 'WERKS',
+                'material_uom'   => 'MEINS',
+                'material_type'  => 'MTART',
+                'material_group' => 'MATKL',
+                'sloc_code'      => 'LGORT',
+                'material_batch' => 'CHARG',
+            ],
+        ];
+    }
 }
