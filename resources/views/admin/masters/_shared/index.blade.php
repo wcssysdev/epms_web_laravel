@@ -13,20 +13,20 @@
 <div class="flex flex-wrap items-center gap-2">
     @if($hasSap ?? false)
     {{-- 1. Get All Data From SAP --}}
-    <button type="button" @click="getFromSap()" :disabled="busy"
+    <button type="button" @click="$store.masterSap.getFromSap()" :disabled="$store.masterSap.busy"
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50"
             style="border-color: var(--epms-border); color: var(--epms-text);">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': busy==='get' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': $store.masterSap.busy==='get' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
         </svg>
         Get All Data From SAP
     </button>
 
     {{-- 2. Refresh Master Data From SAP --}}
-    <button type="button" @click="refreshFromMaster()" :disabled="busy"
+    <button type="button" @click="$store.masterSap.refreshFromMaster()" :disabled="$store.masterSap.busy"
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50"
             style="border-color: var(--epms-border); color: var(--epms-text);">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': $store.masterSap.busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
         Refresh Master Data From SAP
@@ -72,12 +72,12 @@
          style="background: var(--epms-header-bg); border-color: var(--epms-border);">
         <div class="flex items-center gap-2">
             <span style="color: var(--epms-text-muted);">Current Records:</span>
-            <span class="font-bold" style="color: var(--epms-text);" x-text="currentRows">{{ number_format($totalRows) }}</span>
+            <span class="font-bold" style="color: var(--epms-text);" x-text="$store.masterSap.currentRows">{{ number_format($totalRows) }}</span>
         </div>
         @if($hasSap ?? false)
         <div class="flex items-center gap-2">
             <span style="color: var(--epms-text-muted);">New From SAP (staging):</span>
-            <span class="font-bold" :class="newRows > 0 ? 'text-primary' : ''" style="color: var(--epms-text);" x-text="newRows">{{ number_format($newRows ?? 0) }}</span>
+            <span class="font-bold" :class="$store.masterSap.newRows > 0 ? 'text-primary' : ''" style="color: var(--epms-text);" x-text="$store.masterSap.newRows">{{ number_format($newRows ?? 0) }}</span>
         </div>
         @endif
         @if($lastRefresh ?? false)
@@ -93,10 +93,10 @@
         </div>
         @endif
         {{-- SAP result message --}}
-        <div x-show="sapMessage" x-transition
+        <div x-show="$store.masterSap.sapMessage" x-transition
              class="ml-auto px-3 py-1 rounded-lg text-xs font-medium"
-             :class="sapSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-             x-text="sapMessage">
+             :class="$store.masterSap.sapSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+             x-text="$store.masterSap.sapMessage">
         </div>
     </div>
 
@@ -146,32 +146,14 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script>
-function masterDataTable() {
-    return {
+// ── Shared SAP store (accessible from both page-actions and content sections) ──
+document.addEventListener('alpine:init', () => {
+    Alpine.store('masterSap', {
         busy:        false,   // false | 'get' | 'refresh'
         sapMessage:  '',
         sapSuccess:  false,
         currentRows: {{ (int) $totalRows }},
         newRows:     {{ (int) ($newRows ?? 0) }},
-
-        init() {
-            const cols = @json(array_keys($columns));
-            const dtCols = [{ data: 'DT_RowIndex', orderable: false, searchable: false, width: '40px' }];
-            cols.forEach(c => dtCols.push({ data: c, name: c, defaultContent: '-' }));
-
-            $('#masterTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route($routePrefix . ".datatable") }}',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
-                },
-                columns: dtCols,
-                order: [[1, 'asc']],
-                pageLength: 25,
-                language: { processing: '<div class="py-4 text-center"><span class="loading loading-spinner loading-sm text-primary"></span></div>' },
-            });
-        },
 
         _csrf() { return document.querySelector('meta[name="csrf-token"]').content; },
 
@@ -179,6 +161,12 @@ function masterDataTable() {
             if (json.data) {
                 if (typeof json.data.current_rows !== 'undefined') this.currentRows = json.data.current_rows;
                 if (typeof json.data.new_rows !== 'undefined')     this.newRows     = json.data.new_rows;
+            }
+        },
+
+        _reloadTable() {
+            if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#masterTable')) {
+                $('#masterTable').DataTable().ajax.reload(null, false);
             }
         },
 
@@ -210,10 +198,34 @@ function masterDataTable() {
                 const json = await res.json();
                 this.sapSuccess = json.success; this.sapMessage = json.message;
                 this._applyCounts(json);
-                if (json.success) $('#masterTable').DataTable().ajax.reload();
+                if (json.success) this._reloadTable();
             } catch (e) {
                 this.sapSuccess = false; this.sapMessage = 'Request failed: ' + e.message;
             } finally { this.busy = false; }
+        }
+    });
+});
+
+// ── DataTable init (content scope) ─────────────────────────────────────────
+function masterDataTable() {
+    return {
+        init() {
+            const cols = @json(array_keys($columns));
+            const dtCols = [{ data: 'DT_RowIndex', orderable: false, searchable: false, width: '40px' }];
+            cols.forEach(c => dtCols.push({ data: c, name: c, defaultContent: '-' }));
+
+            $('#masterTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route($routePrefix . ".datatable") }}',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                },
+                columns: dtCols,
+                order: [[1, 'asc']],
+                pageLength: 25,
+                language: { processing: '<div class="py-4 text-center"><span class="loading loading-spinner loading-sm text-primary"></span></div>' },
+            });
         }
     }
 }
