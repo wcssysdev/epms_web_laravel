@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -39,6 +40,29 @@ abstract class BaseMasterController extends BaseController
     /** Validate a mapped row, return error string or null */
     abstract protected function validateRow(array $row): ?string;
 
+    /**
+     * SAP integration config for this master. Return null to disable SAP sync.
+     *
+     * Expected shape:
+     *   [
+     *     'staging'  => 'ZEPMS_EM_ESTATE_OUT',       // staging table
+     *     'urn'      => 'ZEPMS_EM_ESTATE_OUT',       // SAP URN (usually same)
+     *     'filters'  => ['BUKRS' => '*', 'LAND1' => '{country_code}'],  // {tokens} resolved from context
+     *     'columns'  => ['BUKRS','ESTNR','NAME1','WERKS'],  // SAP field columns stored in staging
+     *     'mapping'  => ['company_id' => null, 'estate_code' => 'ESTNR', ...], // master col => SAP field (null = special)
+     *   ]
+     */
+    protected function sapConfig(): ?array
+    {
+        return null;
+    }
+
+    /** Transform a mapped master row before insert (dates, booleans). Override per master. */
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        return $master;
+    }
+
     // ── Optional overrides ────────────────────────────────────────────────────
 
     /** Extra filters applied on index/datatable query */
@@ -69,17 +93,20 @@ abstract class BaseMasterController extends BaseController
     // ── INDEX ─────────────────────────────────────────────────────────────────
     public function index()
     {
-        $totalRows  = $this->baseQuery()->count();
-        $lastUpdate = DB::table('master_data_log')
+        $log = DB::table('master_data_log')
             ->where('company_id', $this->companyId())
             ->where('table_name', $this->tableName())
-            ->orderByDesc('last_updated_at')
-            ->value('last_updated_at');
+            ->first();
+
+        $counts = $this->stagingCounts();
 
         return view($this->viewPrefix() . '.index', [
             'resourceName' => $this->resourceName(),
-            'totalRows'    => $totalRows,
-            'lastUpdate'   => $lastUpdate,
+            'totalRows'    => $counts['current_rows'],
+            'newRows'      => $counts['new_rows'],
+            'hasSap'       => $this->sapConfig() !== null,
+            'lastUpdate'   => $log?->last_updated_at,
+            'lastRefresh'  => $log?->last_refresh_at,
             'routePrefix'  => $this->routePrefix(),
             'columns'      => $this->datatableColumns(),
         ]);
@@ -201,78 +228,186 @@ abstract class BaseMasterController extends BaseController
         return redirect()->route($this->routePrefix() . '.index');
     }
 
-    // ── REPLACE master data from SAP ──────────────────────────────────────────
-    public function replaceMasterData(): JsonResponse
+    // ════════════════════════════════════════════════════════════════════════
+    // SAP TWO-STEP FLOW
+    // ════════════════════════════════════════════════════════════════════════
+
+    /** STEP 1 — "Get All Data From SAP": pull SAP rows into the staging table. */
+    public function getFromSap(): JsonResponse
     {
+        $sap = $this->sapConfig();
+        if (! $sap) {
+            return $this->jsonError('SAP sync is not configured for this master.');
+        }
         if ($this->isSystemLocked() && $this->roleLevel() > 30) {
             return $this->jsonError('System is locked.');
         }
 
-        try {
-            $data = $this->fetchFromSap();
+        $service = app(\App\Services\SapService::class);
+        $ctx     = $service->context($this->companyId());
 
-            if (empty($data)) {
-                return $this->jsonError('No data returned from SAP.');
+        // Resolve {tokens} in filters from context
+        $filters = [];
+        foreach ($sap['filters'] as $k => $v) {
+            $filters[$k] = is_string($v) ? strtr($v, [
+                '{country_code}' => $ctx['country_code'],
+                '{company_code}' => $ctx['company_code'],
+            ]) : $v;
+        }
+
+        $result = $service->fetchMasterData($sap['urn'], $filters, $ctx, $sap['columns']);
+
+        if ($result['status_code'] !== 200) {
+            return $this->jsonError('Error requesting master data from SAP (HTTP ' . $result['status_code'] . ').');
+        }
+        if (empty($result['data'])) {
+            return $this->jsonError('SAP returned no ' . strtolower($this->resourceName()) . ' data.');
+        }
+
+        // Truncate + insert staging, scoped by company_code (only this company's rows)
+        DB::transaction(function () use ($sap, $result, $ctx) {
+            DB::table($sap['staging'])->where('company_code', $ctx['company_code'])->delete();
+
+            foreach ($result['data'] as $item) {
+                $row = [
+                    'company_code' => $ctx['company_code'],
+                    'country_code' => $ctx['country_code'],
+                    'country_no'   => $ctx['country_no'],
+                    'fetched_at'   => now(),
+                ];
+                foreach ($sap['columns'] as $col) {
+                    $row[$col] = $item[$col] ?? null;
+                }
+                DB::table($sap['staging'])->insert($row);
             }
 
-            DB::transaction(function () use ($data) {
-                // Delete existing data for this company
-                DB::table($this->tableName())
-                    ->where('company_id', $this->companyId())
-                    ->delete();
+            $this->touchLog(['last_refresh_at' => now()]);
+        });
 
-                foreach ($data as $row) {
-                    $row['company_id'] = $this->companyId();
-                    $row['created_by'] = $this->userName();
-                    $row['created_at'] = now();
-                    $row['updated_by'] = $this->userName();
-                    $row['updated_at'] = now();
-                    DB::table($this->tableName())->insert($row);
+        AuditService::log(
+            AuditService::TYPE_MASTER, AuditService::ACTION_UPDATE,
+            "Fetched " . count($result['data']) . " " . $this->resourceName() . " rows from SAP into staging"
+            . ($result['simulated'] ? ' (simulated)' : '')
+        );
+
+        return $this->jsonSuccess(
+            count($result['data']) . ' rows fetched into staging'
+            . ($result['simulated'] ? ' (SAP simulated — no live endpoint configured)' : '') . '.',
+            $this->stagingCounts()
+        );
+    }
+
+    /** STEP 2 — "Refresh Master Data From SAP": staging → master with backup/rollback. */
+    public function refreshFromMaster(): JsonResponse
+    {
+        $sap = $this->sapConfig();
+        if (! $sap) {
+            return $this->jsonError('SAP sync is not configured for this master.');
+        }
+        if ($this->isSystemLocked() && $this->roleLevel() > 30) {
+            return $this->jsonError('System is locked.');
+        }
+
+        $ctx = app(\App\Services\SapService::class)->context($this->companyId());
+
+        $stagingRows = DB::table($sap['staging'])
+            ->where('company_code', $ctx['company_code'])
+            ->get();
+
+        if ($stagingRows->isEmpty()) {
+            return $this->jsonError('No staged data. Run "Get All Data From SAP" first.');
+        }
+
+        try {
+            $inserted = 0;
+            DB::transaction(function () use ($sap, $stagingRows, &$inserted) {
+                // Replace this company's master rows
+                DB::table($this->tableName())->where('company_id', $this->companyId())->delete();
+
+                foreach ($stagingRows as $stg) {
+                    $stgArr = (array) $stg;
+                    $master = [
+                        'company_id' => $this->companyId(),
+                        'created_by' => $this->userName(),
+                        'updated_by' => $this->userName(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                    foreach ($sap['mapping'] as $masterCol => $sapField) {
+                        if ($sapField === null) continue; // special / already set
+                        $master[$masterCol] = $stgArr[$sapField] ?? null;
+                    }
+                    $master = $this->transformSapRow($master, $stgArr);
+                    DB::table($this->tableName())->insert($master);
+                    $inserted++;
                 }
-                $this->logMasterDataUpdate(count($data));
+
+                $this->touchLog(['last_updated_at' => now(), 'last_updated_by' => $this->userId(), 'is_replaced' => true]);
             });
 
             AuditService::log(
-                AuditService::TYPE_MASTER,
-                AuditService::ACTION_UPDATE,
-                "Replaced " . $this->resourceName() . " from SAP (" . count($data) . " rows)"
+                AuditService::TYPE_MASTER, AuditService::ACTION_UPDATE,
+                "Refreshed " . $this->resourceName() . " master from staging ({$inserted} rows)"
             );
 
             return $this->jsonSuccess(
-                count($data) . ' ' . $this->resourceName() . ' records replaced from SAP.',
-                ['count' => count($data)]
+                "{$inserted} " . $this->resourceName() . ' records refreshed from SAP staging.',
+                $this->stagingCounts()
             );
-
-        } catch (\Exception $e) {
-            return $this->jsonError('SAP sync failed: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            return $this->jsonError('Refresh failed, transaction cancelled: ' . $e->getMessage());
         }
     }
 
-    // ── GET master data info (last refresh etc) ───────────────────────────────
-    public function getMasterData(): JsonResponse
+    /** Current (master) vs new (staging) row counts for the info bar. */
+    public function stagingInfo(): JsonResponse
     {
-        $log = DB::table('master_data_log')
-            ->where('company_id', $this->companyId())
-            ->where('table_name', $this->tableName())
-            ->orderByDesc('last_updated_at')
-            ->first();
+        return $this->jsonSuccess('OK', $this->stagingCounts());
+    }
 
-        return $this->jsonSuccess('OK', [
-            'table'          => $this->tableName(),
-            'total'          => $this->baseQuery()->count(),
-            'last_refresh'   => $log?->last_refresh_at,
-            'last_updated'   => $log?->last_updated_at,
+    protected function stagingCounts(): array
+    {
+        $sap = $this->sapConfig();
+        $ctx = app(\App\Services\SapService::class)->context($this->companyId());
+
+        $newRows = 0;
+        if ($sap && Schema::hasTable($sap['staging'])) {
+            $newRows = DB::table($sap['staging'])->where('company_code', $ctx['company_code'])->count();
+        }
+
+        return [
+            'current_rows' => $this->baseQuery()->count(),
+            'new_rows'     => $newRows,
+        ];
+    }
+
+    // ── EXPORT actual master data (with values) ───────────────────────────────
+    public function exportMasterData(): StreamedResponse
+    {
+        $headers = $this->csvHeaders();
+        $rows    = $this->baseQuery()->get();
+        $cols    = array_keys($this->datatableColumns());
+        $filename = strtolower(str_replace(' ', '_', $this->resourceName())) . '_' . now()->format('Y-m-d') . '.csv';
+
+        $callback = function () use ($headers, $rows, $cols) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            foreach ($rows as $row) {
+                $arr  = (array) $row;
+                $line = array_map(fn ($c) => $arr[$c] ?? '', $cols);
+                fputcsv($handle, $line);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
 
-    // ── REFRESH master data info ──────────────────────────────────────────────
-    public function refreshMasterDataInfo(): JsonResponse
-    {
-        return $this->getMasterData();
-    }
-
-    // ── GENERATE CSV template ─────────────────────────────────────────────────
-    public function generateCsv(): Response
+    // ── GENERATE CSV template (empty, for upload) ─────────────────────────────
+    public function generateCsv(): StreamedResponse
     {
         $headers = $this->csvHeaders();
         $filename = strtolower(str_replace(' ', '_', $this->resourceName())) . '_template.csv';
@@ -280,7 +415,6 @@ abstract class BaseMasterController extends BaseController
         $callback = function () use ($headers) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, $headers);
-            // Add one sample row with empty values
             fputcsv($handle, array_fill(0, count($headers), ''));
             fclose($handle);
         };
@@ -291,26 +425,12 @@ abstract class BaseMasterController extends BaseController
         ]);
     }
 
-    // ── FETCH from SAP (override in child if needed) ──────────────────────────
-    protected function fetchFromSap(): array
-    {
-        // Default: return empty, child controllers override with SAP call
-        return [];
-    }
-
-    // ── Log master data update ────────────────────────────────────────────────
-    protected function logMasterDataUpdate(int $count): void
+    // ── master_data_log helper ────────────────────────────────────────────────
+    protected function touchLog(array $fields): void
     {
         DB::table('master_data_log')->updateOrInsert(
-            [
-                'company_id' => $this->companyId(),
-                'table_name' => $this->tableName(),
-            ],
-            [
-                'last_updated_at'   => now(),
-                'last_updated_by'   => $this->userId(),
-                'is_replaced'       => true,
-            ]
+            ['company_id' => $this->companyId(), 'table_name' => $this->tableName()],
+            $fields
         );
     }
 }

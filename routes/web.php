@@ -106,17 +106,23 @@ Route::middleware(['auth.check'])->group(function () {
     Route::middleware(['role:40,it_staff'])->prefix('masters')->name('masters.')->group(function () {
 
         // ── Macro: register standard master data routes ───────────────────────
-        // Each master: index, datatable, upload, preview, save, cancel, replace, get-data, generate-csv
+        // Each master: index, datatable, upload/preview/save/cancel (CSV),
+        // get-from-sap (Step 1), refresh-from-master (Step 2), staging-info,
+        // export (data), generate-csv (template)
         $masterRoutes = function (string $prefix, string $controller, array $extras = []) use (&$masterRoutes) {
-            Route::get('/',                   [$controller, 'index'])->name('index');
-            Route::get('/datatable',          [$controller, 'getDatatable'])->name('datatable');
-            Route::get('/upload',             [$controller, 'upload'])->name('upload');
-            Route::post('/preview',           [$controller, 'preview'])->name('preview');
-            Route::post('/save-uploaded-data',[$controller, 'saveUploadedData'])->name('save-uploaded-data');
-            Route::get('/cancel',             [$controller, 'cancelUpload'])->name('cancel');
-            Route::post('/replace-master-data',[$controller,'replaceMasterData'])->name('replace-master-data');
-            Route::get('/get-master-data',    [$controller, 'getMasterData'])->name('get-master-data');
-            Route::get('/generate-csv',       [$controller, 'generateCsv'])->name('generate-csv');
+            Route::get('/',                    [$controller, 'index'])->name('index');
+            Route::get('/datatable',           [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/upload',              [$controller, 'upload'])->name('upload');
+            Route::post('/preview',            [$controller, 'preview'])->name('preview');
+            Route::post('/save-uploaded-data', [$controller, 'saveUploadedData'])->name('save-uploaded-data');
+            Route::get('/cancel',              [$controller, 'cancelUpload'])->name('cancel');
+            // SAP two-step flow
+            Route::post('/get-from-sap',       [$controller, 'getFromSap'])->name('get-from-sap');
+            Route::post('/refresh-from-master',[$controller, 'refreshFromMaster'])->name('refresh-from-master');
+            Route::get('/staging-info',        [$controller, 'stagingInfo'])->name('staging-info');
+            // CSV
+            Route::get('/export',              [$controller, 'exportMasterData'])->name('export');
+            Route::get('/generate-csv',        [$controller, 'generateCsv'])->name('generate-csv');
         };
 
         // ── Estate ────────────────────────────────────────────────────────────

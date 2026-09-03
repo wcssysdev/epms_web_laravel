@@ -116,7 +116,7 @@ class EmployeeController extends BaseMasterController
                     $saved++;
                 }
             }
-            $this->logMasterDataUpdate(count($rows));
+            $this->touchLog(['last_updated_at' => now(), 'last_updated_by' => $this->userId(), 'is_replaced' => true]);
         });
 
         session()->forget('master_preview_m_employee');
@@ -203,18 +203,49 @@ class EmployeeController extends BaseMasterController
         return $this->jsonSuccess('OK', $employees);
     }
 
-    // SAP sync
-    protected function fetchFromSap(): array
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
     {
-        $config = $this->companyConfig;
-        if (!$config?->sap_api_url) return [];
-        // SAP implementation per project
-        return [];
+        return [
+            'staging' => 'ZEPMS_EMPLOYEE_OUT',
+            'urn'     => 'ZEPMS_EMPLOYEE_OUT',
+            'filters' => ['BUKRS' => '*', 'LAND1' => '{country_code}'],
+            'columns' => ['BUKRS', 'ESTNR', 'DIVNR', 'PRFNR', 'EMPNR', 'ENAME', 'KDATB', 'KDATE',
+                          'JBCDE', 'JBTYP', 'SEX', 'STATS', 'WOPXD', 'DEPNR', 'LIFNR'],
+            'mapping' => [
+                'employee_estate_code'   => 'ESTNR',
+                'employee_division_code' => 'DIVNR',
+                'employee_profile'       => 'PRFNR',
+                'employee_code'          => 'EMPNR',
+                'employee_name'          => 'ENAME',
+                'employee_job_code'      => 'JBCDE',
+                'employee_job_type'      => 'JBTYP',
+                'employee_sex'           => 'SEX',
+                'employee_status'        => 'STATS',
+                'employee_stats'         => 'STATS',   // CI4 maps STATS to both
+                'employee_department'    => 'DEPNR',
+                'employee_vendor'        => 'LIFNR',
+                'valid_from'             => 'KDATB',
+                'valid_to'               => 'KDATE',
+                'work_permit_exp_date'   => 'WOPXD',
+            ],
+        ];
+    }
+
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $master['valid_from']           = $this->parseDate($staging['KDATB'] ?? '');
+        $master['valid_to']             = $this->parseDate($staging['KDATE'] ?? '');
+        $master['work_permit_exp_date'] = $this->parseDate($staging['WOPXD'] ?? '');
+        $master['is_internal_estate']   = false;
+        return $master;
     }
 
     private function parseDate(string $val): ?string
     {
-        if (empty($val)) return null;
+        $val = trim($val);
+        if ($val === '') return null;
+        $val = str_replace('.', '-', $val);
         try { return \Carbon\Carbon::parse($val)->toDateString(); }
         catch (\Exception $e) { return null; }
     }

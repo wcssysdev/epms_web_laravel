@@ -49,28 +49,20 @@ class EstateController extends BaseMasterController
         return null;
     }
 
-    // SAP sync
-    protected function fetchFromSap(): array
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
     {
-        $config = $this->companyConfig;
-        if (!$config?->sap_api_url) return [];
-
-        try {
-            helper('sap');
-            $result = get_master_data_from_sap_laravel(
-                $config,
-                '{"urn:ZEPMS_EM_ESTATE_OUT": {"BUKRS": "' . $this->companyCode() . '"}}'
-            );
-
-            return collect($result)->map(fn($r) => [
-                'estate_code'       => $r['ESTNR']  ?? '',
-                'estate_name'       => $r['NAME1']  ?? '',
-                'estate_plant_code' => $r['WERKS']  ?? '',
-            ])->filter(fn($r) => !empty($r['estate_code']))->values()->toArray();
-
-        } catch (\Exception $e) {
-            throw new \RuntimeException('SAP fetch failed: ' . $e->getMessage());
-        }
+        return [
+            'staging' => 'ZEPMS_EM_ESTATE_OUT',
+            'urn'     => 'ZEPMS_EM_ESTATE_OUT',
+            'filters' => ['BUKRS' => '*', 'LAND1' => '{country_code}'],
+            'columns' => ['BUKRS', 'ESTNR', 'NAME1', 'WERKS'],
+            'mapping' => [
+                'estate_code'       => 'ESTNR',
+                'estate_name'       => 'NAME1',
+                'estate_plant_code' => 'WERKS',
+            ],
+        ];
     }
 
     // Lookup endpoint for other master data dropdowns

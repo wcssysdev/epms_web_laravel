@@ -82,18 +82,37 @@ class DivisionController extends BaseMasterController
         return $this->jsonSuccess('OK', $divisions);
     }
 
-    protected function fetchFromSap(): array
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
     {
-        $config = $this->companyConfig;
-        if (!$config?->sap_api_url) return [];
+        return [
+            'staging' => 'ZEPMS_EM_DIVISION_OUT',
+            'urn'     => 'ZEPMS_EM_DIVISION_OUT',
+            'filters' => ['BUKRS' => '*', 'LAND1' => '{country_code}'],
+            'columns' => ['BUKRS', 'ESTNR', 'SPART', 'VTEXT', 'KDATB', 'KDATE'],
+            'mapping' => [
+                'estate_code'   => 'ESTNR',
+                'division_code' => 'SPART',
+                'division_name' => 'VTEXT',
+                'valid_from'    => 'KDATB',
+                'valid_to'      => 'KDATE',
+            ],
+        ];
+    }
 
-        // Placeholder — implement per project SAP endpoint
-        return [];
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $master['valid_from'] = $this->parseDate($staging['KDATB'] ?? '');
+        $master['valid_to']   = $this->parseDate($staging['KDATE'] ?? '');
+        return $master;
     }
 
     private function parseDate(string $val): ?string
     {
-        if (empty($val)) return null;
+        $val = trim($val);
+        if ($val === '') return null;
+        // SAP sends dotted dates (2020.01.01); normalise like CI4 did
+        $val = str_replace('.', '-', $val);
         try {
             return \Carbon\Carbon::parse($val)->toDateString();
         } catch (\Exception $e) {

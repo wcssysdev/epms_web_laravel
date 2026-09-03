@@ -96,9 +96,45 @@ class BlockController extends BaseMasterController
         return $this->jsonSuccess('OK', $blocks);
     }
 
+    // ── SAP two-step config ───────────────────────────────────────────────────
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EM_BLOCK_OUT',
+            'urn'     => 'ZEPMS_EM_BLOCK_OUT',
+            'filters' => ['BUKRS' => '{company_code}', 'ESTNR' => '*', 'PLBLK' => '*', 'CROP_TYPE' => '*'],
+            'columns' => ['BUKRS', 'ESTNR', 'DIVNR', 'BLOCK', 'BNAME', 'BSTATE', 'BHA', 'POINT', 'PLBLK', 'CROP_TYPE', 'KDATB', 'KDATE'],
+            'mapping' => [
+                'estate_code'     => 'ESTNR',
+                'division_code'   => 'DIVNR',
+                'block_code'      => 'BLOCK',
+                'block_name'      => 'BNAME',
+                'block_state'     => 'BSTATE',
+                'block_hectarage' => 'BHA',
+                'total_palm'      => 'POINT',
+                'crop_type'       => 'CROP_TYPE',
+                'valid_from'      => 'KDATB',
+                'valid_to'        => 'KDATE',
+            ],
+        ];
+    }
+
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $master['block_hectarage'] = is_numeric($staging['BHA'] ?? '') ? (float) $staging['BHA'] : null;
+        $master['total_palm']      = (int) ($staging['POINT'] ?? 0);
+        $master['is_planted']      = !empty($staging['PLBLK']) && $staging['PLBLK'] !== '0';
+        $master['crop_type']       = strtoupper(trim($staging['CROP_TYPE'] ?? 'PALM'));
+        $master['valid_from']      = $this->parseDate($staging['KDATB'] ?? '');
+        $master['valid_to']        = $this->parseDate($staging['KDATE'] ?? '');
+        return $master;
+    }
+
     private function parseDate(string $val): ?string
     {
-        if (empty($val)) return null;
+        $val = trim($val);
+        if ($val === '') return null;
+        $val = str_replace('.', '-', $val);
         try { return \Carbon\Carbon::parse($val)->toDateString(); }
         catch (\Exception $e) { return null; }
     }

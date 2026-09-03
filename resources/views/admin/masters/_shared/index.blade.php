@@ -10,36 +10,57 @@
 @section('page-subtitle', 'Manage ' . strtolower($resourceName) . ' master data')
 
 @section('page-actions')
-<div class="flex items-center gap-2">
-    {{-- Generate CSV Template --}}
-    <a href="{{ route($routePrefix . '.generate-csv') }}"
-       class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80"
-       style="border-color: var(--epms-border); color: var(--epms-text);">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+<div class="flex flex-wrap items-center gap-2">
+    @if($hasSap ?? false)
+    {{-- 1. Get All Data From SAP --}}
+    <button type="button" @click="getFromSap()" :disabled="busy"
+            class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50"
+            style="border-color: var(--epms-border); color: var(--epms-text);">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': busy==='get' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
         </svg>
-        CSV Template
-    </a>
+        Get All Data From SAP
+    </button>
 
-    {{-- Upload --}}
+    {{-- 2. Refresh Master Data From SAP --}}
+    <button type="button" @click="refreshFromMaster()" :disabled="busy"
+            class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50"
+            style="border-color: var(--epms-border); color: var(--epms-text);">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh Master Data From SAP
+    </button>
+    @endif
+
+    {{-- 3. Upload Data --}}
     <a href="{{ route($routePrefix . '.upload') }}"
        class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80"
        style="border-color: var(--epms-border); color: var(--epms-text);">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
         </svg>
-        Upload CSV
+        Upload Data
     </a>
 
-    {{-- Replace from SAP --}}
-    <button type="button" @click="replaceMasterData()"
-            class="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition hover:opacity-90"
-            :disabled="replacing">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': replacing }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+    {{-- 4. Download Template --}}
+    <a href="{{ route($routePrefix . '.generate-csv') }}"
+       class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:opacity-80"
+       style="border-color: var(--epms-border); color: var(--epms-text);">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
-        <span x-text="replacing ? 'Syncing...' : 'Sync from SAP'"></span>
-    </button>
+        Download Template
+    </a>
+
+    {{-- 5. Export Master Data --}}
+    <a href="{{ route($routePrefix . '.export') }}"
+       class="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition hover:opacity-90">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Export Master Data
+    </a>
 </div>
 @endsection
 
@@ -47,15 +68,27 @@
 <div x-data="masterDataTable()">
 
     {{-- Info Bar --}}
-    <div class="flex items-center gap-4 rounded-xl border px-5 py-3 mb-4 text-sm"
+    <div class="flex flex-wrap items-center gap-4 rounded-xl border px-5 py-3 mb-4 text-sm"
          style="background: var(--epms-header-bg); border-color: var(--epms-border);">
         <div class="flex items-center gap-2">
-            <span style="color: var(--epms-text-muted);">Total Records:</span>
-            <span class="font-bold" style="color: var(--epms-text);">{{ number_format($totalRows) }}</span>
+            <span style="color: var(--epms-text-muted);">Current Records:</span>
+            <span class="font-bold" style="color: var(--epms-text);" x-text="currentRows">{{ number_format($totalRows) }}</span>
         </div>
+        @if($hasSap ?? false)
+        <div class="flex items-center gap-2">
+            <span style="color: var(--epms-text-muted);">New From SAP (staging):</span>
+            <span class="font-bold" :class="newRows > 0 ? 'text-primary' : ''" style="color: var(--epms-text);" x-text="newRows">{{ number_format($newRows ?? 0) }}</span>
+        </div>
+        @endif
+        @if($lastRefresh ?? false)
+        <div class="flex items-center gap-2">
+            <span style="color: var(--epms-text-muted);">Last SAP Fetch:</span>
+            <span class="font-medium" style="color: var(--epms-text);">{{ \Carbon\Carbon::parse($lastRefresh)->format('d/m/Y H:i') }}</span>
+        </div>
+        @endif
         @if($lastUpdate)
         <div class="flex items-center gap-2">
-            <span style="color: var(--epms-text-muted);">Last Updated:</span>
+            <span style="color: var(--epms-text-muted);">Last Refresh:</span>
             <span class="font-medium" style="color: var(--epms-text);">{{ \Carbon\Carbon::parse($lastUpdate)->format('d/m/Y H:i') }}</span>
         </div>
         @endif
@@ -115,9 +148,11 @@
 <script>
 function masterDataTable() {
     return {
-        replacing:  false,
-        sapMessage: '',
-        sapSuccess: false,
+        busy:        false,   // false | 'get' | 'refresh'
+        sapMessage:  '',
+        sapSuccess:  false,
+        currentRows: {{ (int) $totalRows }},
+        newRows:     {{ (int) ($newRows ?? 0) }},
 
         init() {
             const cols = @json(array_keys($columns));
@@ -138,25 +173,47 @@ function masterDataTable() {
             });
         },
 
-        async replaceMasterData() {
-            if (!confirm('Replace all {{ $resourceName }} data from SAP? Existing data will be deleted.')) return;
-            this.replacing  = true;
-            this.sapMessage = '';
+        _csrf() { return document.querySelector('meta[name="csrf-token"]').content; },
+
+        _applyCounts(json) {
+            if (json.data) {
+                if (typeof json.data.current_rows !== 'undefined') this.currentRows = json.data.current_rows;
+                if (typeof json.data.new_rows !== 'undefined')     this.newRows     = json.data.new_rows;
+            }
+        },
+
+        // STEP 1 — pull SAP → staging
+        async getFromSap() {
+            if (this.busy) return;
+            this.busy = 'get'; this.sapMessage = '';
             try {
-                const res  = await fetch('{{ route($routePrefix . ".replace-master-data") }}', {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                const res  = await fetch('{{ route($routePrefix . ".get-from-sap") }}', {
+                    method: 'POST', headers: { 'X-CSRF-TOKEN': this._csrf() }
                 });
                 const json = await res.json();
-                this.sapSuccess = json.success;
-                this.sapMessage = json.message;
+                this.sapSuccess = json.success; this.sapMessage = json.message;
+                this._applyCounts(json);
+            } catch (e) {
+                this.sapSuccess = false; this.sapMessage = 'Request failed: ' + e.message;
+            } finally { this.busy = false; }
+        },
+
+        // STEP 2 — staging → master
+        async refreshFromMaster() {
+            if (this.busy) return;
+            if (!confirm('Refresh {{ $resourceName }} master from SAP staging? Current data will be replaced.')) return;
+            this.busy = 'refresh'; this.sapMessage = '';
+            try {
+                const res  = await fetch('{{ route($routePrefix . ".refresh-from-master") }}', {
+                    method: 'POST', headers: { 'X-CSRF-TOKEN': this._csrf() }
+                });
+                const json = await res.json();
+                this.sapSuccess = json.success; this.sapMessage = json.message;
+                this._applyCounts(json);
                 if (json.success) $('#masterTable').DataTable().ajax.reload();
             } catch (e) {
-                this.sapSuccess = false;
-                this.sapMessage = 'Request failed: ' + e.message;
-            } finally {
-                this.replacing = false;
-            }
+                this.sapSuccess = false; this.sapMessage = 'Request failed: ' + e.message;
+            } finally { this.busy = false; }
         }
     }
 }
