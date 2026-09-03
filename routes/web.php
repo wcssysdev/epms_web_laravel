@@ -42,6 +42,10 @@ use App\Http\Controllers\Admin\Masters\CoconutMaterialController;
 use App\Http\Controllers\Admin\Masters\WbsController;
 use App\Http\Controllers\Admin\Masters\VraController;
 use App\Http\Controllers\Admin\Masters\MeasPointController;
+// Masters — CRUD-only (no SAP/CSV)
+use App\Http\Controllers\Admin\Masters\BinController;
+use App\Http\Controllers\Admin\Masters\ConfirmationTextController;
+use App\Http\Controllers\Admin\Masters\CoconutActivityTypeController;
 // Planning (Estate Manager 40 + Asst Manager 50)
 use App\Http\Controllers\Planning\WorkplanController;
 use App\Http\Controllers\Planning\HarvestingPlanController;
@@ -243,6 +247,20 @@ Route::middleware(['auth.check'])->group(function () {
             $masterRoutes('meas_point', MeasPointController::class);
             Route::get('/lookup', [MeasPointController::class, 'lookup'])->name('lookup');
         });
+
+        // ── CRUD-only masters (no SAP/CSV) ────────────────────────────────────
+        $crudRoutes = function (string $controller) {
+            Route::get('/',          [$controller, 'index'])->name('index');
+            Route::get('/datatable', [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/create',    [$controller, 'create'])->name('create');
+            Route::post('/',         [$controller, 'store'])->name('store');
+            Route::get('/{id}/edit', [$controller, 'edit'])->name('edit');
+            Route::put('/{id}',      [$controller, 'update'])->name('update');
+            Route::delete('/{id}',   [$controller, 'destroy'])->name('destroy');
+        };
+        Route::prefix('bin')->name('bin.')->group(fn() => $crudRoutes(BinController::class));
+        Route::prefix('confirmation_text')->name('confirmation_text.')->group(fn() => $crudRoutes(ConfirmationTextController::class));
+        Route::prefix('coconut_activity_type')->name('coconut_activity_type.')->group(fn() => $crudRoutes(CoconutActivityTypeController::class));
 
         // ── Global Lookups (Super/Country Admin manage, all roles read) ───────
         Route::prefix('global')->name('global.')->group(function () {

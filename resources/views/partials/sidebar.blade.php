@@ -158,6 +158,8 @@
                                     'Ramp'                 => 'masters.receiving_point.index',
                                     'Delivery Destination' => 'masters.destination.index',
                                     'WBS'                  => 'masters.wbs.index',
+                                    'BIN'                  => 'masters.bin.index',
+                                    'Confirmation Text'    => 'masters.confirmation_text.index',
                                 ];
                                 @endphp
                                 @foreach($masterLinks as $label => $routeName)
@@ -175,6 +177,7 @@
                                 @endif
                                 @if($isCoconut)
                                 <li><a href="{{ route('masters.coconut_material.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.coconut_material') ? 'font-semibold text-primary' : '' }}">Coconut Material</a></li>
+                                <li><a href="{{ route('masters.coconut_activity_type.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.coconut_activity_type') ? 'font-semibold text-primary' : '' }}">Coconut Activity Type</a></li>
                                 @endif
                                 @if($isDurian)
                                 <li><a href="#" class="sidebar-subitem">Durian Variety</a></li>
