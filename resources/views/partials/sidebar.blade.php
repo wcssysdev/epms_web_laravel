@@ -142,17 +142,22 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 @php
                                 $masterLinks = [
-                                    'Estate'       => 'masters.estate.index',
-                                    'Division'     => 'masters.division.index',
-                                    'Block'        => 'masters.block.index',
-                                    'Employee'     => 'masters.employee.index',
-                                    'Activity'     => 'masters.activity.index',
-                                    'Material'     => 'masters.material.index',
-                                    'Vendor'       => 'masters.vendor.index',
-                                    'Device'       => 'masters.device.index',
-                                    'Worktype'     => 'masters.worktype.index',
-                                    'Work Center'  => 'masters.work_center.index',
-                                    'Cost Center'  => 'masters.cost_center.index',
+                                    'Estate'               => 'masters.estate.index',
+                                    'Division'             => 'masters.division.index',
+                                    'Block'                => 'masters.block.index',
+                                    'Employee'             => 'masters.employee.index',
+                                    'Activity'             => 'masters.activity.index',
+                                    'Material'             => 'masters.material.index',
+                                    'Vendor'               => 'masters.vendor.index',
+                                    'Device'               => 'masters.device.index',
+                                    'Worktype'             => 'masters.worktype.index',
+                                    'Work Center'          => 'masters.work_center.index',
+                                    'Cost Center'          => 'masters.cost_center.index',
+                                    'Measurement Point'    => 'masters.meas_point.index',
+                                    'License Number'       => 'masters.vra.index',
+                                    'Ramp'                 => 'masters.receiving_point.index',
+                                    'Delivery Destination' => 'masters.destination.index',
+                                    'WBS'                  => 'masters.wbs.index',
                                 ];
                                 @endphp
                                 @foreach($masterLinks as $label => $routeName)
@@ -169,7 +174,7 @@
                                 <li><a href="#" class="sidebar-subitem">FDN Card</a></li>
                                 @endif
                                 @if($isCoconut)
-                                <li><a href="#" class="sidebar-subitem">Coconut Material</a></li>
+                                <li><a href="{{ route('masters.coconut_material.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.coconut_material') ? 'font-semibold text-primary' : '' }}">Coconut Material</a></li>
                                 @endif
                                 @if($isDurian)
                                 <li><a href="#" class="sidebar-subitem">Durian Variety</a></li>
@@ -196,6 +201,33 @@
                                     </a>
                                 </li>
                                 @endforeach
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            {{-- ── Master GI & GR (Company Admin) ────────────────────────── --}}
+            <div class="mb-6" x-data="{ open: {{ (str_starts_with($route,'masters.sloc') || str_starts_with($route,'masters.gl_account') || str_starts_with($route,'masters.gla_order')) ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zm6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17z"/>
+                                </svg>
+                                <span>Master GI &amp; GR</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('masters.sloc.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.sloc') ? 'font-semibold text-primary' : '' }}">Storage Location</a></li>
+                                <li><a href="{{ route('masters.gl_account.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.gl_account') ? 'font-semibold text-primary' : '' }}">GL Account [Cost Center]</a></li>
+                                <li><a href="{{ route('masters.gla_order.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.gla_order') ? 'font-semibold text-primary' : '' }}">GL Account [Order]</a></li>
                             </ul>
                         </li>
                     </ul>

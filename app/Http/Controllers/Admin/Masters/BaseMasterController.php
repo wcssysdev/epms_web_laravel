@@ -253,6 +253,7 @@ abstract class BaseMasterController extends BaseController
                 '{country_code}' => $ctx['country_code'],
                 '{company_code}' => $ctx['company_code'],
                 '{plant_code}'   => $ctx['config']?->plant_code ?? '',
+                '{estate_code}'  => $ctx['config']?->estate_code ?? '',
             ]) : $v;
         }
 

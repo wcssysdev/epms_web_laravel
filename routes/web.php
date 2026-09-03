@@ -32,6 +32,16 @@ use App\Http\Controllers\Admin\Masters\AttendanceController;
 use App\Http\Controllers\Admin\Masters\UomController;
 use App\Http\Controllers\Admin\Masters\HarvestMethodController;
 use App\Http\Controllers\Admin\Masters\MovementTypeController;
+// Masters — batch 3 (SAP + CSV)
+use App\Http\Controllers\Admin\Masters\SlocController;
+use App\Http\Controllers\Admin\Masters\DestinationController;
+use App\Http\Controllers\Admin\Masters\ReceivingPointController;
+use App\Http\Controllers\Admin\Masters\GlAccountController;
+use App\Http\Controllers\Admin\Masters\GlaOrderController;
+use App\Http\Controllers\Admin\Masters\CoconutMaterialController;
+use App\Http\Controllers\Admin\Masters\WbsController;
+use App\Http\Controllers\Admin\Masters\VraController;
+use App\Http\Controllers\Admin\Masters\MeasPointController;
 // Planning (Estate Manager 40 + Asst Manager 50)
 use App\Http\Controllers\Planning\WorkplanController;
 use App\Http\Controllers\Planning\HarvestingPlanController;
@@ -194,6 +204,44 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('cost_center')->name('cost_center.')->group(function () use ($masterRoutes) {
             $masterRoutes('cost_center', CostCenterController::class);
             Route::get('/lookup', [CostCenterController::class, 'lookup'])->name('lookup');
+        });
+
+        // ── Batch 3 masters (SAP/CSV) ─────────────────────────────────────────
+        Route::prefix('sloc')->name('sloc.')->group(function () use ($masterRoutes) {
+            $masterRoutes('sloc', SlocController::class);
+            Route::get('/lookup', [SlocController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('destination')->name('destination.')->group(function () use ($masterRoutes) {
+            $masterRoutes('destination', DestinationController::class);
+            Route::get('/lookup', [DestinationController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('receiving_point')->name('receiving_point.')->group(function () use ($masterRoutes) {
+            $masterRoutes('receiving_point', ReceivingPointController::class);
+            Route::get('/lookup', [ReceivingPointController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('gl_account')->name('gl_account.')->group(function () use ($masterRoutes) {
+            $masterRoutes('gl_account', GlAccountController::class);
+            Route::get('/lookup', [GlAccountController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('gla_order')->name('gla_order.')->group(function () use ($masterRoutes) {
+            $masterRoutes('gla_order', GlaOrderController::class);
+            Route::get('/lookup', [GlaOrderController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('coconut_material')->name('coconut_material.')->group(function () use ($masterRoutes) {
+            $masterRoutes('coconut_material', CoconutMaterialController::class);
+            Route::get('/lookup', [CoconutMaterialController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('wbs')->name('wbs.')->group(function () use ($masterRoutes) {
+            $masterRoutes('wbs', WbsController::class);
+            Route::get('/lookup', [WbsController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('vra')->name('vra.')->group(function () use ($masterRoutes) {
+            $masterRoutes('vra', VraController::class);
+            Route::get('/lookup', [VraController::class, 'lookup'])->name('lookup');
+        });
+        Route::prefix('meas_point')->name('meas_point.')->group(function () use ($masterRoutes) {
+            $masterRoutes('meas_point', MeasPointController::class);
+            Route::get('/lookup', [MeasPointController::class, 'lookup'])->name('lookup');
         });
 
         // ── Global Lookups (Super/Country Admin manage, all roles read) ───────
