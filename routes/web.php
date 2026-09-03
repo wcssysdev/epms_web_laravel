@@ -46,6 +46,15 @@ use App\Http\Controllers\Admin\Masters\MeasPointController;
 use App\Http\Controllers\Admin\Masters\BinController;
 use App\Http\Controllers\Admin\Masters\ConfirmationTextController;
 use App\Http\Controllers\Admin\Masters\CoconutActivityTypeController;
+// Masters — Durian (CRUD)
+use App\Http\Controllers\Admin\Masters\Durian\VarietyController as DurianVarietyController;
+use App\Http\Controllers\Admin\Masters\Durian\GradingController as DurianGradingController;
+use App\Http\Controllers\Admin\Masters\Durian\TaskController as DurianTaskController;
+use App\Http\Controllers\Admin\Masters\Durian\FertilizerController as DurianFertilizerController;
+use App\Http\Controllers\Admin\Masters\Durian\PesticideController as DurianPesticideController;
+use App\Http\Controllers\Admin\Masters\Durian\DiseaseController as DurianDiseaseController;
+use App\Http\Controllers\Admin\Masters\Durian\SoilConditionController as DurianSoilConditionController;
+use App\Http\Controllers\Admin\Masters\Durian\ActivityController as DurianActivityController;
 // Planning (Estate Manager 40 + Asst Manager 50)
 use App\Http\Controllers\Planning\WorkplanController;
 use App\Http\Controllers\Planning\HarvestingPlanController;
@@ -261,6 +270,18 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('bin')->name('bin.')->group(fn() => $crudRoutes(BinController::class));
         Route::prefix('confirmation_text')->name('confirmation_text.')->group(fn() => $crudRoutes(ConfirmationTextController::class));
         Route::prefix('coconut_activity_type')->name('coconut_activity_type.')->group(fn() => $crudRoutes(CoconutActivityTypeController::class));
+
+        // ── Durian masters (CRUD, durian-enabled companies) ───────────────────
+        Route::prefix('durian')->name('durian.')->group(function () use ($crudRoutes) {
+            Route::prefix('variety')->name('variety.')->group(fn() => $crudRoutes(DurianVarietyController::class));
+            Route::prefix('grading')->name('grading.')->group(fn() => $crudRoutes(DurianGradingController::class));
+            Route::prefix('task')->name('task.')->group(fn() => $crudRoutes(DurianTaskController::class));
+            Route::prefix('fertilizer')->name('fertilizer.')->group(fn() => $crudRoutes(DurianFertilizerController::class));
+            Route::prefix('pesticide')->name('pesticide.')->group(fn() => $crudRoutes(DurianPesticideController::class));
+            Route::prefix('disease')->name('disease.')->group(fn() => $crudRoutes(DurianDiseaseController::class));
+            Route::prefix('soil_condition')->name('soil_condition.')->group(fn() => $crudRoutes(DurianSoilConditionController::class));
+            Route::prefix('activity')->name('activity.')->group(fn() => $crudRoutes(DurianActivityController::class));
+        });
 
         // ── Global Lookups (Super/Country Admin manage, all roles read) ───────
         Route::prefix('global')->name('global.')->group(function () {

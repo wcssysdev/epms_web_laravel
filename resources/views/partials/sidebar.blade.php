@@ -180,7 +180,30 @@
                                 <li><a href="{{ route('masters.coconut_activity_type.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.coconut_activity_type') ? 'font-semibold text-primary' : '' }}">Coconut Activity Type</a></li>
                                 @endif
                                 @if($isDurian)
-                                <li><a href="#" class="sidebar-subitem">Durian Variety</a></li>
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Durian</span>
+                                </li>
+                                @php
+                                $durianLinks = [
+                                    'Variety'        => 'masters.durian.variety.index',
+                                    'Grading'        => 'masters.durian.grading.index',
+                                    'Task'           => 'masters.durian.task.index',
+                                    'Activity'       => 'masters.durian.activity.index',
+                                    'Fertilizer'     => 'masters.durian.fertilizer.index',
+                                    'Pesticide'      => 'masters.durian.pesticide.index',
+                                    'Disease'        => 'masters.durian.disease.index',
+                                    'Soil Condition' => 'masters.durian.soil_condition.index',
+                                ];
+                                @endphp
+                                @foreach($durianLinks as $label => $routeName)
+                                <li>
+                                    @php $dhref = \Illuminate\Support\Facades\Route::has($routeName) ? route($routeName) : '#'; @endphp
+                                    <a href="{{ $dhref }}"
+                                       class="sidebar-subitem {{ str_starts_with($route, substr($routeName, 0, strrpos($routeName, '.'))) ? 'font-semibold text-primary' : '' }}">
+                                        Durian {{ $label }}
+                                    </a>
+                                </li>
+                                @endforeach
                                 @endif
 
                                 {{-- Global lookups (shared across companies) --}}
