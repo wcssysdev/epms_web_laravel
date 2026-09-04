@@ -4,6 +4,7 @@ namespace App\Models\Transaction;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Global\Company;
 use App\Models\Global\Role;
@@ -36,6 +37,32 @@ class User extends Authenticatable
     public function access(): HasOne
     {
         return $this->hasOne(UserAccess::class, 'user_id');
+    }
+
+    /** Additive multi-scope grants (multi-estate / multi-country roles). */
+    public function scopes(): HasMany
+    {
+        return $this->hasMany(UserScope::class, 'user_id');
+    }
+
+    /** IDs of estates this user is explicitly scoped to (multi-estate roles). */
+    public function scopedEstateIds(): array
+    {
+        return $this->scopes
+            ->where('scope_type', UserScope::TYPE_ESTATE)
+            ->where('is_active', true)
+            ->pluck('scope_id')
+            ->all();
+    }
+
+    /** IDs of countries this user is explicitly scoped to (multi-country roles). */
+    public function scopedCountryIds(): array
+    {
+        return $this->scopes
+            ->where('scope_type', UserScope::TYPE_COUNTRY)
+            ->where('is_active', true)
+            ->pluck('scope_id')
+            ->all();
     }
 
     // ── Computed Attributes ───────────────────────────────────────────────────

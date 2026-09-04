@@ -15,6 +15,10 @@
     $isEstateManager = $roleCode === 'estate_manager';   // CI3 role 2
     $isAsstManager   = $roleCode === 'asst_manager';     // CI3 role 3
 
+    // Estate Staff family (CI3 role 4). Plantation Controller (multi-estate) and
+    // Company Staff (all-estate in one company) inherit the Estate Staff menu.
+    $isEstateStaffFamily = in_array($roleCode, ['estate_staff', 'staff', 'pc', 'cs'], true);
+
     // Section visibility (exact-role per CI3, admins inherit the CI3 role-1 admin menu)
     $canMasters   = $adminFamily || $isItStaff;                        // CI3 role 1 (+ IT staff)
     $canGrouping  = $adminFamily || $isEstateManager || $isAsstManager || $isItStaff; // CI3 roles 1,2,3
@@ -23,7 +27,11 @@
     $canApprovalManager = $isEstateManager;                            // CI3 role 2 (workplan/harvestplan/GI)
     $canApprovalAsst    = $isAsstManager;                              // CI3 role 3 (unplanned/oph/coconut/overtime)
     $canApproval  = $canApprovalManager || $canApprovalAsst;           // Approval group visible
-    $canTransactions = $adminFamily || $isAsstManager;                 // GI Plan etc. (kept for admins + asst)
+    // GI Plan is a management action (admins + asst). Monitoring is read-only
+    // and additionally visible to the Estate Staff family (PC / CS oversight).
+    $canGiPlan       = $adminFamily || $isAsstManager;
+    $canMonitoring   = $adminFamily || $isEstateManager || $isAsstManager || $isEstateStaffFamily;
+    $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring;
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -282,8 +290,8 @@
 
             @endif {{-- /canMasters --}}
 
-            {{-- ── Transactions (Estate Manager, Asst Manager, admins) ───── --}}
-            @if($canTransactions || $isEstateManager)
+            {{-- ── Transactions (GI Plan: admins/asst/EM; Monitoring: + PC/CS/staff) ── --}}
+            @if($canTransactions)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'transactions.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -301,7 +309,10 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                @if($canGiPlan)
                                 <li><a href="{{ route('transactions.gi_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.gi_plan') ? 'font-semibold text-primary' : '' }}">GI Plan</a></li>
+                                @endif
+                                @if($canMonitoring)
                                 <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
                                     <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Monitoring</span>
                                 </li>
@@ -309,6 +320,7 @@
                                 <li><a href="{{ route('transactions.monitoring.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
                                 <li><a href="{{ route('transactions.monitoring.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
                                 <li><a href="{{ route('transactions.monitoring.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.monitoring.workdone') ? 'font-semibold text-primary' : '' }}">Workdone</a></li>
+                                @endif
                             </ul>
                         </li>
                     </ul>

@@ -52,6 +52,10 @@ class DashboardController extends BaseController
         $adminIt = array_merge($admin, ['it_staff']);
         $estateMgr = ['estate_manager'];  // CI3 role 2
         $asstMgr   = ['asst_manager'];    // CI3 role 3
+        // Estate Staff family (CI3 role 4): Plantation Controller + Company Staff
+        // inherit the Estate Staff oversight menu (read-only monitoring).
+        $estateStaff = ['estate_staff', 'staff', 'pc', 'cs'];
+        $monitoring  = array_merge($admin, $estateMgr, $asstMgr, $estateStaff);
 
         // Each card lists the role_codes allowed to see it (exact-role, CI3-aligned)
         $cards = [
@@ -72,6 +76,9 @@ class DashboardController extends BaseController
             ['icon'=>'📋','title'=>'Mandor Employee','desc'=>'Manage mandor (foreman) to employee assignments','route'=>'grouping.mandor_employee.index','color'=>'bg-indigo-50 dark:bg-indigo-900/20','roles'=>array_merge($adminIt, $estateMgr, $asstMgr)],
             // Manager Substitution — admin only (CI3 role 1)
             ['icon'=>'🔄','title'=>'Manager Substitution','desc'=>'Set approval substitutions for estate managers','route'=>'#','color'=>'bg-pink-50 dark:bg-pink-900/20','roles'=>$admin],
+            // Monitoring (read-only) — admins/managers + Estate Staff family (PC/CS)
+            ['icon'=>'📊','title'=>'OPH Monitoring','desc'=>'Monitor harvesting productivity across estates','route'=>'transactions.monitoring.oph.index','color'=>'bg-sky-50 dark:bg-sky-900/20','roles'=>$monitoring],
+            ['icon'=>'🕒','title'=>'Attendance Monitoring','desc'=>'Monitor employee attendance records','route'=>'transactions.monitoring.attendance.index','color'=>'bg-violet-50 dark:bg-violet-900/20','roles'=>$monitoring],
         ];
 
         return array_values(array_filter(
