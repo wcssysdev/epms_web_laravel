@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin\Masters;
 
 use App\Http\Controllers\Admin\Grouping\BaseGroupingController;
+use App\Http\Controllers\Admin\Masters\Concerns\HandlesCsvMaster;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
 
 /**
@@ -17,6 +19,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 class ReportOphController extends BaseGroupingController
 {
+    use HandlesCsvMaster;
+
     protected function tableName(): string    { return 'm_report_oph'; }
     protected function resourceName(): string { return 'Master OPH'; }
     protected function viewPrefix(): string   { return 'admin.masters.report_oph'; }
@@ -171,5 +175,72 @@ class ReportOphController extends BaseGroupingController
             'brondolan_rate_2' => (float) $request->brondolan_rate_2,
             'hk_rate'          => (float) $request->hk_rate,
         ];
+    }
+
+    // ── CSV (11 rate columns) ──────────────────────────────────────────────────
+    protected function csvHeaders(): array
+    {
+        return [
+            'period', 'division_code', 'block_code', 'basis', 'gandeng',
+            'premi_basis', 'premi_non_basis', 'brondolan_rate_1',
+            'brondolan_rate_2', 'hk_rate',
+        ];
+    }
+
+    protected function mapCsvRow(array $row, int $rowNum): ?array
+    {
+        if (trim($row['block_code'] ?? '') === '' && trim($row['period'] ?? '') === '') return null;
+        return [
+            'estate_code'      => $this->estateCode(),
+            'period'           => $this->normalizeDate($row['period'] ?? null),
+            'division_code'    => trim($row['division_code'] ?? ''),
+            'block_code'       => trim($row['block_code'] ?? ''),
+            'basis'            => (float) ($row['basis'] ?? 0),
+            'gandeng'          => (float) ($row['gandeng'] ?? 0),
+            'premi_basis'      => (float) ($row['premi_basis'] ?? 0),
+            'premi_non_basis'  => (float) ($row['premi_non_basis'] ?? 0),
+            'brondolan_rate_1' => (float) ($row['brondolan_rate_1'] ?? 0),
+            'brondolan_rate_2' => (float) ($row['brondolan_rate_2'] ?? 0),
+            'hk_rate'          => (float) ($row['hk_rate'] ?? 0),
+        ];
+    }
+
+    protected function validateRow(array $row): ?string
+    {
+        if ($row['period'] === null || $row['period'] === '') return 'Period is required.';
+        if ($row['division_code'] === '') return 'Division is required.';
+        if ($row['block_code'] === '')    return 'Block is required.';
+        return null;
+    }
+
+    protected function normalizeDate(?string $v): ?string
+    {
+        $v = trim((string) $v);
+        if ($v === '') return null;
+        if (preg_match('/^(\d{2})\.(\d{2})\.(\d{4})$/', $v, $m)) {
+            return "{$m[3]}-{$m[2]}-{$m[1]}";
+        }
+        return $v;
+    }
+
+    /** Export uses real DB columns (datatableColumns has a joined block_name). */
+    public function exportMasterData(): StreamedResponse
+    {
+        $headers  = $this->csvHeaders();
+        $rows     = DB::table('m_report_oph')->where('company_id', $this->companyId())->get();
+        $filename = 'master_oph_' . now()->format('Y-m-d') . '.csv';
+
+        return response()->stream(function () use ($headers, $rows) {
+            $h = fopen('php://output', 'w');
+            fputcsv($h, $headers);
+            foreach ($rows as $row) {
+                $arr = (array) $row;
+                fputcsv($h, array_map(fn ($c) => $arr[$c] ?? '', $headers));
+            }
+            fclose($h);
+        }, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 }

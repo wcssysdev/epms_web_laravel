@@ -288,13 +288,32 @@ Route::middleware(['auth.check'])->group(function () {
             Route::put('/{id}',      [$controller, 'update'])->name('update');
             Route::delete('/{id}',   [$controller, 'destroy'])->name('destroy');
         };
+
+        // ── CRUD + CSV masters (no SAP) — CSV static routes registered BEFORE
+        //    the {id} routes so words like "upload" aren't captured as ids. ──
+        $crudCsvRoutes = function (string $controller) {
+            Route::get('/',                    [$controller, 'index'])->name('index');
+            Route::get('/datatable',           [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/create',              [$controller, 'create'])->name('create');
+            Route::get('/upload',              [$controller, 'upload'])->name('upload');
+            Route::post('/preview',            [$controller, 'preview'])->name('preview');
+            Route::post('/save-uploaded-data', [$controller, 'saveUploadedData'])->name('save-uploaded-data');
+            Route::get('/cancel',              [$controller, 'cancelUpload'])->name('cancel');
+            Route::get('/export',              [$controller, 'exportMasterData'])->name('export');
+            Route::get('/generate-csv',        [$controller, 'generateCsv'])->name('generate-csv');
+            Route::post('/',                   [$controller, 'store'])->name('store');
+            Route::get('/{id}/edit',           [$controller, 'edit'])->name('edit');
+            Route::put('/{id}',                [$controller, 'update'])->name('update');
+            Route::delete('/{id}',             [$controller, 'destroy'])->name('destroy');
+        };
+
         Route::prefix('bin')->name('bin.')->group(fn() => $crudRoutes(BinController::class));
         Route::prefix('confirmation_text')->name('confirmation_text.')->group(fn() => $crudRoutes(ConfirmationTextController::class));
         Route::prefix('coconut_activity_type')->name('coconut_activity_type.')->group(fn() => $crudRoutes(CoconutActivityTypeController::class));
-        Route::prefix('oph_card')->name('oph_card.')->group(fn() => $crudRoutes(OphCardController::class));
-        Route::prefix('fdn_card')->name('fdn_card.')->group(fn() => $crudRoutes(FdnCardController::class));
-        Route::prefix('tph')->name('tph.')->group(fn() => $crudRoutes(TphController::class));
-        Route::prefix('report_oph')->name('report_oph.')->group(fn() => $crudRoutes(ReportOphController::class));
+        Route::prefix('oph_card')->name('oph_card.')->group(fn() => $crudCsvRoutes(OphCardController::class));
+        Route::prefix('fdn_card')->name('fdn_card.')->group(fn() => $crudCsvRoutes(FdnCardController::class));
+        Route::prefix('tph')->name('tph.')->group(fn() => $crudCsvRoutes(TphController::class));
+        Route::prefix('report_oph')->name('report_oph.')->group(fn() => $crudCsvRoutes(ReportOphController::class));
         Route::get('qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');
 
         // ── Durian masters (CRUD, durian-enabled companies) ───────────────────

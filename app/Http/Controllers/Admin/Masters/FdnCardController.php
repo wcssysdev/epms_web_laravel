@@ -3,16 +3,46 @@
 namespace App\Http\Controllers\Admin\Masters;
 
 use App\Http\Controllers\Admin\Grouping\BaseGroupingController;
+use App\Http\Controllers\Admin\Masters\Concerns\HandlesCsvMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
  * FDN Card master (mc_fdn_card) — company-scoped configuration mapping a
- * card code to a division. CRUD, no SAP. Card code drives the QR content.
- * Near-identical to OPH Card.
+ * card code to a division. CRUD + CSV (replace-all), no SAP. Card code
+ * drives the QR content. Near-identical to OPH Card.
  */
 class FdnCardController extends BaseGroupingController
 {
+    use HandlesCsvMaster;
+
+    /** CSV import replaces all existing rows (mirrors CI4). */
+    protected function useReplaceAll(): bool { return true; }
+
+    protected function csvHeaders(): array
+    {
+        return ['fdn_card_id', 'division_code'];
+    }
+
+    protected function mapCsvRow(array $row, int $rowNum): ?array
+    {
+        $id  = strtoupper(trim($row['fdn_card_id'] ?? ''));
+        $div = trim($row['division_code'] ?? '');
+        if ($id === '' && $div === '') return null;
+        return ['fdn_card_id' => $id, 'division_code' => $div];
+    }
+
+    protected function validateRow(array $row): ?string
+    {
+        if ($row['fdn_card_id'] === '') return 'Card Code is required.';
+        if ($row['division_code'] === '') return 'Division is required.';
+        $exists = DB::table('m_division')
+            ->where('company_id', $this->companyId())
+            ->where('division_code', $row['division_code'])
+            ->exists();
+        return $exists ? null : "Division '{$row['division_code']}' does not exist.";
+    }
+
     protected function tableName(): string    { return 'mc_fdn_card'; }
     protected function resourceName(): string { return 'FDN Card'; }
     protected function viewPrefix(): string   { return 'admin.masters.fdn_card'; }

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin\Masters;
 
 use App\Http\Controllers\Admin\Grouping\BaseGroupingController;
+use App\Http\Controllers\Admin\Masters\Concerns\HandlesCsvMaster;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
 
 /**
@@ -18,6 +20,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 class TphController extends BaseGroupingController
 {
+    use HandlesCsvMaster;
+
     protected function tableName(): string    { return 'm_tph'; }
     protected function resourceName(): string { return 'Task (TPH)'; }
     protected function viewPrefix(): string   { return 'admin.masters.tph'; }
@@ -174,6 +178,76 @@ class TphController extends BaseGroupingController
             'valid_from'     => $request->valid_from ?: null,
             'valid_to'       => $request->valid_to ?: null,
         ];
+    }
+
+    // ── CSV (11 columns, matches CI4) ─────────────────────────────────────────
+    protected function csvHeaders(): array
+    {
+        return [
+            'estate_code', 'division_code', 'block_code', 'section_code',
+            'tph_code', 'tph_palm_total', 'valid_from', 'valid_to',
+            'latitude', 'longitude',
+        ];
+    }
+
+    protected function mapCsvRow(array $row, int $rowNum): ?array
+    {
+        $code = strtoupper(trim($row['tph_code'] ?? ''));
+        if ($code === '' && trim($row['block_code'] ?? '') === '') return null;
+
+        return [
+            'estate_code'    => trim($row['estate_code'] ?? ''),
+            'division_code'  => trim($row['division_code'] ?? ''),
+            'block_code'     => trim($row['block_code'] ?? ''),
+            'section_code'   => trim($row['section_code'] ?? '') ?: null,
+            'tph_code'       => $code,
+            'tph_palm_total' => (int) ($row['tph_palm_total'] ?? 0),
+            'valid_from'     => $this->normalizeDate($row['valid_from'] ?? null),
+            'valid_to'       => $this->normalizeDate($row['valid_to'] ?? null),
+            'latitude'       => ($row['latitude'] ?? '') !== '' ? (float) $row['latitude'] : null,
+            'longitude'      => ($row['longitude'] ?? '') !== '' ? (float) $row['longitude'] : null,
+        ];
+    }
+
+    protected function validateRow(array $row): ?string
+    {
+        if ($row['estate_code'] === '')   return 'Estate is required.';
+        if ($row['division_code'] === '') return 'Division is required.';
+        if ($row['block_code'] === '')    return 'Block is required.';
+        if ($row['tph_code'] === '')      return 'TPH Code is required.';
+        return null;
+    }
+
+    /** Normalize CI4 date quirks (31.12.9999 -> 9999-12-31, dd.mm.yyyy). */
+    protected function normalizeDate(?string $v): ?string
+    {
+        $v = trim((string) $v);
+        if ($v === '') return null;
+        if (preg_match('/^(\d{2})\.(\d{2})\.(\d{4})$/', $v, $m)) {
+            return "{$m[3]}-{$m[2]}-{$m[1]}";
+        }
+        return $v; // assume already Y-m-d
+    }
+
+    /** Export uses real DB columns (datatableColumns has a computed tph_valid). */
+    public function exportMasterData(): StreamedResponse
+    {
+        $headers  = $this->csvHeaders();
+        $rows     = DB::table('m_tph')->where('company_id', $this->companyId())->get();
+        $filename = 'task_tph_' . now()->format('Y-m-d') . '.csv';
+
+        return response()->stream(function () use ($headers, $rows) {
+            $h = fopen('php://output', 'w');
+            fputcsv($h, $headers);
+            foreach ($rows as $row) {
+                $arr = (array) $row;
+                fputcsv($h, array_map(fn ($c) => $arr[$c] ?? '', $headers));
+            }
+            fclose($h);
+        }, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     /**

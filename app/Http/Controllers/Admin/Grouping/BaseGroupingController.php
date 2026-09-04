@@ -25,6 +25,12 @@ abstract class BaseGroupingController extends BaseController
         return DB::table($this->tableName())->where('company_id', $this->companyId());
     }
 
+    /** Whether this master exposes CSV upload/template/export buttons. */
+    protected function hasCsv(): bool
+    {
+        return false;
+    }
+
     // ── INDEX ─────────────────────────────────────────────────────────────────
     public function index()
     {
@@ -33,6 +39,7 @@ abstract class BaseGroupingController extends BaseController
             'routePrefix'  => $this->routePrefix(),
             'columns'      => $this->datatableColumns(),
             'totalRows'    => $this->baseQuery()->count(),
+            'hasCsv'       => $this->hasCsv(),
         ]);
     }
 
