@@ -129,8 +129,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Masters routes (Estate Manager level 40 and above, plus IT Staff) ──
-    Route::middleware(['role:40,it_staff'])->prefix('masters')->name('masters.')->group(function () {
+    // ── Masters routes (CI3 role 1 = admin family, level 30 and above, plus IT Staff) ──
+    Route::middleware(['role:30,it_staff'])->prefix('masters')->name('masters.')->group(function () {
 
         // ── Macro: register standard master data routes ───────────────────────
         // Each master: index, datatable, upload/preview/save/cancel (CSV),

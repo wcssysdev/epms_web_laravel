@@ -6,11 +6,24 @@
     $isDurian    = session('is_durian', false);
     $route       = request()->route()?->getName() ?? '';
     $isItStaff   = $roleCode === 'it_staff';
-    // Access flags mirror the route middleware gating
-    $canMasters  = $roleLevel <= 40 || $isItStaff;   // Estate Manager + IT Staff
-    $canGrouping = $roleLevel <= 50 || $isItStaff;   // Asst Manager + IT Staff
-    $canPlanning = $roleLevel <= 50;                 // Asst Manager + Estate Manager
-    $canApproval = $roleLevel <= 40;                 // Estate Manager
+
+    // ── Role families mirroring CI3 sidebar rules ─────────────────────────────
+    // "Admin menu" (Master Data, full Grouping, Estate Settings, Substitution,
+    // Master GI&GR) = CI3 role 1 (Estate Admin) + the multi-scope admins that
+    // inherit "all ci3 admin menu" (Company/Country/Super Admin).
+    $adminFamily = in_array($roleCode, ['super_admin', 'country_admin', 'company_admin', 'admin'], true);
+    $isEstateManager = $roleCode === 'estate_manager';   // CI3 role 2
+    $isAsstManager   = $roleCode === 'asst_manager';     // CI3 role 3
+
+    // Section visibility (exact-role per CI3, admins inherit the CI3 role-1 admin menu)
+    $canMasters   = $adminFamily || $isItStaff;                        // CI3 role 1 (+ IT staff)
+    $canGrouping  = $adminFamily || $isEstateManager || $isAsstManager || $isItStaff; // CI3 roles 1,2,3
+    $canGroupingFull = $adminFamily || $isItStaff;                     // CI3 role 1 only (gang/field-staff/asst-div)
+    $canPlanning  = $isAsstManager;                                    // CI3 role 3 only
+    $canApprovalManager = $isEstateManager;                            // CI3 role 2 (workplan/harvestplan/GI)
+    $canApprovalAsst    = $isAsstManager;                              // CI3 role 3 (unplanned/oph/coconut/overtime)
+    $canApproval  = $canApprovalManager || $canApprovalAsst;           // Approval group visible
+    $canTransactions = $adminFamily || $isAsstManager;                 // GI Plan etc. (kept for admins + asst)
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -56,7 +69,7 @@
                 </nav>
             </div>
 
-            {{-- ── Planning (Asst Manager 50 + Estate Manager 40) ────────── --}}
+            {{-- ── Planning (CI3 role 3 — Assistant Manager only) ────────── --}}
             @if($canPlanning)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'planning.') ? 'true':'false' }} }">
                 <nav>
@@ -87,8 +100,8 @@
             </div>
             @endif
 
-            {{-- ── Approval (Estate Manager 40 + Asst Manager 50) ────────── --}}
-            @if($canPlanning)
+            {{-- ── Approval (Estate Manager: workplan/GI; Asst Manager: unplanned/oph/overtime) ── --}}
+            @if($canApproval)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -106,14 +119,18 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
-                                @if($canApproval)
-                                <li><a href="{{ route('approval.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                                {{-- CI3 role 2 (Estate Manager): daily plan approvals --}}
+                                @if($canApprovalManager)
+                                <li><a href="{{ route('approval.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.workplan') ? 'font-semibold text-primary' : '' }}">Daily Work Plan</a></li>
                                 @endif
-                                <li><a href="{{ route('approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
+                                {{-- CI3 role 3 (Assistant Manager): unplanned approvals --}}
+                                @if($canApprovalAsst)
                                 <li><a href="{{ route('approval.unplanned_activity.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.unplanned_activity') ? 'font-semibold text-primary' : '' }}">Unplanned Activity</a></li>
-                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">Unplanned HV (Palm)</a></li>
                                 @if($isCoconut)
-                                <li><a href="{{ route('approval.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.coconut_chit') ? 'font-semibold text-primary' : '' }}">Harvesting Chit (Coconut)</a></li>
+                                <li><a href="{{ route('approval.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.coconut_chit') ? 'font-semibold text-primary' : '' }}">Unplanned HV (Coconut)</a></li>
+                                @endif
+                                <li><a href="{{ route('approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.overtime') ? 'font-semibold text-primary' : '' }}">Work Overtime</a></li>
                                 @endif
                             </ul>
                         </li>
@@ -265,8 +282,8 @@
 
             @endif {{-- /canMasters --}}
 
-            {{-- ── Transactions (Asst Manager 50 + Estate Manager 40) ────── --}}
-            @if($canPlanning)
+            {{-- ── Transactions (Estate Manager, Asst Manager, admins) ───── --}}
+            @if($canTransactions || $isEstateManager)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'transactions.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -318,10 +335,14 @@
                                 </svg>
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                {{-- Mandor - Employee: CI3 roles 1,2,3 --}}
+                                <li><a href="{{ route('grouping.mandor_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.mandor_employee') ? 'font-semibold text-primary' : '' }}">Mandor Employee</a></li>
+                                {{-- Gang / Field Staff / Asst Manager Division: CI3 role 1 (admin) only --}}
+                                @if($canGroupingFull)
+                                <li><a href="{{ route('grouping.field_assistant_division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_assistant') ? 'font-semibold text-primary' : '' }}">Field Assistant Division</a></li>
                                 <li><a href="{{ route('grouping.gang_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.gang_employee') ? 'font-semibold text-primary' : '' }}">Gang Employee</a></li>
                                 <li><a href="{{ route('grouping.field_staff.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_staff') ? 'font-semibold text-primary' : '' }}">Field Staff</a></li>
-                                <li><a href="{{ route('grouping.mandor_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.mandor_employee') ? 'font-semibold text-primary' : '' }}">Mandor Employee</a></li>
-                                <li><a href="{{ route('grouping.field_assistant_division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_assistant') ? 'font-semibold text-primary' : '' }}">Field Assistant Division</a></li>
+                                @endif
                             </ul>
                         </li>
                     </ul>
@@ -335,7 +356,8 @@
                 <nav>
                     <ul class="space-y-2">
 
-                        {{-- Manager Substitution --}}
+                        {{-- Manager Substitution (CI3 role 1 / admin family) --}}
+                        @if($adminFamily)
                         <li>
                             <a href="#" class="sidebar-item {{ $route === 'grouping.substitution' ? 'active' : '' }}">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
@@ -344,9 +366,10 @@
                                 <span>Manager Substitution</span>
                             </a>
                         </li>
+                        @endif
 
-                        {{-- Account Settings (admin+) --}}
-                        @if($roleLevel <= 30)
+                        {{-- Account Settings + Estate Settings (CI3 role 1 / admin family) --}}
+                        @if($adminFamily)
                         <li>
                             <a href="{{ route('admin.users.index') }}"
                                class="sidebar-item {{ str_starts_with($route,'admin.users') ? 'active' : '' }}">
@@ -380,7 +403,7 @@
                             </a>
                         </li>
 
-                        @if($roleLevel <= 30)
+                        @if($adminFamily)
                         {{-- Audit File Generator --}}
                         <li>
                             <a href="#" class="sidebar-item {{ $route === 'admin.audit-file' ? 'active' : '' }}">
