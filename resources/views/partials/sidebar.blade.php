@@ -170,6 +170,7 @@
                                     'Estate'               => 'masters.estate.index',
                                     'Division'             => 'masters.division.index',
                                     'Block'                => 'masters.block.index',
+                                    'Task (TPH)'           => 'masters.tph.index',
                                     'Employee'             => 'masters.employee.index',
                                     'Activity'             => 'masters.activity.index',
                                     'Material'             => 'masters.material.index',
@@ -188,6 +189,13 @@
                                     'Sales Order'          => 'masters.sales_order.index',
                                 ];
                                 @endphp
+                                @php
+                                // Palm-only master rate + generator utilities
+                                if ($isPalm) {
+                                    $masterLinks['Master OPH'] = 'masters.report_oph.index';
+                                }
+                                $masterLinks['QR Code Generator'] = 'masters.qrcode.index';
+                                @endphp
                                 @foreach($masterLinks as $label => $routeName)
                                 <li>
                                     @php $href = ($routeName !== '#' && \Illuminate\Support\Facades\Route::has($routeName)) ? route($routeName) : '#'; @endphp
@@ -198,8 +206,8 @@
                                 </li>
                                 @endforeach
                                 @if($isPalm)
-                                <li><a href="#" class="sidebar-subitem">OPH Card</a></li>
-                                <li><a href="#" class="sidebar-subitem">FDN Card</a></li>
+                                <li><a href="{{ route('masters.oph_card.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.oph_card') ? 'font-semibold text-primary' : '' }}">OPH Card</a></li>
+                                <li><a href="{{ route('masters.fdn_card.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.fdn_card') ? 'font-semibold text-primary' : '' }}">FDN Card</a></li>
                                 @endif
                                 @if($isCoconut)
                                 <li><a href="{{ route('masters.coconut_material.index') }}" class="sidebar-subitem {{ str_starts_with($route,'masters.coconut_material') ? 'font-semibold text-primary' : '' }}">Coconut Material</a></li>

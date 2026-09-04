@@ -50,6 +50,11 @@ use App\Http\Controllers\Admin\Masters\MaintenanceOrderController;
 use App\Http\Controllers\Admin\Masters\BinController;
 use App\Http\Controllers\Admin\Masters\ConfirmationTextController;
 use App\Http\Controllers\Admin\Masters\CoconutActivityTypeController;
+use App\Http\Controllers\Admin\Masters\OphCardController;
+use App\Http\Controllers\Admin\Masters\FdnCardController;
+use App\Http\Controllers\Admin\Masters\TphController;
+use App\Http\Controllers\Admin\Masters\ReportOphController;
+use App\Http\Controllers\Admin\Masters\QrCodeController;
 // Masters — Durian (CRUD)
 use App\Http\Controllers\Admin\Masters\Durian\VarietyController as DurianVarietyController;
 use App\Http\Controllers\Admin\Masters\Durian\GradingController as DurianGradingController;
@@ -286,6 +291,11 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('bin')->name('bin.')->group(fn() => $crudRoutes(BinController::class));
         Route::prefix('confirmation_text')->name('confirmation_text.')->group(fn() => $crudRoutes(ConfirmationTextController::class));
         Route::prefix('coconut_activity_type')->name('coconut_activity_type.')->group(fn() => $crudRoutes(CoconutActivityTypeController::class));
+        Route::prefix('oph_card')->name('oph_card.')->group(fn() => $crudRoutes(OphCardController::class));
+        Route::prefix('fdn_card')->name('fdn_card.')->group(fn() => $crudRoutes(FdnCardController::class));
+        Route::prefix('tph')->name('tph.')->group(fn() => $crudRoutes(TphController::class));
+        Route::prefix('report_oph')->name('report_oph.')->group(fn() => $crudRoutes(ReportOphController::class));
+        Route::get('qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');
 
         // ── Durian masters (CRUD, durian-enabled companies) ───────────────────
         Route::prefix('durian')->name('durian.')->group(function () use ($crudRoutes) {
