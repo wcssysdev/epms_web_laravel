@@ -31,6 +31,12 @@ abstract class BaseGroupingController extends BaseController
         return false;
     }
 
+    /** Whether this master exposes a per-row "Print QR" action. */
+    protected function hasQr(): bool
+    {
+        return false;
+    }
+
     // ── INDEX ─────────────────────────────────────────────────────────────────
     public function index()
     {
@@ -40,6 +46,7 @@ abstract class BaseGroupingController extends BaseController
             'columns'      => $this->datatableColumns(),
             'totalRows'    => $this->baseQuery()->count(),
             'hasCsv'       => $this->hasCsv(),
+            'hasQr'        => $this->hasQr(),
         ]);
     }
 

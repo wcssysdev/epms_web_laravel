@@ -310,9 +310,18 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('bin')->name('bin.')->group(fn() => $crudRoutes(BinController::class));
         Route::prefix('confirmation_text')->name('confirmation_text.')->group(fn() => $crudRoutes(ConfirmationTextController::class));
         Route::prefix('coconut_activity_type')->name('coconut_activity_type.')->group(fn() => $crudRoutes(CoconutActivityTypeController::class));
-        Route::prefix('oph_card')->name('oph_card.')->group(fn() => $crudCsvRoutes(OphCardController::class));
-        Route::prefix('fdn_card')->name('fdn_card.')->group(fn() => $crudCsvRoutes(FdnCardController::class));
-        Route::prefix('tph')->name('tph.')->group(fn() => $crudCsvRoutes(TphController::class));
+        Route::prefix('oph_card')->name('oph_card.')->group(function () use ($crudCsvRoutes) {
+            Route::get('/{id}/print-qr', [OphCardController::class, 'printQr'])->name('print-qr');
+            $crudCsvRoutes(OphCardController::class);
+        });
+        Route::prefix('fdn_card')->name('fdn_card.')->group(function () use ($crudCsvRoutes) {
+            Route::get('/{id}/print-qr', [FdnCardController::class, 'printQr'])->name('print-qr');
+            $crudCsvRoutes(FdnCardController::class);
+        });
+        Route::prefix('tph')->name('tph.')->group(function () use ($crudCsvRoutes) {
+            Route::get('/{id}/print-qr', [TphController::class, 'printQr'])->name('print-qr');
+            $crudCsvRoutes(TphController::class);
+        });
         Route::prefix('report_oph')->name('report_oph.')->group(fn() => $crudCsvRoutes(ReportOphController::class));
         Route::get('qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');
 

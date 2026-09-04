@@ -21,6 +21,13 @@ use Yajra\DataTables\Facades\DataTables;
 class TphController extends BaseGroupingController
 {
     use HandlesCsvMaster;
+    use \App\Http\Controllers\Admin\Masters\Concerns\HasRowQr;
+
+    protected function qrValueColumn(): string { return 'tph_code'; }
+    protected function qrCaptionColumns(): array
+    {
+        return ['Estate' => 'estate_code', 'Division' => 'division_code', 'Block' => 'block_code', 'Platform' => 'section_code'];
+    }
 
     protected function tableName(): string    { return 'm_tph'; }
     protected function resourceName(): string { return 'Task (TPH)'; }

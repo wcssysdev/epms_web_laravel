@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
 class FdnCardController extends BaseGroupingController
 {
     use HandlesCsvMaster;
+    use \App\Http\Controllers\Admin\Masters\Concerns\HasRowQr;
+
+    protected function qrValueColumn(): string { return 'fdn_card_id'; }
+    protected function qrCaptionColumns(): array { return ['Division' => 'division_code']; }
 
     /** CSV import replaces all existing rows (mirrors CI4). */
     protected function useReplaceAll(): bool { return true; }
