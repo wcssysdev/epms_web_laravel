@@ -16,7 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.check'  => \App\Http\Middleware\CheckAuth::class,
             'role'        => \App\Http\Middleware\CheckRoleLevel::class,
-            'system.lock' => \App\Http\Middleware\CheckSystemLock::class,
+            'roles'         => \App\Http\Middleware\CheckExactRole::class,
+            'company.scope' => \App\Http\Middleware\RequireCompanyScope::class,
+            'system.lock'   => \App\Http\Middleware\CheckSystemLock::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

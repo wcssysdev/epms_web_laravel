@@ -103,8 +103,8 @@ Route::middleware(['auth.check'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/home',      [DashboardController::class, 'index'])->name('home');
 
-    // ── Admin routes (Company Admin level 30 and above) ────────────────────
-    Route::middleware(['role:30'])->prefix('admin')->name('admin.')->group(function () {
+    // ── Admin routes (CI3 role 1 = admin family: super/country/company/estate admin) ──
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
 
         // User Management
         Route::prefix('users')->name('users.')->group(function () {
@@ -129,8 +129,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Masters routes (CI3 role 1 = admin family, level 30 and above, plus IT Staff) ──
-    Route::middleware(['role:30,it_staff'])->prefix('masters')->name('masters.')->group(function () {
+    // ── Masters routes (CI3 role 1 = admin family + IT Staff; company-scoped) ──
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,it_staff', 'company.scope'])->prefix('masters')->name('masters.')->group(function () {
 
         // ── Macro: register standard master data routes ───────────────────────
         // Each master: index, datatable, upload/preview/save/cancel (CSV),
@@ -324,8 +324,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Grouping routes (Asst Manager 50 and above, plus IT Staff) ─────────
-    Route::middleware(['role:50,it_staff'])->prefix('grouping')->name('grouping.')->group(function () {
+    // ── Grouping routes (CI3 roles 1,2,3 = admin family + EM + Asst + IT Staff; company-scoped) ──
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,it_staff', 'company.scope'])->prefix('grouping')->name('grouping.')->group(function () {
 
         // Reusable macro for grouping CRUD
         $groupRoutes = function (string $controller) {
@@ -358,8 +358,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Planning routes (Asst Manager 50 + Estate Manager 40) ───────────────
-    Route::middleware(['role:50'])->prefix('planning')->name('planning.')->group(function () {
+    // ── Planning routes (CI3 role 3 = Assistant Manager only) ───────────────
+    Route::middleware(['roles:asst_manager'])->prefix('planning')->name('planning.')->group(function () {
 
         // ── Workplan ──────────────────────────────────────────────────────────
         Route::prefix('workplan')->name('workplan.')->group(function () {
@@ -404,8 +404,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Approval routes (Estate Manager 40) ─────────────────────────────────
-    Route::middleware(['role:40'])->prefix('approval')->name('approval.')->group(function () {
+    // ── Approval routes (CI3 role 2 = Estate Manager only) ──────────────────
+    Route::middleware(['roles:estate_manager'])->prefix('approval')->name('approval.')->group(function () {
 
         // Workplan approval is Estate-Manager-only
         Route::prefix('workplan')->name('workplan.')->group(function () {
@@ -416,8 +416,8 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Approval routes shared with Assistant Manager (level 50) ────────────
-    Route::middleware(['role:50'])->prefix('approval')->name('approval.')->group(function () {
+    // ── Approval routes (CI3 role 3 = Assistant Manager only) ───────────────
+    Route::middleware(['roles:asst_manager'])->prefix('approval')->name('approval.')->group(function () {
 
         // Overtime — Asst Manager (division-scoped)
         Route::prefix('overtime')->name('overtime.')->group(function () {
@@ -432,14 +432,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::post('/submit',     [UnplannedActivityApprovalController::class, 'submit'])->name('submit');
         });
 
-        // OPH — Estate Manager (all) or Asst Manager (division-scoped)
-        Route::prefix('oph')->name('oph.')->group(function () {
-            Route::get('/',        [OphApprovalController::class, 'index'])->name('index');
-            Route::get('/{id}',    [OphApprovalController::class, 'detail'])->name('detail');
-            Route::post('/submit', [OphApprovalController::class, 'submit'])->name('submit');
-        });
-
-        // Harvesting Chit (Coconut) — Estate/Asst Manager (coconut-enabled)
+        // Harvesting Chit (Coconut) — Asst Manager (coconut-enabled)
         Route::prefix('coconut-chit')->name('coconut_chit.')->group(function () {
             Route::get('/',        [CoconutHarvestingChitApprovalController::class, 'index'])->name('index');
             Route::get('/{id}',    [CoconutHarvestingChitApprovalController::class, 'detail'])->name('detail');
@@ -448,8 +441,20 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Transactions routes (Asst Manager 50 and above) ─────────────────────
-    Route::middleware(['role:50'])->prefix('transactions')->name('transactions.')->group(function () {
+    // ── OPH Approval (CI3 roles 2 & 3 = Estate Manager + Assistant Manager) ──
+    Route::middleware(['roles:estate_manager,asst_manager'])->prefix('approval')->name('approval.')->group(function () {
+
+        // OPH — Estate Manager (all) or Asst Manager (division-scoped)
+        Route::prefix('oph')->name('oph.')->group(function () {
+            Route::get('/',        [OphApprovalController::class, 'index'])->name('index');
+            Route::get('/{id}',    [OphApprovalController::class, 'detail'])->name('detail');
+            Route::post('/submit', [OphApprovalController::class, 'submit'])->name('submit');
+        });
+
+    });
+
+    // ── GI Plan (CI3: admin family + Assistant Manager) ─────────────────────
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,asst_manager'])->prefix('transactions')->name('transactions.')->group(function () {
 
         // ── GI Plan (Goods Issue Plan) ──────────────────────────────────────
         Route::prefix('gi-plan')->name('gi_plan.')->group(function () {
@@ -465,8 +470,13 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/ajax/materials',[GiPlanController::class, 'searchMaterials'])->name('materials');
         });
 
-        // ── Monitoring (read-only lists) ────────────────────────────────────
-        Route::prefix('monitoring')->name('monitoring.')->group(function () {
+    });
+
+    // ── Transaction Monitoring (read-only): CI3 admin family + managers +
+    //    Estate Staff family (Estate Staff, Staff, Plantation Controller,
+    //    Company Staff) for oversight. ────────────────────────────────────
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs'])
+        ->prefix('transactions/monitoring')->name('transactions.monitoring.')->group(function () {
             $monitor = function (string $prefix, string $controller) {
                 Route::prefix($prefix)->name($prefix.'.')->group(function () use ($controller) {
                     Route::get('/',          [$controller, 'index'])->name('index');
@@ -479,8 +489,6 @@ Route::middleware(['auth.check'])->group(function () {
             $monitor('workdone',   WorkdoneMonitoringController::class);
         });
 
-    });
-
     // ── Reporting routes ───────────────────────────────────────────────────
     Route::prefix('reporting')->name('reporting.')->group(function () {
         // TODO Sprint 7+
@@ -492,15 +500,16 @@ Route::middleware(['auth.check'])->group(function () {
         Route::get('/datatable', [AuditTrailController::class, 'getDatatable'])->name('datatable');
     });
 
-    // ── Retrieve Master Data ────────────────────────────────────────────────
-    Route::prefix('admin/retrieve-master')->name('admin.retrieve-master.')->group(function () {
+    // ── Retrieve Master Data (CI3 role 1 = admin family) ────────────────────
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])
+        ->prefix('admin/retrieve-master')->name('admin.retrieve-master.')->group(function () {
         Route::get('/',          [RetrieveMasterDataController::class, 'index'])->name('index');
         Route::post('/sync',     [RetrieveMasterDataController::class, 'sync'])->name('sync');
         Route::post('/sync-all', [RetrieveMasterDataController::class, 'syncAll'])->name('sync-all');
     });
 
-    // ── Delete Pictures (Company Admin+) ───────────────────────────────────
-    Route::middleware(['role:30'])->prefix('admin/delete-pictures')->name('admin.delete-pictures.')->group(function () {
+    // ── Delete Pictures (CI3 role 1 = admin family) ────────────────────────
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin/delete-pictures')->name('admin.delete-pictures.')->group(function () {
         Route::get('/',        [DeletePicturesController::class, 'index'])->name('index');
         Route::post('/count',  [DeletePicturesController::class, 'count'])->name('count');
         Route::post('/delete', [DeletePicturesController::class, 'delete'])->name('delete');
