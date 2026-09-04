@@ -16,8 +16,18 @@ use Illuminate\Support\Facades\DB;
 class ConfigController extends BaseController
 {
     // ── Index / View ──────────────────────────────────────────────────────────
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        // Estate Settings is company-scoped. Cross-company actors
+        // (super_admin / country_admin) have no single company context.
+        if (! $this->companyId()) {
+            return redirect()->route('dashboard')->with(
+                'error',
+                'Estate Settings must be accessed within a specific company context. '
+                . 'Your account is not scoped to a single company.'
+            );
+        }
+
         $config = $this->getOrCreateConfig();
 
         // Attendance codes for dropdown
@@ -31,6 +41,14 @@ class ConfigController extends BaseController
     // ── Update ────────────────────────────────────────────────────────────────
     public function update(Request $request): RedirectResponse
     {
+        // Estate Settings is company-scoped; block cross-company actors.
+        if (! $this->companyId()) {
+            return redirect()->route('dashboard')->with(
+                'error',
+                'Estate Settings must be accessed within a specific company context.'
+            );
+        }
+
         // Validate
         $request->validate([
             'company_code'                  => 'required|string|max:20',
@@ -150,6 +168,10 @@ class ConfigController extends BaseController
     // ── Test SAP Connection ───────────────────────────────────────────────────
     public function testSapConnection(): JsonResponse
     {
+        if (! $this->companyId()) {
+            return $this->jsonError('No company context. Estate Settings is company-scoped.');
+        }
+
         $config = $this->getOrCreateConfig();
         $result = $config->testSapConnection();
 
@@ -162,6 +184,10 @@ class ConfigController extends BaseController
         // Only Company Admin (level 30) and above
         if ($this->roleLevel() > 30) {
             return $this->jsonError('Insufficient permission to lock/unlock system.');
+        }
+
+        if (! $this->companyId()) {
+            return $this->jsonError('No company context. Estate Settings is company-scoped.');
         }
 
         $config = $this->getOrCreateConfig();
@@ -203,6 +229,9 @@ class ConfigController extends BaseController
     private function getOrCreateConfig(): CompanyConfig
     {
         $companyId = $this->companyId();
+
+        // Safety net: never create a CompanyConfig without a company context.
+        abort_if(! $companyId, 403, 'Estate Settings requires a specific company context.');
 
         $config = CompanyConfig::where('company_id', $companyId)->first();
 
