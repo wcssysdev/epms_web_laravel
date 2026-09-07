@@ -334,6 +334,8 @@
                                 <li><a href="{{ route('transactions.harvester_assignment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.harvester_assignment') ? 'font-semibold text-primary' : '' }}">Harvester Assignment</a></li>
                                 <li><a href="{{ route('transactions.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.oph.') ? 'font-semibold text-primary' : '' }}">OPH (Palm)</a></li>
                                 <li><a href="{{ route('transactions.oph_mill_grader.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.oph_mill_grader') ? 'font-semibold text-primary' : '' }}">OPH (Mill Grader)</a></li>
+                                <li><a href="{{ route('transactions.checkpoint_1.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.checkpoint_1') ? 'font-semibold text-primary' : '' }}">CP1 (Palm)</a></li>
+                                <li><a href="{{ route('transactions.checkpoint_2.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.checkpoint_2') ? 'font-semibold text-primary' : '' }}">CP2 (Palm)</a></li>
                                 @endif
                                 @endif
                                 @if($canMonitoring)

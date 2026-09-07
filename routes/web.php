@@ -83,6 +83,8 @@ use App\Http\Controllers\Transaction\HarvesterAssignmentController;
 use App\Http\Controllers\Transaction\GeneralWorkerAssignmentController;
 use App\Http\Controllers\Transaction\OphEntryController;
 use App\Http\Controllers\Transaction\OphMillGraderController;
+use App\Http\Controllers\Transaction\Checkpoint1Controller;
+use App\Http\Controllers\Transaction\Checkpoint2Controller;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -561,6 +563,22 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::get('/datatable', [OphMillGraderController::class, 'getDatatable'])->name('datatable');
                 Route::get('/{id}',      [OphMillGraderController::class, 'detail'])->name('detail');
             });
+
+            // Checkpoint CP1 / CP2 — master-detail (header + OPH lines + loaders).
+            $cpEntry = function (string $uri, string $name, string $controller) {
+                Route::prefix($uri)->name($name.'.')->group(function () use ($controller) {
+                    Route::get('/',              [$controller, 'index'])->name('index');
+                    Route::get('/datatable',     [$controller, 'getDatatable'])->name('datatable');
+                    Route::get('/create',        [$controller, 'create'])->name('create');
+                    Route::get('/available-oph', [$controller, 'availableOph'])->name('available-oph');
+                    Route::post('/',             [$controller, 'store'])->name('store');
+                    Route::get('/{id}/edit',     [$controller, 'edit'])->name('edit');
+                    Route::put('/{id}',          [$controller, 'update'])->name('update');
+                    Route::delete('/{id}',       [$controller, 'destroy'])->name('destroy');
+                });
+            };
+            $cpEntry('checkpoint-1', 'checkpoint_1', Checkpoint1Controller::class);
+            $cpEntry('checkpoint-2', 'checkpoint_2', Checkpoint2Controller::class);
         });
 
     // ── Reporting routes ───────────────────────────────────────────────────
