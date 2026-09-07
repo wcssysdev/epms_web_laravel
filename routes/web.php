@@ -85,6 +85,7 @@ use App\Http\Controllers\Transaction\OphEntryController;
 use App\Http\Controllers\Transaction\OphMillGraderController;
 use App\Http\Controllers\Transaction\Checkpoint1Controller;
 use App\Http\Controllers\Transaction\Checkpoint2Controller;
+use App\Http\Controllers\Transaction\FdnController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -579,6 +580,18 @@ Route::middleware(['auth.check'])->group(function () {
             };
             $cpEntry('checkpoint-1', 'checkpoint_1', Checkpoint1Controller::class);
             $cpEntry('checkpoint-2', 'checkpoint_2', Checkpoint2Controller::class);
+
+            // FDN / Delivery Note — master-detail (header + OPH lines + loaders).
+            Route::prefix('delivery-note')->name('delivery_note.')->group(function () {
+                Route::get('/',              [FdnController::class, 'index'])->name('index');
+                Route::get('/datatable',     [FdnController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',        [FdnController::class, 'create'])->name('create');
+                Route::get('/available-oph', [FdnController::class, 'availableOph'])->name('available-oph');
+                Route::post('/',             [FdnController::class, 'store'])->name('store');
+                Route::get('/{id}/edit',     [FdnController::class, 'edit'])->name('edit');
+                Route::put('/{id}',          [FdnController::class, 'update'])->name('update');
+                Route::delete('/{id}',       [FdnController::class, 'destroy'])->name('destroy');
+            });
         });
 
     // ── Reporting routes ───────────────────────────────────────────────────
