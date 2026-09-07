@@ -66,6 +66,12 @@ abstract class BaseTransactionController extends BaseController
         return $dt;
     }
 
+    /** Whether this screen exposes CSV import/template buttons. */
+    protected function hasCsv(): bool
+    {
+        return false;
+    }
+
     // ── INDEX ─────────────────────────────────────────────────────────────────
     public function index(Request $request): View
     {
@@ -77,6 +83,7 @@ abstract class BaseTransactionController extends BaseController
             'columns'     => $this->datatableColumns(),
             'from'        => $from,
             'to'          => $to,
+            'hasCsv'      => $this->hasCsv(),
         ]);
     }
 

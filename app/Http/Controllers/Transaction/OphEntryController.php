@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\DB;
  */
 class OphEntryController extends BaseTransactionController
 {
+    use \App\Http\Controllers\Transaction\Concerns\HandlesTransactionCsv;
+
     /** Grading bunch categories: db_column => label. */
     public const GRADING = [
         'bunches_ripe'         => 'Ripe',
@@ -50,6 +52,12 @@ class OphEntryController extends BaseTransactionController
     protected function generateId(): ?string
     {
         return 'OPH' . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    /** OPH exposes CSV import (flat rows). */
+    protected function hasCsv(): bool
+    {
+        return true;
     }
 
     protected function datatableColumns(): array
@@ -152,6 +160,60 @@ class OphEntryController extends BaseTransactionController
             'cutter'         => null,
             'carriers'       => [],
         ];
+    }
+
+    // ── CSV import (flat: header + grading, no person distribution) ────────────
+    protected function csvHeaders(): array
+    {
+        return array_merge(
+            ['oph_card_id', 'harvest_method', 'division_code', 'block_code', 'tph_code', 'platform_no', 'mandor_employee_code', 'loose_fruits'],
+            array_keys(self::GRADING),
+            ['notes']
+        );
+    }
+
+    protected function mapCsvRow(array $row, int $rowNum): ?array
+    {
+        $division = trim((string) ($row['division_code'] ?? ''));
+        $block    = trim((string) ($row['block_code'] ?? ''));
+        if ($division === '' && $block === '') return null;
+
+        $mandorCode = trim((string) ($row['mandor_employee_code'] ?? ''));
+        $mandor     = $mandorCode !== '' ? \App\Models\Master\Employee::where('employee_code', $mandorCode)->first() : null;
+
+        $mapped = [
+            'oph_card_id'          => trim((string) ($row['oph_card_id'] ?? '')) ?: null,
+            'harvest_method'       => ($row['harvest_method'] ?? '') !== '' ? (int) $row['harvest_method'] : null,
+            'estate_code'          => $this->estateCode(),
+            'plant_code'           => $this->plantCode(),
+            'division_code'        => $division,
+            'block_code'           => $block,
+            'tph_code'             => trim((string) ($row['tph_code'] ?? '')) ?: null,
+            'platform_no'          => trim((string) ($row['platform_no'] ?? '')) ?: null,
+            'mandor_employee_code' => $mandorCode ?: null,
+            'mandor_employee_name' => $mandor?->employee_name,
+            'loose_fruits'         => ($row['loose_fruits'] ?? '') !== '' ? (float) $row['loose_fruits'] : 0,
+            'notes'                => trim((string) ($row['notes'] ?? '')) ?: null,
+            'is_planned'           => false,
+            'is_deleted'           => false,
+        ];
+
+        $total = 0;
+        foreach (array_keys(self::GRADING) as $col) {
+            $val = (int) ($row[$col] ?? 0);
+            $mapped[$col] = $val;
+            $total += $val;
+        }
+        $mapped['bunches_total'] = $total;
+
+        return $mapped;
+    }
+
+    protected function validateCsvRow(array $row): ?string
+    {
+        if (($row['division_code'] ?? '') === '') return 'Division is required.';
+        if (($row['block_code'] ?? '') === '')    return 'Block is required.';
+        return null;
     }
 
     // ── EDIT (pass existing cutter + carriers) ─────────────────────────────────

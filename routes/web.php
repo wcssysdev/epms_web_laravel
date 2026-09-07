@@ -558,7 +558,21 @@ Route::middleware(['auth.check'])->group(function () {
             $txEntry('workdone',                   'workdone',                   WorkdoneEntryController::class);
             $txEntry('harvester-assignment',       'harvester_assignment',       HarvesterAssignmentController::class);
             $txEntry('general-worker-assignment',  'general_worker_assignment',  GeneralWorkerAssignmentController::class);
-            $txEntry('oph',                        'oph',                        OphEntryController::class);
+            // OPH — CRUD + CSV import (flat). CSV static routes before {id}.
+            Route::prefix('oph')->name('oph.')->group(function () {
+                Route::get('/',                    [OphEntryController::class, 'index'])->name('index');
+                Route::get('/datatable',           [OphEntryController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',              [OphEntryController::class, 'create'])->name('create');
+                Route::get('/upload',              [OphEntryController::class, 'upload'])->name('upload');
+                Route::post('/preview',            [OphEntryController::class, 'preview'])->name('preview');
+                Route::post('/save-uploaded-data', [OphEntryController::class, 'saveUploadedData'])->name('save-uploaded-data');
+                Route::get('/cancel',              [OphEntryController::class, 'cancelUpload'])->name('cancel');
+                Route::get('/generate-csv',        [OphEntryController::class, 'generateCsv'])->name('generate-csv');
+                Route::post('/',                   [OphEntryController::class, 'store'])->name('store');
+                Route::get('/{id}/edit',           [OphEntryController::class, 'edit'])->name('edit');
+                Route::put('/{id}',                [OphEntryController::class, 'update'])->name('update');
+                Route::delete('/{id}',             [OphEntryController::class, 'destroy'])->name('destroy');
+            });
 
             // OPH Mill Grader — read-only monitoring (no CRUD).
             Route::prefix('oph-mill-grader')->name('oph_mill_grader.')->group(function () {
