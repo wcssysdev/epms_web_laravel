@@ -49,6 +49,11 @@ class CoconutOph extends Model
         return $this->hasMany(CoconutOphDetail::class, 'coconut_oph_id', 'id');
     }
 
+    public function persons(): HasMany
+    {
+        return $this->hasMany(CoconutOphPerson::class, 'coconut_oph_id', 'id');
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
     public function scopeActual($q)   { return $q->where('is_planned', false)->where('is_deleted', false); }
     public function scopePending($q)  { return $q->whereNull('approved_at'); }

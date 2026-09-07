@@ -86,6 +86,8 @@ use App\Http\Controllers\Transaction\OphMillGraderController;
 use App\Http\Controllers\Transaction\Checkpoint1Controller;
 use App\Http\Controllers\Transaction\Checkpoint2Controller;
 use App\Http\Controllers\Transaction\FdnController;
+use App\Http\Controllers\Transaction\CoconutHarvestingChitController;
+use App\Http\Controllers\Transaction\CoconutFdnController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -591,6 +593,27 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::get('/{id}/edit',     [FdnController::class, 'edit'])->name('edit');
                 Route::put('/{id}',          [FdnController::class, 'update'])->name('update');
                 Route::delete('/{id}',       [FdnController::class, 'destroy'])->name('destroy');
+            });
+
+            // ── Coconut: Harvesting Chit + FDN (master-detail) ─────────────────
+            Route::prefix('harvesting-chit-coconut')->name('harvesting_chit_coconut.')->group(function () {
+                Route::get('/',          [CoconutHarvestingChitController::class, 'index'])->name('index');
+                Route::get('/datatable', [CoconutHarvestingChitController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',    [CoconutHarvestingChitController::class, 'create'])->name('create');
+                Route::post('/',         [CoconutHarvestingChitController::class, 'store'])->name('store');
+                Route::get('/{id}/edit', [CoconutHarvestingChitController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [CoconutHarvestingChitController::class, 'update'])->name('update');
+                Route::delete('/{id}',   [CoconutHarvestingChitController::class, 'destroy'])->name('destroy');
+            });
+            Route::prefix('delivery-note-coconut')->name('delivery_note_coconut.')->group(function () {
+                Route::get('/',               [CoconutFdnController::class, 'index'])->name('index');
+                Route::get('/datatable',      [CoconutFdnController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',         [CoconutFdnController::class, 'create'])->name('create');
+                Route::get('/available-chit', [CoconutFdnController::class, 'availableChit'])->name('available-chit');
+                Route::post('/',              [CoconutFdnController::class, 'store'])->name('store');
+                Route::get('/{id}/edit',      [CoconutFdnController::class, 'edit'])->name('edit');
+                Route::put('/{id}',           [CoconutFdnController::class, 'update'])->name('update');
+                Route::delete('/{id}',        [CoconutFdnController::class, 'destroy'])->name('destroy');
             });
         });
 

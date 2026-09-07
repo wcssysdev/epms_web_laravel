@@ -336,7 +336,14 @@
                                 <li><a href="{{ route('transactions.oph_mill_grader.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.oph_mill_grader') ? 'font-semibold text-primary' : '' }}">OPH (Mill Grader)</a></li>
                                 <li><a href="{{ route('transactions.checkpoint_1.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.checkpoint_1') ? 'font-semibold text-primary' : '' }}">CP1 (Palm)</a></li>
                                 <li><a href="{{ route('transactions.checkpoint_2.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.checkpoint_2') ? 'font-semibold text-primary' : '' }}">CP2 (Palm)</a></li>
-                                <li><a href="{{ route('transactions.delivery_note.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.delivery_note') ? 'font-semibold text-primary' : '' }}">FDN (Delivery Note)</a></li>
+                                <li><a href="{{ route('transactions.delivery_note.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.delivery_note.') ? 'font-semibold text-primary' : '' }}">FDN (Delivery Note)</a></li>
+                                @endif
+                                @if($isCoconut)
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Coconut</span>
+                                </li>
+                                <li><a href="{{ route('transactions.harvesting_chit_coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.harvesting_chit_coconut') ? 'font-semibold text-primary' : '' }}">Harvesting Chit (Coconut)</a></li>
+                                <li><a href="{{ route('transactions.delivery_note_coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.delivery_note_coconut') ? 'font-semibold text-primary' : '' }}">FDN (Coconut)</a></li>
                                 @endif
                                 @endif
                                 @if($canMonitoring)
