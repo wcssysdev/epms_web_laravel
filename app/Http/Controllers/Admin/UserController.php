@@ -8,9 +8,11 @@ use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\ResetPasswordRequest;
 use App\Models\Transaction\User;
 use App\Models\Transaction\UserAccess;
+use App\Models\Transaction\UserScope;
 use App\Models\Global\Role;
 use App\Models\Global\Company;
 use App\Services\AuditService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -98,9 +100,13 @@ class UserController extends BaseController
     // ── Create ────────────────────────────────────────────────────────────────
     public function create(): View
     {
-        $roles     = $this->getAvailableRoles();
-        $companies = $this->getAvailableCompanies();
-        return view('admin.users.create', compact('roles', 'companies'));
+        return view('admin.users.create', array_merge(
+            [
+                'roles'     => $this->getAvailableRoles(),
+                'companies' => $this->getAvailableCompanies(),
+            ],
+            $this->scopeOptions()
+        ));
     }
 
     // ── Store ─────────────────────────────────────────────────────────────────
@@ -113,7 +119,8 @@ class UserController extends BaseController
         // Create user
         $user = User::create([
             'username'                    => $data['username'],
-            'email'                       => $data['email'] ?? null,
+            // tc_user.email is NOT NULL; store empty string when omitted.
+            'email'                       => $data['email'] ?? '',
             'password'                    => Hash::make($data['password']),
             'user_name'                   => $data['user_name'],
             'user_employee_code'          => $data['user_employee_code'] ?? null,
@@ -133,6 +140,9 @@ class UserController extends BaseController
             'updated_by' => $this->userName(),
             'updated_at' => now(),
         ]);
+
+        // Multi-scope grants (multi-estate / multi-country)
+        $this->syncScopes($user->id, $request);
 
         AuditService::log(
             AuditService::TYPE_MASTER,
@@ -160,10 +170,16 @@ class UserController extends BaseController
                 ->with('error', 'Cannot edit Super Admin account.');
         }
 
-        $roles     = $this->getAvailableRoles();
-        $companies = $this->getAvailableCompanies();
-
-        return view('admin.users.edit', compact('user', 'roles', 'companies'));
+        return view('admin.users.edit', array_merge(
+            [
+                'user'      => $user,
+                'roles'     => $this->getAvailableRoles(),
+                'companies' => $this->getAvailableCompanies(),
+                'selectedEstateIds'   => $user->scopes()->where('scope_type', UserScope::TYPE_ESTATE)->pluck('scope_id')->all(),
+                'selectedCountryIds'  => $user->scopes()->where('scope_type', UserScope::TYPE_COUNTRY)->pluck('scope_id')->all(),
+            ],
+            $this->scopeOptions()
+        ));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -181,7 +197,7 @@ class UserController extends BaseController
 
         $user->update([
             'username'                    => $data['username'],
-            'email'                       => $data['email'] ?? null,
+            'email'                       => $data['email'] ?? '',
             'user_name'                   => $data['user_name'],
             'user_employee_code'          => $data['user_employee_code'] ?? null,
             'user_internal_employee_code' => $data['user_internal_employee_code'] ?? null,
@@ -197,6 +213,9 @@ class UserController extends BaseController
                 'updated_at' => now(),
             ]);
         }
+
+        // Multi-scope grants (multi-estate / multi-country)
+        $this->syncScopes($user->id, $request);
 
         AuditService::log(
             AuditService::TYPE_MASTER,
@@ -328,5 +347,66 @@ class UserController extends BaseController
 
         // Company Admin — only own company
         return Company::where('id', $this->companyId())->get();
+    }
+
+    /**
+     * Options for the multi-scope selects (estates grouped by company, countries).
+     * Scoped to what the actor can assign.
+     */
+    private function scopeOptions(): array
+    {
+        $companyIds = $this->getAvailableCompanies()->pluck('id');
+
+        $estates = DB::table('m_estate')
+            ->whereIn('company_id', $companyIds)
+            ->orderBy('company_id')->orderBy('estate_code')
+            ->get(['id', 'company_id', 'estate_code', 'estate_name']);
+
+        // Countries are only relevant to super admin (multi-country roles).
+        $countries = $this->isSuperAdmin()
+            ? DB::table('m_country')->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name'])
+            : ($this->isCountryAdmin()
+                ? DB::table('m_country')->where('id', $this->countryId())->get(['id', 'code', 'name'])
+                : collect());
+
+        return ['scopeEstates' => $estates, 'scopeCountries' => $countries];
+    }
+
+    /**
+     * Replace a user's tc_user_scope rows from the submitted multi-selects.
+     * Only the scope type relevant to the chosen role is persisted; the other
+     * type is cleared so switching roles doesn't leave stale grants.
+     */
+    private function syncScopes(int $userId, Request $request): void
+    {
+        $role      = Role::find($request->input('role_id'));
+        $roleCode  = $role?->role_code ?? '';
+
+        // Which scope types apply to this role.
+        $wantsEstates   = in_array($roleCode, ['pc', 'cs'], true);
+        $wantsCountries = $roleCode === 'country_admin';
+
+        $estateIds   = $wantsEstates   ? array_values(array_unique((array) $request->input('scope_estates', []))) : [];
+        $countryIds  = $wantsCountries ? array_values(array_unique((array) $request->input('scope_countries', []))) : [];
+
+        DB::transaction(function () use ($userId, $estateIds, $countryIds) {
+            UserScope::where('user_id', $userId)->delete();
+
+            $now  = now();
+            $rows = [];
+            foreach ($estateIds as $sid) {
+                $rows[] = ['user_id' => $userId, 'scope_type' => UserScope::TYPE_ESTATE, 'scope_id' => (int) $sid,
+                           'is_active' => true, 'created_by' => $this->userName(), 'created_at' => $now,
+                           'updated_by' => $this->userName(), 'updated_at' => $now];
+            }
+            foreach ($countryIds as $sid) {
+                $rows[] = ['user_id' => $userId, 'scope_type' => UserScope::TYPE_COUNTRY, 'scope_id' => (int) $sid,
+                           'is_active' => true, 'created_by' => $this->userName(), 'created_at' => $now,
+                           'updated_by' => $this->userName(), 'updated_at' => $now];
+            }
+            if ($rows) {
+                UserScope::insert($rows);
+            }
+        });
     }
 }
