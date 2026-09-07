@@ -221,6 +221,7 @@ class OphEntryController extends BaseTransactionController
     {
         $item = Oph::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
@@ -268,6 +269,7 @@ class OphEntryController extends BaseTransactionController
 
         $item = Oph::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $request->validate($this->rules($request));
 

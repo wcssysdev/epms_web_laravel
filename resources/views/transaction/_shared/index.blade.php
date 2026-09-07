@@ -144,9 +144,21 @@ function txTable() {
             const editBase = '{{ url(str_replace(".", "/", $routePrefix)) }}';
             const dtCols   = [{ data: 'DT_RowIndex', orderable: false, searchable: false, width: '40px' }];
             cols.forEach(c => dtCols.push({ data: c, name: c, defaultContent: '-' }));
+            const sapLocked = [0, 2, 5];
             dtCols.push({
                 data: null, orderable: false, searchable: false,
-                render: (d, t, r) => `
+                render: (d, t, r) => {
+                    // Lock edit/delete once the record is queued/sent to SAP.
+                    const st = r.integration_status;
+                    if (st !== null && st !== undefined && st !== '' && sapLocked.includes(parseInt(st, 10))) {
+                        return `<span class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium bg-gray-100 text-gray-500" title="Sent to SAP — locked">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    Locked
+                                </span>`;
+                    }
+                    return `
                     <div class="flex gap-1">
                         <a href="${editBase}/${r.id}/edit" class="btn-action btn-edit" title="Edit">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,7 +171,8 @@ function txTable() {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </button>
-                    </div>`
+                    </div>`;
+                }
             });
 
             $('#txTable').DataTable({

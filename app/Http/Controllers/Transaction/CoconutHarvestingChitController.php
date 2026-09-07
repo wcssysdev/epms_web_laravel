@@ -27,6 +27,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 class CoconutHarvestingChitController extends BaseController
 {
+    use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+
     protected function routePrefix(): string { return 'transactions.harvesting_chit_coconut'; }
     protected function viewPrefix(): string  { return 'transaction.harvesting_chit_coconut'; }
     protected function title(): string       { return 'Harvesting Chit (Coconut)'; }
@@ -82,6 +84,7 @@ class CoconutHarvestingChitController extends BaseController
     {
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
             'routePrefix' => $this->routePrefix(),
@@ -119,6 +122,7 @@ class CoconutHarvestingChitController extends BaseController
         if ($lock = $this->guardSystemLock()) return $lock;
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $this->validateChit($request);
 
@@ -140,6 +144,7 @@ class CoconutHarvestingChitController extends BaseController
         if ($lock = $this->guardSystemLock()) return $lock;
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
 
         DB::transaction(function () use ($item) {
             CoconutOphDetail::where('coconut_oph_id', $item->id)->delete();
@@ -207,7 +212,7 @@ class CoconutHarvestingChitController extends BaseController
             'closing_is_approved'   => false,
             'is_deleted'            => false,
             'adjustment_status'     => 0,
-            'integration_status'    => 0,
+            'integration_status'    => -1,
         ];
     }
 
@@ -227,7 +232,7 @@ class CoconutHarvestingChitController extends BaseController
                 'closing_is_approved'=> false,
                 'is_deleted'         => false,
                 'adjustment_status'  => 0,
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]);
         }
     }
@@ -244,7 +249,7 @@ class CoconutHarvestingChitController extends BaseController
                 'employee_code'      => $code,
                 'employee_name'      => Employee::where('employee_code', $code)->value('employee_name') ?? '',
                 'activity_type'      => $p['activity_type'] ?? null,
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]);
         }
     }

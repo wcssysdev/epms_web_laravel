@@ -28,6 +28,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 class FdnController extends BaseController
 {
+    use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+
     protected function routePrefix(): string { return 'transactions.delivery_note'; }
     protected function viewPrefix(): string  { return 'transaction.delivery_note'; }
     protected function title(): string       { return 'FDN (Delivery Note)'; }
@@ -119,6 +121,7 @@ class FdnController extends BaseController
     {
         $item = Fdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
@@ -136,6 +139,7 @@ class FdnController extends BaseController
 
         $item = Fdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $this->validateFdn($request);
 
@@ -166,6 +170,7 @@ class FdnController extends BaseController
 
         $item = Fdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
 
         DB::transaction(function () use ($item) {
             FdnDetail::where('fdn_id', $item->id)->delete();
@@ -312,7 +317,7 @@ class FdnController extends BaseController
                 'company_id'         => $this->companyId(),
                 'fdn_id'             => $fdnId,
                 'detail_type'        => 1,
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]));
         }
     }
@@ -327,7 +332,7 @@ class FdnController extends BaseController
                 'employee_name'      => Employee::where('employee_code', $l['employee_code'])->value('employee_name') ?? '',
                 'percentage'         => $l['percentage'],
                 'loader_type'        => 1,
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]);
         }
     }

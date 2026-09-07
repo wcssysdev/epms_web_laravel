@@ -27,6 +27,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 class CoconutFdnController extends BaseController
 {
+    use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+
     protected function routePrefix(): string { return 'transactions.delivery_note_coconut'; }
     protected function viewPrefix(): string  { return 'transaction.delivery_note_coconut'; }
     protected function title(): string       { return 'FDN (Coconut)'; }
@@ -81,6 +83,7 @@ class CoconutFdnController extends BaseController
     {
         $item = CoconutFdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
             'routePrefix' => $this->routePrefix(),
@@ -121,6 +124,7 @@ class CoconutFdnController extends BaseController
         if ($lock = $this->guardSystemLock()) return $lock;
         $item = CoconutFdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $this->validateFdn($request);
         $details = $this->cleanDetails($request);
@@ -144,6 +148,7 @@ class CoconutFdnController extends BaseController
         if ($lock = $this->guardSystemLock()) return $lock;
         $item = CoconutFdn::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
 
         DB::transaction(function () use ($item) {
             CoconutFdnDetail::where('coconut_fdn_id', $item->id)->delete();
@@ -234,7 +239,7 @@ class CoconutFdnController extends BaseController
             'closing_is_approved'   => false,
             'is_deleted'            => false,
             'adjustment_status'     => 0,
-            'integration_status'    => 0,
+            'integration_status'    => -1,
             'remark'                => $request->remark ?: null,
         ];
     }
@@ -261,7 +266,7 @@ class CoconutFdnController extends BaseController
             CoconutFdnDetail::create(array_merge($d, [
                 'company_id'         => $this->companyId(),
                 'coconut_fdn_id'     => $fdnId,
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]));
         }
     }

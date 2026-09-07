@@ -29,6 +29,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 abstract class CpEntryController extends BaseController
 {
+    use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+
     /** 1 = CP1, 2 = CP2. */
     abstract protected function cpType(): int;
 
@@ -128,6 +130,7 @@ abstract class CpEntryController extends BaseController
     {
         $item = Cp::query()->type($this->cpType())->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
@@ -145,6 +148,7 @@ abstract class CpEntryController extends BaseController
 
         $item = Cp::query()->type($this->cpType())->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $this->validateCp($request);
 
@@ -175,6 +179,7 @@ abstract class CpEntryController extends BaseController
 
         $item = Cp::query()->type($this->cpType())->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
 
         DB::transaction(function () use ($item) {
             CpDetail::where('cp_id', $item->id)->delete();
@@ -316,7 +321,7 @@ abstract class CpEntryController extends BaseController
                 'company_id'         => $this->companyId(),
                 'cp_id'              => $cpId,
                 'detail_type'        => $this->cpType(),
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]));
         }
     }
@@ -331,7 +336,7 @@ abstract class CpEntryController extends BaseController
                 'employee_name'      => Employee::where('employee_code', $l['employee_code'])->value('employee_name') ?? '',
                 'percentage'         => $l['percentage'],
                 'loader_type'        => $this->cpType(),
-                'integration_status' => 0,
+                'integration_status' => -1,
             ]);
         }
     }

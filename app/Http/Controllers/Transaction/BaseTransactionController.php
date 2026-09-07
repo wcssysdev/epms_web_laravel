@@ -23,6 +23,8 @@ use Yajra\DataTables\Facades\DataTables;
  */
 abstract class BaseTransactionController extends BaseController
 {
+    use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+
     /** Fully-qualified Eloquent model class (uses HasCompanyScope). */
     abstract protected function modelClass(): string;
 
@@ -145,6 +147,7 @@ abstract class BaseTransactionController extends BaseController
     {
         $item = $this->modelClass()::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
@@ -160,6 +163,7 @@ abstract class BaseTransactionController extends BaseController
 
         $item = $this->modelClass()::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapEdit($item)) return $sap;
 
         $request->validate($this->rules($request));
 
@@ -181,6 +185,7 @@ abstract class BaseTransactionController extends BaseController
 
         $item = $this->modelClass()::query()->whereKey($id)->first();
         abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
         $item->delete();
 
         AuditService::log(AuditService::TYPE_TRANSACTION, AuditService::ACTION_DELETE,
