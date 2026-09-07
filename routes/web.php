@@ -88,6 +88,8 @@ use App\Http\Controllers\Transaction\Checkpoint2Controller;
 use App\Http\Controllers\Transaction\FdnController;
 use App\Http\Controllers\Transaction\CoconutHarvestingChitController;
 use App\Http\Controllers\Transaction\CoconutFdnController;
+use App\Http\Controllers\Transaction\CheckpointCoconutController;
+use App\Http\Controllers\Transaction\GradingCoconutController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -648,6 +650,26 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::get('/{id}/edit',           [CoconutFdnController::class, 'edit'])->name('edit');
                 Route::put('/{id}',                [CoconutFdnController::class, 'update'])->name('update');
                 Route::delete('/{id}',             [CoconutFdnController::class, 'destroy'])->name('destroy');
+            });
+
+            // Coconut: CP (Checkpoint) — master-detail (header + chit lines + loaders).
+            Route::prefix('checkpoint-coconut')->name('checkpoint_coconut.')->group(function () {
+                Route::get('/',              [CheckpointCoconutController::class, 'index'])->name('index');
+                Route::get('/datatable',     [CheckpointCoconutController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',        [CheckpointCoconutController::class, 'create'])->name('create');
+                Route::get('/available-chit',[CheckpointCoconutController::class, 'availableChit'])->name('available-chit');
+                Route::post('/',             [CheckpointCoconutController::class, 'store'])->name('store');
+                Route::get('/{id}/edit',     [CheckpointCoconutController::class, 'edit'])->name('edit');
+                Route::put('/{id}',          [CheckpointCoconutController::class, 'update'])->name('update');
+                Route::delete('/{id}',       [CheckpointCoconutController::class, 'destroy'])->name('destroy');
+            });
+
+            // Coconut: Grading — edit grading material lines of a chit already in a CP.
+            Route::prefix('grading-coconut')->name('grading_coconut.')->group(function () {
+                Route::get('/',          [GradingCoconutController::class, 'index'])->name('index');
+                Route::get('/datatable', [GradingCoconutController::class, 'getDatatable'])->name('datatable');
+                Route::get('/{id}/edit', [GradingCoconutController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [GradingCoconutController::class, 'update'])->name('update');
             });
         });
 
