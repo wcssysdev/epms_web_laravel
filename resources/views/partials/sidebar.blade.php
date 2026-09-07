@@ -31,7 +31,10 @@
     // and additionally visible to the Estate Staff family (PC / CS oversight).
     $canGiPlan       = $adminFamily || $isAsstManager;
     $canMonitoring   = $adminFamily || $isEstateManager || $isAsstManager || $isEstateStaffFamily;
-    $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring;
+    // Operational entry (CI3 role 4): Estate Staff family + managers + company admin.
+    $canTxEntry      = ($adminFamily && $roleCode !== 'super_admin' && $roleCode !== 'country_admin')
+                       || $isEstateManager || $isAsstManager || $isEstateStaffFamily;
+    $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring || $canTxEntry;
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -319,6 +322,16 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 @if($canGiPlan)
                                 <li><a href="{{ route('transactions.gi_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.gi_plan') ? 'font-semibold text-primary' : '' }}">GI Plan</a></li>
+                                @endif
+                                @if($canTxEntry)
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Entry</span>
+                                </li>
+                                <li><a href="{{ route('transactions.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
+                                <li><a href="{{ route('transactions.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.workdone') ? 'font-semibold text-primary' : '' }}">Work Completion</a></li>
+                                @if($isPalm)
+                                <li><a href="{{ route('transactions.harvester_assignment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.harvester_assignment') ? 'font-semibold text-primary' : '' }}">Harvester Assignment</a></li>
+                                @endif
                                 @endif
                                 @if($canMonitoring)
                                 <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">

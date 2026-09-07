@@ -76,6 +76,10 @@ use App\Http\Controllers\Approval\CoconutHarvestingChitApprovalController;
 use App\Http\Controllers\Planning\CoconutHarvestingPlanController;
 // Transactions
 use App\Http\Controllers\Transaction\GiPlanController;
+// Transaction operational entry (Estate Staff)
+use App\Http\Controllers\Transaction\AttendanceEntryController;
+use App\Http\Controllers\Transaction\WorkdoneEntryController;
+use App\Http\Controllers\Transaction\HarvesterAssignmentController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -525,6 +529,26 @@ Route::middleware(['auth.check'])->group(function () {
             $monitor('attendance', AttendanceMonitoringController::class);
             $monitor('overtime',   OvertimeMonitoringController::class);
             $monitor('workdone',   WorkdoneMonitoringController::class);
+        });
+
+    // ── Transaction Entry (CI3 role 4 = Estate Staff family + managers) ─────
+    //    Operational manual entry / correction (mobile captures GPS/photo/QR).
+    Route::middleware(['roles:company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs', 'company.scope'])
+        ->prefix('transactions')->name('transactions.')->group(function () {
+            $txEntry = function (string $uri, string $name, string $controller) {
+                Route::prefix($uri)->name($name.'.')->group(function () use ($controller) {
+                    Route::get('/',          [$controller, 'index'])->name('index');
+                    Route::get('/datatable', [$controller, 'getDatatable'])->name('datatable');
+                    Route::get('/create',    [$controller, 'create'])->name('create');
+                    Route::post('/',         [$controller, 'store'])->name('store');
+                    Route::get('/{id}/edit', [$controller, 'edit'])->name('edit');
+                    Route::put('/{id}',      [$controller, 'update'])->name('update');
+                    Route::delete('/{id}',   [$controller, 'destroy'])->name('destroy');
+                });
+            };
+            $txEntry('attendance',           'attendance',           AttendanceEntryController::class);
+            $txEntry('workdone',             'workdone',             WorkdoneEntryController::class);
+            $txEntry('harvester-assignment', 'harvester_assignment', HarvesterAssignmentController::class);
         });
 
     // ── Reporting routes ───────────────────────────────────────────────────
