@@ -30,6 +30,7 @@ use Yajra\DataTables\Facades\DataTables;
 abstract class CpEntryController extends BaseController
 {
     use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+    use \App\Http\Controllers\Transaction\Concerns\HandlesMasterDetailCsv;
 
     /** 1 = CP1, 2 = CP2. */
     abstract protected function cpType(): int;
@@ -66,6 +67,7 @@ abstract class CpEntryController extends BaseController
             'columns'     => $this->datatableColumns(),
             'from'        => $from,
             'to'          => $to,
+            'hasCsv'      => true,
         ]);
     }
 
@@ -344,6 +346,104 @@ abstract class CpEntryController extends BaseController
     protected function generateId(): string
     {
         return 'CP' . $this->cpType() . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CSV IMPORT (master-detail, grouped by delivery_note)
+    // ════════════════════════════════════════════════════════════════════════
+
+    protected function csvHeaders(): array
+    {
+        return [
+            'delivery_note', 'division_code', 'receiving_point_code', 'kerani_kirim_emp_code',
+            'vendor_code', 'license_number', 'seal_code', 'bin_number', 'bruto', 'tarra',
+            'oph_id', 'oph_block_code', 'oph_tph_code', 'oph_card_id', 'bunches_delivered', 'loose_fruit_delivered',
+        ];
+    }
+
+    protected function csvGroupKey(): string { return 'delivery_note'; }
+
+    protected function headerModelClass(): string { return Cp::class; }
+
+    /** Validate a delivery_note group: division present + all OPH ids exist/actual. */
+    protected function csvValidateGroup(string $key, array $rows): ?string
+    {
+        $first    = $rows[0];
+        $division = trim((string) ($first['division_code'] ?? ''));
+        if ($division === '') return 'division_code is required.';
+
+        $ophIds = [];
+        foreach ($rows as $r) {
+            $oid = trim((string) ($r['oph_id'] ?? ''));
+            if ($oid !== '') $ophIds[] = $oid;
+        }
+        if ($ophIds === []) return 'no oph_id detail lines.';
+
+        $found = Oph::query()->actual()->whereIn('id', $ophIds)->pluck('id')->all();
+        $missing = array_diff(array_unique($ophIds), $found);
+        if ($missing !== []) {
+            return 'unknown/inactive OPH: ' . implode(', ', array_slice($missing, 0, 5));
+        }
+        return null;
+    }
+
+    /** Build one detail row from a CSV line (null to skip). */
+    protected function csvBuildDetail(array $row): ?array
+    {
+        $oid = trim((string) ($row['oph_id'] ?? ''));
+        if ($oid === '') return null;
+
+        // Backfill block/tph/card from the OPH master when omitted.
+        $oph = Oph::query()->actual()->whereKey($oid)->first();
+
+        return [
+            'oph_id'                => $oid,
+            'oph_block_code'        => trim((string) ($row['oph_block_code'] ?? '')) ?: ($oph->block_code ?? ''),
+            'oph_tph_code'          => trim((string) ($row['oph_tph_code'] ?? '')) ?: ($oph->tph_code ?? ''),
+            'oph_card_id'           => trim((string) ($row['oph_card_id'] ?? '')) ?: ($oph->oph_card_id ?? null),
+            'oph_platform_no'       => $oph->platform_no ?? null,
+            'bunches_delivered'     => ($row['bunches_delivered'] ?? '') !== '' ? (int) $row['bunches_delivered'] : (int) ($oph->bunches_total ?? 0),
+            'loose_fruit_delivered' => ($row['loose_fruit_delivered'] ?? '') !== '' ? (float) $row['loose_fruit_delivered'] : (float) ($oph->loose_fruits ?? 0),
+        ];
+    }
+
+    /** Build the CP header from the group's first row + derived detail totals. */
+    protected function csvBuildHeader(array $first, array $details): array
+    {
+        $kerani = trim((string) ($first['kerani_kirim_emp_code'] ?? ''));
+        $vendor = trim((string) ($first['vendor_code'] ?? ''));
+        $bruto  = ($first['bruto'] ?? '') !== '' ? (float) $first['bruto'] : null;
+        $tarra  = ($first['tarra'] ?? '') !== '' ? (float) $first['tarra'] : null;
+
+        return [
+            'cp_type'               => $this->cpType(),
+            'estate_code'           => $this->estateCode(),
+            'division_code'         => trim((string) $first['division_code']),
+            'delivery_note'         => trim((string) $first[$this->csvGroupKey()]),
+            'receiving_point_code'  => trim((string) ($first['receiving_point_code'] ?? '')) ?: null,
+            'license_number'        => trim((string) ($first['license_number'] ?? '')) ?: null,
+            'seal_code'             => trim((string) ($first['seal_code'] ?? '')) ?: null,
+            'bin_number'            => trim((string) ($first['bin_number'] ?? '')) ?: null,
+            'kerani_kirim_emp_code' => $kerani ?: null,
+            'kerani_kirim_emp_name' => $kerani !== '' ? (Employee::where('employee_code', $kerani)->value('employee_name')) : null,
+            'vendor_code'           => $vendor ?: null,
+            'vendor_name'           => $vendor !== '' ? (Vendor::where('vendor_code', $vendor)->value('vendor_name')) : null,
+            'bruto'                 => $bruto,
+            'tarra'                 => $tarra,
+            'actual_tonnage'        => ($bruto !== null && $tarra !== null) ? round($bruto - $tarra, 3) : null,
+            'total_bunches'         => array_sum(array_column($details, 'bunches_delivered')),
+            'total_oph'             => count($details),
+            'total_loose_fruit'     => array_sum(array_column($details, 'loose_fruit_delivered')),
+            'is_deleted'            => false,
+            'adjustment_status'     => 0,
+            'integration_status'    => -1,
+        ];
+    }
+
+    /** Persist detail lines for an imported CP header. */
+    protected function persistDetails(string $headerId, array $details): void
+    {
+        $this->saveDetails($headerId, $details);
     }
 
     /** @return array{0:string,1:string} */

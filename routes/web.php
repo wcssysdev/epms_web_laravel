@@ -584,14 +584,19 @@ Route::middleware(['auth.check'])->group(function () {
             // Checkpoint CP1 / CP2 — master-detail (header + OPH lines + loaders).
             $cpEntry = function (string $uri, string $name, string $controller) {
                 Route::prefix($uri)->name($name.'.')->group(function () use ($controller) {
-                    Route::get('/',              [$controller, 'index'])->name('index');
-                    Route::get('/datatable',     [$controller, 'getDatatable'])->name('datatable');
-                    Route::get('/create',        [$controller, 'create'])->name('create');
-                    Route::get('/available-oph', [$controller, 'availableOph'])->name('available-oph');
-                    Route::post('/',             [$controller, 'store'])->name('store');
-                    Route::get('/{id}/edit',     [$controller, 'edit'])->name('edit');
-                    Route::put('/{id}',          [$controller, 'update'])->name('update');
-                    Route::delete('/{id}',       [$controller, 'destroy'])->name('destroy');
+                    Route::get('/',                    [$controller, 'index'])->name('index');
+                    Route::get('/datatable',           [$controller, 'getDatatable'])->name('datatable');
+                    Route::get('/create',              [$controller, 'create'])->name('create');
+                    Route::get('/available-oph',       [$controller, 'availableOph'])->name('available-oph');
+                    Route::get('/upload',              [$controller, 'upload'])->name('upload');
+                    Route::post('/preview',            [$controller, 'preview'])->name('preview');
+                    Route::post('/save-uploaded-data', [$controller, 'saveUploadedData'])->name('save-uploaded-data');
+                    Route::get('/cancel',              [$controller, 'cancelUpload'])->name('cancel');
+                    Route::get('/generate-csv',        [$controller, 'generateCsv'])->name('generate-csv');
+                    Route::post('/',                   [$controller, 'store'])->name('store');
+                    Route::get('/{id}/edit',           [$controller, 'edit'])->name('edit');
+                    Route::put('/{id}',                [$controller, 'update'])->name('update');
+                    Route::delete('/{id}',             [$controller, 'destroy'])->name('destroy');
                 });
             };
             $cpEntry('checkpoint-1', 'checkpoint_1', Checkpoint1Controller::class);
@@ -599,14 +604,19 @@ Route::middleware(['auth.check'])->group(function () {
 
             // FDN / Delivery Note — master-detail (header + OPH lines + loaders).
             Route::prefix('delivery-note')->name('delivery_note.')->group(function () {
-                Route::get('/',              [FdnController::class, 'index'])->name('index');
-                Route::get('/datatable',     [FdnController::class, 'getDatatable'])->name('datatable');
-                Route::get('/create',        [FdnController::class, 'create'])->name('create');
-                Route::get('/available-oph', [FdnController::class, 'availableOph'])->name('available-oph');
-                Route::post('/',             [FdnController::class, 'store'])->name('store');
-                Route::get('/{id}/edit',     [FdnController::class, 'edit'])->name('edit');
-                Route::put('/{id}',          [FdnController::class, 'update'])->name('update');
-                Route::delete('/{id}',       [FdnController::class, 'destroy'])->name('destroy');
+                Route::get('/',                    [FdnController::class, 'index'])->name('index');
+                Route::get('/datatable',           [FdnController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',              [FdnController::class, 'create'])->name('create');
+                Route::get('/available-oph',       [FdnController::class, 'availableOph'])->name('available-oph');
+                Route::get('/upload',              [FdnController::class, 'upload'])->name('upload');
+                Route::post('/preview',            [FdnController::class, 'preview'])->name('preview');
+                Route::post('/save-uploaded-data', [FdnController::class, 'saveUploadedData'])->name('save-uploaded-data');
+                Route::get('/cancel',              [FdnController::class, 'cancelUpload'])->name('cancel');
+                Route::get('/generate-csv',        [FdnController::class, 'generateCsv'])->name('generate-csv');
+                Route::post('/',                   [FdnController::class, 'store'])->name('store');
+                Route::get('/{id}/edit',           [FdnController::class, 'edit'])->name('edit');
+                Route::put('/{id}',                [FdnController::class, 'update'])->name('update');
+                Route::delete('/{id}',             [FdnController::class, 'destroy'])->name('destroy');
             });
 
             // ── Coconut: Harvesting Chit + FDN (master-detail) ─────────────────

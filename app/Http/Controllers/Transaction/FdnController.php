@@ -29,6 +29,7 @@ use Yajra\DataTables\Facades\DataTables;
 class FdnController extends BaseController
 {
     use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+    use \App\Http\Controllers\Transaction\Concerns\HandlesMasterDetailCsv;
 
     protected function routePrefix(): string { return 'transactions.delivery_note'; }
     protected function viewPrefix(): string  { return 'transaction.delivery_note'; }
@@ -58,6 +59,7 @@ class FdnController extends BaseController
             'columns'     => $this->datatableColumns(),
             'from'        => $from,
             'to'          => $to,
+            'hasCsv'      => true,
         ]);
     }
 
@@ -340,6 +342,100 @@ class FdnController extends BaseController
     protected function generateId(): string
     {
         return 'FDN' . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CSV IMPORT (master-detail, grouped by delivery_note)
+    // ════════════════════════════════════════════════════════════════════════
+
+    protected function csvHeaders(): array
+    {
+        return [
+            'delivery_note', 'division_code', 'deliver_to_code', 'fdn_card_id', 'kerani_kirim_emp_code',
+            'vendor_code', 'driver_name', 'license_number', 'sales_order_no', 'sales_order_item', 'bruto', 'tarra',
+            'oph_id', 'oph_block_code', 'oph_tph_code', 'oph_card_id', 'bunches_delivered', 'loose_fruit_delivered',
+        ];
+    }
+
+    protected function csvGroupKey(): string { return 'delivery_note'; }
+
+    protected function headerModelClass(): string { return Fdn::class; }
+
+    protected function csvValidateGroup(string $key, array $rows): ?string
+    {
+        $first    = $rows[0];
+        $division = trim((string) ($first['division_code'] ?? ''));
+        if ($division === '') return 'division_code is required.';
+
+        $ophIds = [];
+        foreach ($rows as $r) {
+            $oid = trim((string) ($r['oph_id'] ?? ''));
+            if ($oid !== '') $ophIds[] = $oid;
+        }
+        if ($ophIds === []) return 'no oph_id detail lines.';
+
+        $found   = Oph::query()->actual()->whereIn('id', $ophIds)->pluck('id')->all();
+        $missing = array_diff(array_unique($ophIds), $found);
+        if ($missing !== []) {
+            return 'unknown/inactive OPH: ' . implode(', ', array_slice($missing, 0, 5));
+        }
+        return null;
+    }
+
+    protected function csvBuildDetail(array $row): ?array
+    {
+        $oid = trim((string) ($row['oph_id'] ?? ''));
+        if ($oid === '') return null;
+        $oph = Oph::query()->actual()->whereKey($oid)->first();
+
+        return [
+            'oph_id'                => $oid,
+            'oph_block_code'        => trim((string) ($row['oph_block_code'] ?? '')) ?: ($oph->block_code ?? ''),
+            'oph_tph_code'          => trim((string) ($row['oph_tph_code'] ?? '')) ?: ($oph->tph_code ?? ''),
+            'oph_card_id'           => trim((string) ($row['oph_card_id'] ?? '')) ?: ($oph->oph_card_id ?? null),
+            'bunches_delivered'     => ($row['bunches_delivered'] ?? '') !== '' ? (int) $row['bunches_delivered'] : (int) ($oph->bunches_total ?? 0),
+            'loose_fruit_delivered' => ($row['loose_fruit_delivered'] ?? '') !== '' ? (float) $row['loose_fruit_delivered'] : (float) ($oph->loose_fruits ?? 0),
+        ];
+    }
+
+    protected function csvBuildHeader(array $first, array $details): array
+    {
+        $kerani = trim((string) ($first['kerani_kirim_emp_code'] ?? ''));
+        $vendor = trim((string) ($first['vendor_code'] ?? ''));
+        $dest   = trim((string) ($first['deliver_to_code'] ?? ''));
+        $bruto  = ($first['bruto'] ?? '') !== '' ? (float) $first['bruto'] : null;
+        $tarra  = ($first['tarra'] ?? '') !== '' ? (float) $first['tarra'] : null;
+
+        return [
+            'fdn_card_id'           => trim((string) ($first['fdn_card_id'] ?? '')) ?: null,
+            'estate_code'           => $this->estateCode(),
+            'division_code'         => trim((string) $first['division_code']),
+            'delivery_note'         => trim((string) $first[$this->csvGroupKey()]),
+            'deliver_to_code'       => $dest ?: null,
+            'deliver_to_name'       => $dest !== '' ? (Destination::where('destination_code', $dest)->value('destination_name')) : null,
+            'driver_name'           => trim((string) ($first['driver_name'] ?? '')) ?: null,
+            'license_number'        => trim((string) ($first['license_number'] ?? '')) ?: null,
+            'kerani_kirim_emp_code' => $kerani ?: null,
+            'kerani_kirim_emp_name' => $kerani !== '' ? (Employee::where('employee_code', $kerani)->value('employee_name')) : null,
+            'vendor_code'           => $vendor ?: null,
+            'vendor_name'           => $vendor !== '' ? (Vendor::where('vendor_code', $vendor)->value('vendor_name')) : null,
+            'sales_order_no'        => trim((string) ($first['sales_order_no'] ?? '')) ?: null,
+            'sales_order_item'      => trim((string) ($first['sales_order_item'] ?? '')) ?: null,
+            'bruto'                 => $bruto,
+            'tarra'                 => $tarra,
+            'actual_tonnage'        => ($bruto !== null && $tarra !== null) ? round($bruto - $tarra, 3) : null,
+            'total_bunches'         => array_sum(array_column($details, 'bunches_delivered')),
+            'total_oph'             => count($details),
+            'total_loose_fruit'     => array_sum(array_column($details, 'loose_fruit_delivered')),
+            'is_deleted'            => false,
+            'adjustment_status'     => 0,
+            'integration_status'    => -1,
+        ];
+    }
+
+    protected function persistDetails(string $headerId, array $details): void
+    {
+        $this->saveDetails($headerId, $details);
     }
 
     /** @return array{0:string,1:string} */
