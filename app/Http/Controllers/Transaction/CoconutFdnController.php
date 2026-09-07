@@ -28,6 +28,7 @@ use Yajra\DataTables\Facades\DataTables;
 class CoconutFdnController extends BaseController
 {
     use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+    use \App\Http\Controllers\Transaction\Concerns\HandlesMasterDetailCsv;
 
     protected function routePrefix(): string { return 'transactions.delivery_note_coconut'; }
     protected function viewPrefix(): string  { return 'transaction.delivery_note_coconut'; }
@@ -56,6 +57,7 @@ class CoconutFdnController extends BaseController
             'columns'     => $this->datatableColumns(),
             'from'        => $from,
             'to'          => $to,
+            'hasCsv'      => true,
         ]);
     }
 
@@ -274,6 +276,98 @@ class CoconutFdnController extends BaseController
     protected function generateId(): string
     {
         return 'CFDN' . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CSV IMPORT (master-detail, grouped by delivery_note; detail = chit lines)
+    // ════════════════════════════════════════════════════════════════════════
+
+    protected function csvHeaders(): array
+    {
+        return [
+            'delivery_note', 'division_code', 'destination', 'fdn_card_id', 'kerani_kirim_emp_code',
+            'vehicle_vendor_code', 'driver_name', 'license_number', 'sales_order_no', 'sales_order_item', 'bruto', 'tarra',
+            'coconut_oph_id', 'coconut_oph_card_id', 'total_customer_nut_qty',
+        ];
+    }
+
+    protected function csvGroupKey(): string { return 'delivery_note'; }
+
+    protected function headerModelClass(): string { return CoconutFdn::class; }
+
+    protected function csvValidateGroup(string $key, array $rows): ?string
+    {
+        $first    = $rows[0];
+        $division = trim((string) ($first['division_code'] ?? ''));
+        if ($division === '') return 'division_code is required.';
+
+        $chitIds = [];
+        foreach ($rows as $r) {
+            $cid = trim((string) ($r['coconut_oph_id'] ?? ''));
+            if ($cid !== '') $chitIds[] = $cid;
+        }
+        if ($chitIds === []) return 'no coconut_oph_id detail lines.';
+
+        $found   = CoconutOph::query()->actual()->whereIn('id', $chitIds)->pluck('id')->all();
+        $missing = array_diff(array_unique($chitIds), $found);
+        if ($missing !== []) {
+            return 'unknown/inactive Harvesting Chit: ' . implode(', ', array_slice($missing, 0, 5));
+        }
+        return null;
+    }
+
+    protected function csvBuildDetail(array $row): ?array
+    {
+        $cid = trim((string) ($row['coconut_oph_id'] ?? ''));
+        if ($cid === '') return null;
+        $chit = CoconutOph::query()->actual()->whereKey($cid)->first();
+
+        return [
+            'coconut_oph_id'         => $cid,
+            'coconut_oph_card_id'    => trim((string) ($row['coconut_oph_card_id'] ?? '')) ?: ($chit->oph_card_id ?? null),
+            'total_customer_nut_qty' => ($row['total_customer_nut_qty'] ?? '') !== ''
+                                            ? (float) $row['total_customer_nut_qty']
+                                            : (float) ($chit->nuts_total ?? 0),
+        ];
+    }
+
+    protected function csvBuildHeader(array $first, array $details): array
+    {
+        $kerani = trim((string) ($first['kerani_kirim_emp_code'] ?? ''));
+        $bruto  = ($first['bruto'] ?? '') !== '' ? (float) $first['bruto'] : null;
+        $tarra  = ($first['tarra'] ?? '') !== '' ? (float) $first['tarra'] : null;
+
+        return [
+            'estate_code'           => $this->estateCode(),
+            'division_code'         => trim((string) $first['division_code']),
+            'delivery_note'         => trim((string) $first[$this->csvGroupKey()]),
+            'destination'           => trim((string) ($first['destination'] ?? '')) ?: null,
+            'fdn_card_id'           => trim((string) ($first['fdn_card_id'] ?? '')) ?: null,
+            'kerani_kirim_emp_code' => $kerani ?: null,
+            'kerani_kirim_emp_name' => $kerani !== '' ? (Employee::where('employee_code', $kerani)->value('employee_name')) : null,
+            'vehicle_vendor_code'   => trim((string) ($first['vehicle_vendor_code'] ?? '')) ?: null,
+            'driver_name'           => trim((string) ($first['driver_name'] ?? '')) ?: null,
+            'license_number'        => trim((string) ($first['license_number'] ?? '')) ?: null,
+            'sales_order_no'        => trim((string) ($first['sales_order_no'] ?? '')) ?: null,
+            'sales_order_item'      => trim((string) ($first['sales_order_item'] ?? '')) ?: null,
+            'bruto'                 => $bruto,
+            'tarra'                 => $tarra,
+            'actual_tonnage'        => ($bruto !== null && $tarra !== null) ? round($bruto - $tarra, 3) : null,
+            'total_oph'             => count($details),
+            'total_customer_qty'    => array_sum(array_column($details, 'total_customer_nut_qty')),
+            'is_nursery'            => false,
+            'is_stock'              => false,
+            'is_closed'             => false,
+            'closing_is_approved'   => false,
+            'is_deleted'            => false,
+            'adjustment_status'     => 0,
+            'integration_status'    => -1,
+        ];
+    }
+
+    protected function persistDetails(string $headerId, array $details): void
+    {
+        $this->saveDetails($headerId, $details);
     }
 
     /** @return array{0:string,1:string} */

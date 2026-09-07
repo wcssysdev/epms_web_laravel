@@ -28,6 +28,7 @@ use Yajra\DataTables\Facades\DataTables;
 class CoconutHarvestingChitController extends BaseController
 {
     use \App\Http\Controllers\Transaction\Concerns\GuardsSapIntegration;
+    use \App\Http\Controllers\Transaction\Concerns\HandlesMasterDetailCsv;
 
     protected function routePrefix(): string { return 'transactions.harvesting_chit_coconut'; }
     protected function viewPrefix(): string  { return 'transaction.harvesting_chit_coconut'; }
@@ -56,6 +57,7 @@ class CoconutHarvestingChitController extends BaseController
             'columns'     => $this->datatableColumns(),
             'from'        => $from,
             'to'          => $to,
+            'hasCsv'      => true,
         ]);
     }
 
@@ -260,6 +262,100 @@ class CoconutHarvestingChitController extends BaseController
     protected function generateId(): string
     {
         return 'CHT' . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CSV IMPORT (grouped by chit_ref; each group = 1 chit + N material lines)
+    // ════════════════════════════════════════════════════════════════════════
+
+    protected function csvHeaders(): array
+    {
+        return [
+            'chit_ref', 'block_code', 'tph_code', 'checker_employee_code', 'gang_code', 'oph_card_id', 'nuts_total',
+            'material_code', 'customer_nut_qty',
+        ];
+    }
+
+    protected function csvGroupKey(): string { return 'chit_ref'; }
+
+    protected function headerModelClass(): string { return CoconutOph::class; }
+
+    protected function csvValidateGroup(string $key, array $rows): ?string
+    {
+        $first   = $rows[0];
+        $block   = trim((string) ($first['block_code'] ?? ''));
+        $tph     = trim((string) ($first['tph_code'] ?? ''));
+        $checker = trim((string) ($first['checker_employee_code'] ?? ''));
+        if ($block === '')   return 'block_code is required.';
+        if ($tph === '')     return 'tph_code is required.';
+        if ($checker === '') return 'checker_employee_code is required.';
+
+        // Block must exist for this estate (to backfill division).
+        $blockRow = \App\Models\Master\Block::where('estate_code', $this->estateCode())
+            ->where('block_code', $block)->first();
+        if (! $blockRow) return "unknown block '{$block}' for this estate.";
+
+        return null;
+    }
+
+    /** Each detail row = one material/customer-nut line. */
+    protected function csvBuildDetail(array $row): ?array
+    {
+        $code = trim((string) ($row['material_code'] ?? ''));
+        if ($code === '') return null;
+        return [
+            'material_code'    => $code,
+            'material_name'    => \App\Models\Master\CoconutMaterial::where('material_code', $code)->value('material_desc') ?? '',
+            'customer_nut_qty' => (float) ($row['customer_nut_qty'] ?? 0),
+        ];
+    }
+
+    protected function csvBuildHeader(array $first, array $details): array
+    {
+        $block   = trim((string) $first['block_code']);
+        $checker = trim((string) $first['checker_employee_code']);
+        // Division is derived from the block master.
+        $division = \App\Models\Master\Block::where('estate_code', $this->estateCode())
+            ->where('block_code', $block)->value('division_code') ?? '';
+
+        return [
+            'plant_code'            => $this->plantCode() ?: '',
+            'estate_code'           => $this->estateCode(),
+            'division_code'         => $division,
+            'block_code'            => $block,
+            'tph_code'              => trim((string) $first['tph_code']),
+            'oph_card_id'           => trim((string) ($first['oph_card_id'] ?? '')) ?: null,
+            'gang_code'             => trim((string) ($first['gang_code'] ?? '')) ?: null,
+            'checker_employee_code' => $checker,
+            'checker_employee_name' => Employee::where('employee_code', $checker)->value('employee_name') ?? '',
+            'nuts_total'            => (int) ($first['nuts_total'] ?? 0),
+            'is_planned'            => false,
+            'is_approved'           => false,
+            'is_closed'             => false,
+            'closing_is_approved'   => false,
+            'is_deleted'            => false,
+            'adjustment_status'     => 0,
+            'integration_status'    => -1,
+        ];
+    }
+
+    /** Persist material detail lines for an imported chit. */
+    protected function persistDetails(string $headerId, array $details): void
+    {
+        foreach ($details as $d) {
+            CoconutOphDetail::create([
+                'company_id'         => $this->companyId(),
+                'coconut_oph_id'     => $headerId,
+                'material_code'      => $d['material_code'],
+                'material_name'      => $d['material_name'],
+                'customer_nut_qty'   => $d['customer_nut_qty'],
+                'is_locked'          => false,
+                'closing_is_approved'=> false,
+                'is_deleted'         => false,
+                'adjustment_status'  => 0,
+                'integration_status' => -1,
+            ]);
+        }
     }
 
     // ── Cross-table SAP guard (chit referenced by coconut FDN) ─────────────────
