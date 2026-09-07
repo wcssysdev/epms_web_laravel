@@ -85,6 +85,7 @@ class CoconutHarvestingChitController extends BaseController
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
         if ($sap = $this->guardSapEdit($item)) return $sap;
+        if ($x = $this->guardChitInSentFdn($id)) return $x;
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
             'routePrefix' => $this->routePrefix(),
@@ -123,6 +124,7 @@ class CoconutHarvestingChitController extends BaseController
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
         if ($sap = $this->guardSapEdit($item)) return $sap;
+        if ($x = $this->guardChitInSentFdn($id)) return $x;
 
         $this->validateChit($request);
 
@@ -145,6 +147,7 @@ class CoconutHarvestingChitController extends BaseController
         $item = CoconutOph::query()->whereKey($id)->first();
         abort_unless($item, 404);
         if ($sap = $this->guardSapDelete($item)) return $sap;
+        if ($x = $this->guardChitReferenced($id)) return $x;
 
         DB::transaction(function () use ($item) {
             CoconutOphDetail::where('coconut_oph_id', $item->id)->delete();
@@ -257,6 +260,35 @@ class CoconutHarvestingChitController extends BaseController
     protected function generateId(): string
     {
         return 'CHT' . $this->estateCode() . now()->format('YmdHis') . random_int(100, 999);
+    }
+
+    // ── Cross-table SAP guard (chit referenced by coconut FDN) ─────────────────
+
+    /** Block edit if the chit is part of a coconut FDN already sent to SAP (status 2). */
+    protected function guardChitInSentFdn(string $chitId): ?RedirectResponse
+    {
+        $inSent = DB::table('t_coconut_fdn_detail as d')
+            ->join('t_coconut_fdn as h', 'h.id', '=', 'd.coconut_fdn_id')
+            ->where('d.coconut_oph_id', $chitId)
+            ->where('h.integration_status', 2)
+            ->exists();
+
+        if ($inSent) {
+            return redirect()->route($this->routePrefix() . '.index')
+                ->with('error', 'This Harvesting Chit is part of a coconut FDN already sent to SAP and can no longer be edited.');
+        }
+        return null;
+    }
+
+    /** Block delete if the chit is referenced by ANY coconut FDN detail. */
+    protected function guardChitReferenced(string $chitId): ?RedirectResponse
+    {
+        $referenced = DB::table('t_coconut_fdn_detail')->where('coconut_oph_id', $chitId)->exists();
+        if ($referenced) {
+            return redirect()->route($this->routePrefix() . '.index')
+                ->with('error', 'This Harvesting Chit is used in a coconut FDN and cannot be deleted. Remove it from the FDN first.');
+        }
+        return null;
     }
 
     /** @return array{0:string,1:string} */

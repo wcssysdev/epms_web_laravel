@@ -222,6 +222,7 @@ class OphEntryController extends BaseTransactionController
         $item = Oph::query()->whereKey($id)->first();
         abort_unless($item, 404);
         if ($sap = $this->guardSapEdit($item)) return $sap;
+        if ($x = $this->guardOphInSentCpFdn($id)) return $x;
 
         return view($this->viewPrefix() . '.form', array_merge([
             'title'       => $this->title(),
@@ -270,6 +271,7 @@ class OphEntryController extends BaseTransactionController
         $item = Oph::query()->whereKey($id)->first();
         abort_unless($item, 404);
         if ($sap = $this->guardSapEdit($item)) return $sap;
+        if ($x = $this->guardOphInSentCpFdn($id)) return $x;
 
         $request->validate($this->rules($request));
 
@@ -359,5 +361,71 @@ class OphEntryController extends BaseTransactionController
         }
 
         OphPerson::insert($rows);
+    }
+
+    // ── DESTROY (guard cross-table + persons) ──────────────────────────────────
+    public function destroy($id): RedirectResponse
+    {
+        if ($lock = $this->guardSystemLock()) return $lock;
+
+        $item = Oph::query()->whereKey($id)->first();
+        abort_unless($item, 404);
+        if ($sap = $this->guardSapDelete($item)) return $sap;
+        if ($x = $this->guardOphReferenced($id)) return $x;
+
+        DB::transaction(function () use ($item) {
+            OphPerson::where('oph_id', $item->id)->delete();
+            $item->delete();
+        });
+
+        AuditService::log(AuditService::TYPE_TRANSACTION, AuditService::ACTION_DELETE, "Deleted {$this->title()} #{$id}");
+
+        return redirect()->route($this->routePrefix() . '.index')
+            ->with('success', $this->title() . ' deleted.');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CROSS-TABLE SAP GUARD (mirrors CI4 Oph)
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Block editing an OPH that is already part of a CP or FDN that has been
+     * sent to SAP (integration_status = 2). Returns a redirect or null.
+     */
+    protected function guardOphInSentCpFdn(string $ophId): ?RedirectResponse
+    {
+        $inSentCp = DB::table('t_cp_detail as d')
+            ->join('t_cp as h', 'h.id', '=', 'd.cp_id')
+            ->where('d.oph_id', $ophId)
+            ->where('h.integration_status', 2)
+            ->exists();
+
+        $inSentFdn = DB::table('t_fdn_detail as d')
+            ->join('t_fdn as h', 'h.id', '=', 'd.fdn_id')
+            ->where('d.oph_id', $ophId)
+            ->where('h.integration_status', 2)
+            ->exists();
+
+        if ($inSentCp || $inSentFdn) {
+            return redirect()->route($this->routePrefix() . '.index')
+                ->with('error', 'This OPH is part of a CP/FDN already sent to SAP and can no longer be edited.');
+        }
+        return null;
+    }
+
+    /**
+     * Block deleting an OPH that is referenced by ANY CP or FDN detail line
+     * (regardless of SAP status), matching CI4.
+     */
+    protected function guardOphReferenced(string $ophId): ?RedirectResponse
+    {
+        $inCp  = DB::table('t_cp_detail')->where('oph_id', $ophId)->exists();
+        $inFdn = DB::table('t_fdn_detail')->where('oph_id', $ophId)->exists();
+
+        if ($inCp || $inFdn) {
+            return redirect()->route($this->routePrefix() . '.index')
+                ->with('error', 'This OPH is used in a CP/FDN and cannot be deleted. Remove it from the CP/FDN first.');
+        }
+        return null;
     }
 }
