@@ -60,6 +60,20 @@ class Oph extends Model
         return $this->hasMany(OphPerson::class, 'oph_id', 'id');
     }
 
+    // Person type constants (mirror CI4): cutter = 1, carrier = 2.
+    public const PERSON_CUTTER  = 1;
+    public const PERSON_CARRIER = 2;
+
+    public function cutter()
+    {
+        return $this->hasOne(OphPerson::class, 'oph_id', 'id')->where('person_type', self::PERSON_CUTTER);
+    }
+
+    public function carriers(): HasMany
+    {
+        return $this->hasMany(OphPerson::class, 'oph_id', 'id')->where('person_type', self::PERSON_CARRIER);
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
     public function scopeActual($q)   { return $q->where('is_planned', false)->where('is_deleted', false); }
     public function scopePending($q)  { return $q->whereNull('approved_at'); }

@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Transaction;
 
 use App\Models\Transaction\Oph;
+use App\Models\Transaction\OphPerson;
 use App\Models\Master\Tph;
+use App\Models\Master\Employee;
 use App\Models\Global\HarvestMethod;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 /**
  * OPH (Oil Palm Harvest) manual entry (t_oph) — Estate Staff CRUD.
@@ -144,6 +149,151 @@ class OphEntryController extends BaseTransactionController
             'harvestMethods' => HarvestMethod::orderBy('mhm_indicator')
                                     ->get(['mhm_indicator', 'mhm_abbreviation', 'mhm_description']),
             'grading'        => self::GRADING,
+            'cutter'         => null,
+            'carriers'       => [],
         ];
+    }
+
+    // ── EDIT (pass existing cutter + carriers) ─────────────────────────────────
+    public function edit($id): \Illuminate\View\View|RedirectResponse
+    {
+        $item = Oph::query()->whereKey($id)->first();
+        abort_unless($item, 404);
+
+        return view($this->viewPrefix() . '.form', array_merge([
+            'title'       => $this->title(),
+            'routePrefix' => $this->routePrefix(),
+            'item'        => $item,
+        ], array_merge($this->formData(), [
+            'cutter'   => $item->cutter,
+            'carriers' => $item->carriers()->get(),
+        ])));
+    }
+
+    // ── STORE (header + persons) ───────────────────────────────────────────────
+    public function store(Request $request): RedirectResponse
+    {
+        if ($lock = $this->guardSystemLock()) return $lock;
+        $request->validate($this->rules($request));
+
+        if ($err = $this->validatePersons($request)) {
+            return back()->withInput()->with('error', $err);
+        }
+
+        $id  = $this->generateId();
+        $row = array_merge($this->mapRow($request), [
+            'id'         => $id,
+            'company_id' => $this->companyId(),
+            'created_by' => $this->userName(),
+            'updated_by' => $this->userName(),
+        ]);
+
+        DB::transaction(function () use ($row, $id, $request) {
+            Oph::create($row);
+            $this->savePersons($id, $request);
+        });
+
+        AuditService::log(AuditService::TYPE_TRANSACTION, AuditService::ACTION_CREATE, "Created {$this->title()} {$id}");
+
+        return redirect()->route($this->routePrefix() . '.index')
+            ->with('success', $this->title() . ' saved successfully.');
+    }
+
+    // ── UPDATE (header + persons) ──────────────────────────────────────────────
+    public function update(Request $request, $id): RedirectResponse
+    {
+        if ($lock = $this->guardSystemLock()) return $lock;
+
+        $item = Oph::query()->whereKey($id)->first();
+        abort_unless($item, 404);
+
+        $request->validate($this->rules($request));
+
+        if ($err = $this->validatePersons($request)) {
+            return back()->withInput()->with('error', $err);
+        }
+
+        DB::transaction(function () use ($item, $request) {
+            $item->update(array_merge($this->mapRow($request), ['updated_by' => $this->userName()]));
+            OphPerson::where('oph_id', $item->id)->delete();
+            $this->savePersons($item->id, $request);
+        });
+
+        AuditService::log(AuditService::TYPE_TRANSACTION, AuditService::ACTION_UPDATE, "Updated {$this->title()} #{$id}");
+
+        return redirect()->route($this->routePrefix() . '.index')
+            ->with('success', $this->title() . ' updated successfully.');
+    }
+
+    // ── Person helpers ──────────────────────────────────────────────────────────
+
+    /** Collect non-empty carrier rows from the request. */
+    protected function carrierRows(Request $request): array
+    {
+        $rows = [];
+        foreach ((array) $request->input('carriers', []) as $c) {
+            if (! is_array($c)) continue;
+            $code = trim((string) ($c['employee_code'] ?? ''));
+            $pct  = trim((string) ($c['percentage'] ?? ''));
+            if ($code === '' && $pct === '') continue;
+            $rows[] = ['employee_code' => $code, 'percentage' => (float) $pct];
+        }
+        return $rows;
+    }
+
+    /**
+     * Validate cutter + carriers: cutter required, and cutter% + Σcarriers% = 100.
+     * Returns an error string or null.
+     */
+    protected function validatePersons(Request $request): ?string
+    {
+        $cutterCode = trim((string) $request->input('cutter_employee_code', ''));
+        $cutterPct  = (float) $request->input('cutter_percentage', 0);
+
+        if ($cutterCode === '') {
+            return 'Cutter employee is required.';
+        }
+
+        $carriers = $this->carrierRows($request);
+        foreach ($carriers as $c) {
+            if ($c['employee_code'] === '') return 'Each carrier must have an employee selected.';
+        }
+
+        $total = $cutterPct + array_sum(array_column($carriers, 'percentage'));
+        if (round($total, 2) != 100.0) {
+            return "Cutter + carriers percentage must total 100% (currently {$total}%).";
+        }
+
+        return null;
+    }
+
+    /** Persist cutter (type 1) + carriers (type 2) for an OPH id. */
+    protected function savePersons(string $ophId, Request $request): void
+    {
+        $now  = now();
+        $rows = [];
+
+        $cutterCode = trim((string) $request->input('cutter_employee_code', ''));
+        $rows[] = [
+            'company_id'    => $this->companyId(),
+            'oph_id'        => $ophId,
+            'employee_code' => $cutterCode,
+            'employee_name' => Employee::where('employee_code', $cutterCode)->value('employee_name') ?? '',
+            'percentage'    => (float) $request->input('cutter_percentage', 0),
+            'person_type'   => Oph::PERSON_CUTTER,
+        ];
+
+        foreach ($this->carrierRows($request) as $c) {
+            $rows[] = [
+                'company_id'    => $this->companyId(),
+                'oph_id'        => $ophId,
+                'employee_code' => $c['employee_code'],
+                'employee_name' => Employee::where('employee_code', $c['employee_code'])->value('employee_name') ?? '',
+                'percentage'    => $c['percentage'],
+                'person_type'   => Oph::PERSON_CARRIER,
+            ];
+        }
+
+        OphPerson::insert($rows);
     }
 }
