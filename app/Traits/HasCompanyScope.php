@@ -49,11 +49,49 @@ trait HasCompanyScope
             }
 
             // Company-level → strict single company
-            $builder->where(
-                $builder->getModel()->getTable() . '.company_id',
-                $access->company_id
-            );
+            $table = $builder->getModel()->getTable();
+            $builder->where($table . '.company_id', $access->company_id);
+
+            // Multi-estate roles (e.g. Plantation Controller) are further
+            // restricted to the estates assigned via tc_user_scope — but only
+            // when the table actually carries an estate_code column.
+            $estateCodes = static::assignedEstateCodes($user);
+            if ($estateCodes !== null && \Illuminate\Support\Facades\Schema::hasColumn($table, 'estate_code')) {
+                if ($estateCodes === []) {
+                    $builder->whereRaw('1 = 0'); // assigned to no estates → see nothing
+                } else {
+                    $builder->whereIn($table . '.estate_code', $estateCodes);
+                }
+            }
         });
+    }
+
+    /**
+     * Resolve the estate_code values a user is restricted to via tc_user_scope.
+     * Returns null when the user has no estate-scope grants (no restriction),
+     * or an array of estate codes (possibly empty) when they do.
+     *
+     * Cached per-request keyed by user id to avoid repeat lookups across models.
+     */
+    protected static function assignedEstateCodes($user): ?array
+    {
+        static $cache = [];
+        $uid = $user->id ?? 0;
+        if (array_key_exists($uid, $cache)) {
+            return $cache[$uid];
+        }
+
+        $estateIds = method_exists($user, 'scopedEstateIds') ? $user->scopedEstateIds() : [];
+        if (empty($estateIds)) {
+            return $cache[$uid] = null; // no estate-scope grants → no restriction
+        }
+
+        $codes = \Illuminate\Support\Facades\DB::table('m_estate')
+            ->whereIn('id', $estateIds)
+            ->pluck('estate_code')
+            ->all();
+
+        return $cache[$uid] = $codes;
     }
 
     /**
