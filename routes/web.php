@@ -81,6 +81,8 @@ use App\Http\Controllers\Transaction\AttendanceEntryController;
 use App\Http\Controllers\Transaction\WorkdoneEntryController;
 use App\Http\Controllers\Transaction\HarvesterAssignmentController;
 use App\Http\Controllers\Transaction\GeneralWorkerAssignmentController;
+use App\Http\Controllers\Transaction\OphEntryController;
+use App\Http\Controllers\Transaction\OphMillGraderController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -551,6 +553,14 @@ Route::middleware(['auth.check'])->group(function () {
             $txEntry('workdone',                   'workdone',                   WorkdoneEntryController::class);
             $txEntry('harvester-assignment',       'harvester_assignment',       HarvesterAssignmentController::class);
             $txEntry('general-worker-assignment',  'general_worker_assignment',  GeneralWorkerAssignmentController::class);
+            $txEntry('oph',                        'oph',                        OphEntryController::class);
+
+            // OPH Mill Grader — read-only monitoring (no CRUD).
+            Route::prefix('oph-mill-grader')->name('oph_mill_grader.')->group(function () {
+                Route::get('/',          [OphMillGraderController::class, 'index'])->name('index');
+                Route::get('/datatable', [OphMillGraderController::class, 'getDatatable'])->name('datatable');
+                Route::get('/{id}',      [OphMillGraderController::class, 'detail'])->name('detail');
+            });
         });
 
     // ── Reporting routes ───────────────────────────────────────────────────
