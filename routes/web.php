@@ -80,6 +80,7 @@ use App\Http\Controllers\Transaction\GiPlanController;
 use App\Http\Controllers\Transaction\AttendanceEntryController;
 use App\Http\Controllers\Transaction\WorkdoneEntryController;
 use App\Http\Controllers\Transaction\HarvesterAssignmentController;
+use App\Http\Controllers\Transaction\GeneralWorkerAssignmentController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
@@ -546,9 +547,10 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::delete('/{id}',   [$controller, 'destroy'])->name('destroy');
                 });
             };
-            $txEntry('attendance',           'attendance',           AttendanceEntryController::class);
-            $txEntry('workdone',             'workdone',             WorkdoneEntryController::class);
-            $txEntry('harvester-assignment', 'harvester_assignment', HarvesterAssignmentController::class);
+            $txEntry('attendance',                 'attendance',                 AttendanceEntryController::class);
+            $txEntry('workdone',                   'workdone',                   WorkdoneEntryController::class);
+            $txEntry('harvester-assignment',       'harvester_assignment',       HarvesterAssignmentController::class);
+            $txEntry('general-worker-assignment',  'general_worker_assignment',  GeneralWorkerAssignmentController::class);
         });
 
     // ── Reporting routes ───────────────────────────────────────────────────
