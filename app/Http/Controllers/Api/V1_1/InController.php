@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1_1;
 
 use App\Http\Controllers\Api\V1_1\Upload\FieldStaffUpload;
 use App\Http\Controllers\Api\V1_1\Upload\HarvestClerkUpload;
+use App\Http\Controllers\Api\V1_1\Upload\TransportClerkUpload;
 use App\Models\Transaction\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -51,8 +52,20 @@ class InController extends ApiController
             if (! empty($data['harvest_clerk'])) {
                 (new HarvestClerkUpload($companyId, $user))->handle($data['harvest_clerk']);
             }
-            // Further buckets (transport_clerk, coconut, mill_grader) dispatched
-            // here in later batches.
+            // BATCH 2d — transport_clerk bucket (CP + FDN sawit + loaders).
+            if (! empty($data['transport_clerk'])) {
+                $tc = new TransportClerkUpload($companyId, $user);
+                $tc->handle($data['transport_clerk']);
+                // Loaders are flat top-level lists alongside the CP/FDN lists.
+                $tc->cpLoadersAll(array_merge(
+                    $data['transport_clerk']['T_CP_Loader_Schema_List']   ?? [],
+                    $data['transport_clerk']['T_CP_1_Loader_Schema_List'] ?? []
+                ));
+                $tc->fdnLoadersAll(
+                    $data['transport_clerk']['T_FDN_Loader_Schema_List'] ?? []
+                );
+            }
+            // Further buckets (coconut, mill_grader) dispatched in later batches.
         });
 
         return $this->respond(['status' => 'HTTP_OK', 'message' => 'Data successfully saved'], self::HTTP_OK);
