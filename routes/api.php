@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1_1\PingController;
+use App\Http\Controllers\Api\V1_1\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,9 @@ Route::prefix('v1_1')->group(function () {
 
     // ── Public wiring probe ────────────────────────────────────────────────
     Route::get('ping', [PingController::class, 'ping']);
+
+    // ── Auth (login) — public, mirrors CI3 POST v1_1/auth/login ──────────────
+    Route::post('auth/login', [AuthController::class, 'login']);
 
     // ── Token-protected wiring probe ───────────────────────────────────────
     Route::middleware('api.token')->group(function () {
