@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1_1;
 
 use App\Http\Controllers\Api\V1_1\Upload\FieldStaffUpload;
+use App\Http\Controllers\Api\V1_1\Upload\HarvestClerkUpload;
 use App\Models\Transaction\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,8 +47,12 @@ class InController extends ApiController
             if (! empty($data['field_staff'])) {
                 (new FieldStaffUpload($companyId, $user))->handle($data['field_staff']);
             }
-            // Further buckets (harvest_clerk, transport_clerk, coconut, mill_grader)
-            // are dispatched here in later batches.
+            // BATCH 2c — harvest_clerk bucket (OPH sawit + persons).
+            if (! empty($data['harvest_clerk'])) {
+                (new HarvestClerkUpload($companyId, $user))->handle($data['harvest_clerk']);
+            }
+            // Further buckets (transport_clerk, coconut, mill_grader) dispatched
+            // here in later batches.
         });
 
         return $this->respond(['status' => 'HTTP_OK', 'message' => 'Data successfully saved'], self::HTTP_OK);
