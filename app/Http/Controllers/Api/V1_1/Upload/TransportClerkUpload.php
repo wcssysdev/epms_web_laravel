@@ -38,6 +38,12 @@ final class TransportClerkUpload
         $this->fdn($bucket['T_FDN_Schema_List'] ?? []);
     }
 
+    /** CP Coconut: same t_cp table, cp_type=2, detail_type=2 (coconut detail). */
+    public function cpCoconut(array $rows): void
+    {
+        $this->cp($rows, 2);
+    }
+
     // ── CHECKPOINT (CP1 / CP2) ───────────────────────────────────────────────
     private function cp(array $rows, int $cpType): void
     {

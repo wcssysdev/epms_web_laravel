@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1_1;
 use App\Http\Controllers\Api\V1_1\Upload\FieldStaffUpload;
 use App\Http\Controllers\Api\V1_1\Upload\HarvestClerkUpload;
 use App\Http\Controllers\Api\V1_1\Upload\TransportClerkUpload;
+use App\Http\Controllers\Api\V1_1\Upload\CoconutUpload;
+use App\Http\Controllers\Api\V1_1\Upload\MillGraderUpload;
 use App\Models\Transaction\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,7 +58,6 @@ class InController extends ApiController
             if (! empty($data['transport_clerk'])) {
                 $tc = new TransportClerkUpload($companyId, $user);
                 $tc->handle($data['transport_clerk']);
-                // Loaders are flat top-level lists alongside the CP/FDN lists.
                 $tc->cpLoadersAll(array_merge(
                     $data['transport_clerk']['T_CP_Loader_Schema_List']   ?? [],
                     $data['transport_clerk']['T_CP_1_Loader_Schema_List'] ?? []
@@ -65,7 +66,22 @@ class InController extends ApiController
                     $data['transport_clerk']['T_FDN_Loader_Schema_List'] ?? []
                 );
             }
-            // Further buckets (coconut, mill_grader) dispatched in later batches.
+            // BATCH 2e — coconut buckets.
+            $coconut = new CoconutUpload($companyId, $user);
+            if (! empty($data['harvest_clerk_coconut'])) {
+                $coconut->handleHarvest($data['harvest_clerk_coconut']);
+            }
+            if (! empty($data['transport_clerk_coconut'])) {
+                $tc = $tc ?? new TransportClerkUpload($companyId, $user);
+                $coconut->handleTransport($data['transport_clerk_coconut'], $tc);
+            }
+            // BATCH 2e — mill_grader + muster_chit_report.
+            if (! empty($data['mill_grader'])) {
+                (new MillGraderUpload($companyId, $user))->handle($data['mill_grader']);
+            }
+            if (! empty($data['muster_chit_report'])) {
+                (new MillGraderUpload($companyId, $user))->handleMusterChit($data['muster_chit_report']);
+            }
         });
 
         return $this->respond(['status' => 'HTTP_OK', 'message' => 'Data successfully saved'], self::HTTP_OK);
