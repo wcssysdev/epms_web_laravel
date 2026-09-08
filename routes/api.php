@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1_1\PingController;
 use App\Http\Controllers\Api\V1_1\AuthController;
+use App\Http\Controllers\Api\V1_1\InController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,9 +28,12 @@ Route::prefix('v1_1')->group(function () {
     // ── Auth (login) — public, mirrors CI3 POST v1_1/auth/login ──────────────
     Route::post('auth/login', [AuthController::class, 'login']);
 
-    // ── Token-protected wiring probe ───────────────────────────────────────
+    // ── Token-protected endpoints (X-Api-Key) ──────────────────────────────
     Route::middleware('api.token')->group(function () {
         Route::get('whoami', [PingController::class, 'whoami']);
+
+        // Upload/sync (CI3 In::upload_post -> POST v1_1/in/upload).
+        Route::post('in/upload', [InController::class, 'upload']);
     });
 
 });
