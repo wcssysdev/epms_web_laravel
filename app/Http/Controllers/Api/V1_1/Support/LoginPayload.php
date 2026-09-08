@@ -474,6 +474,235 @@ final class LoginPayload
         if ($this->roleNum === 6) {
             $data['transport_clerk'] = $this->transportClerkBlock();
         }
+        // harvest_clerk_coconut (role 9)
+        if ($this->roleNum === 9) {
+            $data['harvest_clerk_coconut'] = $this->harvestClerkCoconutBlock();
+        }
+        // transport_clerk_coconut (role 10)
+        if ($this->roleNum === 10) {
+            $data['transport_clerk_coconut'] = $this->transportClerkCoconutBlock();
+        }
+        // supervisi (role 2 = Estate Manager, role 3 = Assistant Manager)
+        if ($this->roleNum === 2 || $this->roleNum === 3) {
+            $data['supervisi'] = $this->supervisiBlock();
+        }
+    }
+
+    // ── harvest_clerk_coconut (role 9) ──────────────────────────────────────────
+    private function harvestClerkCoconutBlock(): array
+    {
+        $emp = $this->user->user_employee_code;
+        $lastDay = $this->lastDayCoconutOph($emp);
+        return [
+            'M_Coconut_Activity_Type'              => $this->coconutActivityTypeSchema(),
+            'T_Coconut_Harvesting_Plan_Schema'     => $this->coconutHarvestingPlanSchema(null),
+            'Laporan_Panen_Coconut_Kemarin'        => $lastDay['last_day_coconut_oph'],
+            'Laporan_Panen_Coconut_Kemarin_Detail' => [],
+            'Laporan_Restan_Coconut'               => $this->coconutOphRestan(null, null),
+            'T_ABW_Schema'                         => [],
+        ];
+    }
+
+    // ── transport_clerk_coconut (role 10) ───────────────────────────────────────
+    private function transportClerkCoconutBlock(): array
+    {
+        $emp = $this->user->user_employee_code;
+        $lastFdn = $this->lastDayCoconutFdn($emp);
+        return [
+            'Laporan_SPB_Coconut_Kemarin'     => $lastFdn['last_day_coconut_fdn'],
+            'Laporan_SPB_Coconut_Kemarin_OPH' => $lastFdn['last_day_coconut_fdn_oph'],
+            'Laporan_Restan_Coconut'          => $this->coconutOphRestan(null, null),
+            'M_Sales_Order'                   => [],
+            'M_Bin'                           => $this->binSchema(),
+        ];
+    }
+
+    // ── supervisi (role 2 / 3) ──────────────────────────────────────────────────
+    private function supervisiBlock(): array
+    {
+        $emp = $this->user->user_employee_code;
+        // role 2 = manager (division filter via last-day oph by manager), role 3 = assistant (fa filter).
+        $lastDay = $this->lastDayOph(null);
+        return [
+            'T_Harvesting_Plan_Schema'         => $this->harvestingPlanSchema($emp),
+            'T_Coconut_Harvesting_Plan_Schema' => $this->coconutHarvestingPlanSchema(null),
+            'Laporan_Restan'                   => $this->ophRestan(null, $emp, null),
+            'T_Workplan_Schema'                => $this->workplanSchema(),
+            'Laporan_Panen_Kemarin'            => $lastDay['last_day_oph'],
+            'Laporan_Panen_Kemarin_Persons'    => $lastDay['oph_persons'],
+        ];
+    }
+
+    private function coconutActivityTypeSchema(): array
+    {
+        return DB::table('m_coconut_activity_type')
+            ->orderBy('coconut_activity_type_code')
+            ->get()
+            ->map(fn ($r) => [
+                'coconut_activity_type_id'   => (int) $r->id,
+                'coconut_activity_type_code' => $r->coconut_activity_type_code,
+                'coconut_activity_type_desc' => $r->coconut_activity_type_desc,
+            ])->all();
+    }
+
+    private function coconutHarvestingPlanSchema(?string $faCode): array
+    {
+        $q = DB::table('t_coconut_harvesting_plan')
+            ->join('m_block', function ($j) {
+                $j->on('t_coconut_harvesting_plan.block_code', '=', 'm_block.block_code')
+                  ->on('t_coconut_harvesting_plan.division_code', '=', 'm_block.division_code');
+            })
+            ->whereDate('t_coconut_harvesting_plan.plan_date', $this->today())
+            ->where('t_coconut_harvesting_plan.is_approved', 1)
+            ->where('m_block.estate_code', $this->estateCode());
+
+        if ($faCode) {
+            $division = DB::table('m_assistant_manager_division')
+                ->where('assistant_manager_code', $faCode)->value('division_code');
+            $q->where('t_coconut_harvesting_plan.division_code', $division);
+        }
+
+        return $q->orderByDesc('t_coconut_harvesting_plan.id')
+            ->get(['t_coconut_harvesting_plan.*', 'm_block.block_name'])
+            ->map(function ($r) {
+                $row = (array) $r;
+                $row['coconut_harvesting_plan_id']            = (int) $r->id;
+                $row['coconut_harvesting_plan_date']          = $r->plan_date;
+                $row['coconut_harvesting_plan_division_code'] = $r->division_code;
+                $row['coconut_harvesting_plan_block_code']    = $r->block_code;
+                $row['coconut_harvesting_plan_total_hk']      = (int) ($r->total_hk ?? 0);
+                $row['coconut_harvesting_plan_is_approved']   = (int) ($r->is_approved ?? 0);
+                return $row;
+            })->all();
+    }
+
+    /** get_last_day_coconut_oph: coconut OPH created yesterday, not deleted. */
+    private function lastDayCoconutOph(?string $emp): array
+    {
+        $yesterday = Carbon::yesterday()->toDateString();
+        $rows = DB::table('t_coconut_oph')
+            ->where('is_deleted', 0)
+            ->whereDate('created_at', $yesterday)
+            ->when($emp, fn ($q) => $q->where('checker_employee_code', $emp))
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($r) => $this->mapCoconutOphRow($r))
+            ->all();
+
+        return ['last_day_coconut_oph' => $rows, 'coconut_oph_detail' => []];
+    }
+
+    /** Map a t_coconut_oph row to the CI3 mobile coconut-OPH contract. */
+    private function mapCoconutOphRow(object $r): array
+    {
+        return [
+            'coconut_oph_id'                    => $r->id,
+            'coconut_oph_card_id'               => $r->oph_card_id,
+            'coconut_oph_estate_code'           => $r->estate_code,
+            'coconut_oph_plant_code'            => $r->plant_code,
+            'coconut_oph_division_code'         => $r->division_code,
+            'coconut_oph_block_code'            => $r->block_code,
+            'coconut_oph_tph_code'              => $r->tph_code,
+            'coconut_oph_gang_code'             => $r->gang_code,
+            'coconut_oph_gang_name'             => $r->gang_name,
+            'coconut_oph_checker_employee_code' => $r->checker_employee_code,
+            'coconut_oph_checker_employee_name' => $r->checker_employee_name,
+            'coconut_oph_notes'                 => $r->notes,
+            'coconut_oph_lat'                   => $r->lat,
+            'coconut_oph_long'                  => $r->long,
+            'coconut_oph_nuts_total'            => (int) ($r->nuts_total ?? 0),
+            'coconut_oph_is_planned'            => (int) ($r->is_planned ?? 0),
+            'coconut_oph_is_approved'           => (int) ($r->is_approved ?? 0),
+            'coconut_oph_is_closed'             => (int) ($r->is_closed ?? 0),
+            'coconut_oph_total_customer_nut_qty'=> (float) 0,
+            'coconut_oph_created_date'          => $r->created_at ? Carbon::parse($r->created_at)->toDateString() : null,
+        ];
+    }
+
+    /** get_coconut_oph_restan: coconut OPH not yet in a coconut FDN detail. */
+    private function coconutOphRestan(?string $kerani, ?string $faCode): array
+    {
+        $division = $faCode
+            ? DB::table('m_assistant_manager_division')->where('assistant_manager_code', $faCode)->value('division_code')
+            : null;
+
+        $rows = DB::table('t_coconut_oph')
+            ->leftJoin('t_coconut_fdn_detail', 't_coconut_fdn_detail.coconut_oph_id', '=', 't_coconut_oph.id')
+            ->whereNull('t_coconut_fdn_detail.coconut_oph_id')
+            ->where('t_coconut_oph.is_deleted', 0)
+            ->when($kerani, fn ($q) => $q->where('t_coconut_oph.checker_employee_code', $kerani))
+            ->when($division, fn ($q) => $q->where('t_coconut_oph.division_code', $division))
+            ->orderBy('t_coconut_oph.created_at')
+            ->get([
+                't_coconut_oph.*',
+                DB::raw("to_char(t_coconut_oph.created_at, 'DD/MM/YYYY') as coconut_oph_created_date_fmt"),
+            ]);
+
+        return $rows->map(function ($r) {
+            $row = $this->mapCoconutOphRow($r);
+            $row['coconut_oph_created_date'] = $r->coconut_oph_created_date_fmt;
+            $row['total_coconut_oph_detail_customer_nut_qty'] = (float) (
+                DB::table('t_coconut_oph_detail')->where('coconut_oph_id', $r->id)->sum('customer_nut_qty') ?? 0
+            );
+            return $row;
+        })->all();
+    }
+
+    /** get_last_day_coconut_fdn: coconut FDN for kerani created yesterday..today. */
+    private function lastDayCoconutFdn(?string $userCode): array
+    {
+        $yesterday = Carbon::yesterday()->toDateString();
+        $today = Carbon::today()->toDateString();
+
+        $fdns = DB::table('t_coconut_fdn')
+            ->where('is_deleted', 0)
+            ->when($userCode, fn ($q) => $q->where('kerani_kirim_emp_code', $userCode))
+            ->whereDate('created_at', '>=', $yesterday)
+            ->whereDate('created_at', '<=', $today)
+            ->orderBy('id')
+            ->get();
+
+        $lastFdn = [];
+        $fdnOph  = [];
+        foreach ($fdns as $r) {
+            $lastFdn[] = [
+                'coconut_fdn_id'                  => $r->id,
+                'coconut_fdn_estate_code'         => $r->estate_code,
+                'coconut_fdn_division_code'       => $r->division_code,
+                'coconut_fdn_sales_order'         => $r->sales_order_no,
+                'coconut_fdn_sales_order_item_code' => $r->sales_order_item,
+                'coconut_fdn_receiving_point_code'=> $r->receiving_point_code,
+                'coconut_fdn_license_number'      => $r->license_number,
+                'coconut_fdn_driver_name'         => $r->driver_name,
+                'coconut_fdn_vehicle_vendor_code' => $r->vehicle_vendor_code,
+                'coconut_fdn_kerani_kirim_employee_code' => $r->kerani_kirim_emp_code,
+                'coconut_fdn_kerani_kirim_employee_name' => $r->kerani_kirim_emp_name,
+                'coconut_fdn_delivery_note'       => $r->delivery_note,
+                'coconut_fdn_card_id'             => $r->fdn_card_id,
+                'coconut_fdn_lat'                 => $r->lat,
+                'coconut_fdn_long'                => $r->long,
+                'coconut_fdn_total_oph'           => (int) ($r->total_oph ?? 0),
+                'coconut_fdn_bruto'               => (float) ($r->bruto ?? 0),
+                'coconut_fdn_tarra'               => (float) ($r->tarra ?? 0),
+                'coconut_fdn_actual_tonnage'      => (float) ($r->actual_tonnage ?? 0),
+                'coconut_fdn_total_customer_qty'  => (float) ($r->total_customer_qty ?? 0),
+                'coconut_fdn_destination'         => $r->destination,
+                'coconut_fdn_is_nursery'          => (int) ($r->is_nursery ?? 0),
+                'coconut_fdn_is_stock'            => (int) ($r->is_stock ?? 0),
+                'coconut_fdn_is_closed'           => (int) ($r->is_closed ?? 0),
+                'coconut_fdn_created_date'        => $r->created_at ? Carbon::parse($r->created_at)->toDateString() : null,
+            ];
+            foreach (DB::table('t_coconut_fdn_detail')->where('coconut_fdn_id', $r->id)->get() as $d) {
+                $fdnOph[] = [
+                    'coconut_fdn_id'                       => $d->coconut_fdn_id,
+                    'coconut_fdn_oph_id'                   => $d->coconut_oph_id,
+                    'coconut_fdn_oph_card_id'              => $d->coconut_oph_card_id,
+                    'coconut_fdn_oph_total_customer_nut_qty'=> (float) ($d->total_customer_nut_qty ?? 0),
+                ];
+            }
+        }
+
+        return ['last_day_coconut_fdn' => $lastFdn, 'last_day_coconut_fdn_oph' => $fdnOph];
     }
 
     // ── harvest_clerk (role 5 / 11) ─────────────────────────────────────────────
