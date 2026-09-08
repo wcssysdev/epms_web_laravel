@@ -461,16 +461,274 @@ final class LoginPayload
     // ── ROLE BLOCKS ─────────────────────────────────────────────────────────────
     private function buildRoleBlock(array &$data): void
     {
-        // BATCH 1b: field_staff (role 7). Other roles added in 1c/1d.
+        // field_staff (role 7)
         if ($this->roleNum === 7) {
             $data['field_staff'] = $this->fieldStaffBlock();
         }
+        // harvest_clerk (role 5 and 11 share the harvest_clerk bucket in CI3;
+        // mill_grader (11) only differs in Roles_Schema).
+        if ($this->roleNum === 5 || $this->roleNum === 11) {
+            $data['harvest_clerk'] = $this->harvestClerkBlock();
+        }
+        // transport_clerk (role 6)
+        if ($this->roleNum === 6) {
+            $data['transport_clerk'] = $this->transportClerkBlock();
+        }
+    }
+
+    // ── harvest_clerk (role 5 / 11) ─────────────────────────────────────────────
+    private function harvestClerkBlock(): array
+    {
+        $emp = $this->user->user_employee_code;
+        $lastDay = $this->lastDayOph($emp);
+        return [
+            'T_Harvesting_Plan_Schema'      => $this->harvestingPlanSchema(null),
+            'Laporan_Panen_Kemarin'         => $lastDay['last_day_oph'],
+            'Laporan_Panen_Kemarin_Persons' => $lastDay['oph_persons'],
+            'Laporan_Restan'                => $this->ophRestan($emp, null, null),
+            'T_ABW_Schema'                  => [],
+        ];
+    }
+
+    // ── transport_clerk (role 6) ────────────────────────────────────────────────
+    private function transportClerkBlock(): array
+    {
+        $emp = $this->user->user_employee_code;
+        $lastFdn = $this->lastDayFdn($emp);
+        return [
+            'Laporan_SPB_Kemarin'         => $lastFdn['last_day_fdn'],
+            'Laporan_SPB_Kemarin_Persons' => $lastFdn['fdn_persons'],
+            'Laporan_SPB_Kemarin_OPH'     => $lastFdn['last_day_fdn_oph'],
+            'Laporan_Restan'              => $this->ophRestan(null, null, null),
+            'M_Bin'                       => $this->binSchema(),
+        ];
+    }
+
+    private function binSchema(): array
+    {
+        return DB::table('m_bin')
+            ->when($this->companyId(), fn ($q) => $q->where('company_id', $this->companyId()))
+            ->orderBy('bin_code')
+            ->get()
+            ->map(fn ($r) => ['bin_id' => (int) $r->id, 'bin_code' => $r->bin_code])
+            ->all();
+    }
+
+    /**
+     * get_last_day_oph: OPH created yesterday, not deleted. Platform variant joins
+     * t_cp_detail + t_oph_persons (person_type=1) and flags backlog by cpophid.
+     * Returns ["last_day_oph"=>[], "oph_persons"=>[]].
+     *
+     * @param string|null $emp     kerani_panen filter (harvest_clerk)
+     * @param string|null $estate  estate filter (platform-list variant)
+     * @param bool        $platform join cp_detail + persons
+     */
+    private function lastDayOph(?string $emp, ?string $estate = null, bool $platform = false): array
+    {
+        $yesterday = Carbon::yesterday()->toDateString();
+
+        $q = DB::table('t_oph')->where('t_oph.is_deleted', 0)
+            ->whereDate('t_oph.created_at', $yesterday);
+
+        if ($platform) {
+            $q->leftJoin('t_cp_detail', 't_cp_detail.oph_id', '=', 't_oph.id')
+              ->join('t_oph_persons', 't_oph_persons.oph_id', '=', 't_oph.id')
+              ->where('t_oph.is_restant_permanent', 0)
+              ->where('t_oph_persons.person_type', 1);
+        }
+        if ($emp) {
+            $q->where('t_oph.kerani_panen_employee_code', $emp);
+        }
+        if ($estate) {
+            $q->where('t_oph.estate_code', $estate);
+        }
+
+        $select = ['t_oph.*', DB::raw("to_char(t_oph.created_at, 'DD/MM/YYYY') as oph_created_date")];
+        if ($platform) {
+            $select[] = DB::raw("COALESCE(t_cp_detail.oph_id, 'NA') as cpophid");
+        }
+
+        $rows = $q->orderBy('t_oph.created_at')->get($select);
+
+        $lastDayOph = [];
+        $ophPersons = [];
+        foreach ($rows as $r) {
+            $mapped = $this->mapOphRow($r);
+            if ($platform) {
+                $mapped['is_backlog'] = (isset($r->cpophid) && $r->cpophid !== 'NA') ? '0' : '1';
+            }
+            $lastDayOph[] = $mapped;
+
+            foreach ($this->ophPersonsFor($r->id) as $p) {
+                $ophPersons[] = $p;
+            }
+        }
+
+        return ['last_day_oph' => $lastDayOph, 'oph_persons' => $ophPersons];
+    }
+
+    /** t_oph_persons rows for an OPH, aliased to the CI3 person contract. */
+    private function ophPersonsFor(string $ophId): array
+    {
+        return DB::table('t_oph_persons')->where('oph_id', $ophId)->get()
+            ->map(fn ($p) => [
+                'oph_person_id'            => (int) $p->id,
+                'oph_id'                   => $p->oph_id,
+                'oph_person_employee_code' => $p->employee_code,
+                'oph_person_employee_name' => $p->employee_name,
+                'oph_person_percentage'    => (int) ($p->percentage ?? 0),
+                'oph_person_type'          => (int) ($p->person_type ?? 0),
+            ])->all();
+    }
+
+    /**
+     * get_oph_restan: OPH not yet in a CP detail, non-permanent restant, not
+     * deleted, person_type=1. Optional filters by kerani / assistant division.
+     */
+    private function ophRestan(?string $kerani, ?string $faCode, ?string $fieldStaffEmp): array
+    {
+        $division = null;
+        if ($fieldStaffEmp) {
+            $division = DB::table('m_employee')->where('employee_code', $fieldStaffEmp)->value('employee_division_code');
+        } elseif ($faCode) {
+            $division = DB::table('m_assistant_manager_division')->where('assistant_manager_code', $faCode)->value('division_code');
+        }
+
+        $q = DB::table('t_oph')
+            ->leftJoin('t_cp_detail', 't_cp_detail.oph_id', '=', 't_oph.id')
+            ->join('t_oph_persons', 't_oph_persons.oph_id', '=', 't_oph.id')
+            ->whereNull('t_cp_detail.oph_id')
+            ->where('t_oph.is_restant_permanent', 0)
+            ->where('t_oph.is_deleted', 0)
+            ->where('t_oph_persons.person_type', 1);
+
+        if ($kerani) {
+            $q->where('t_oph.kerani_panen_employee_code', $kerani);
+        }
+        if ($division) {
+            $q->where('t_oph.division_code', $division);
+        }
+
+        return $q->orderBy('t_oph.created_at')
+            ->get([
+                't_oph.*',
+                't_oph_persons.employee_code as cutter_employee_code',
+                't_oph_persons.employee_name as cutter_employee_name',
+                't_oph_persons.percentage as cutter_percentage',
+                DB::raw("to_char(t_oph.created_at, 'DD/MM/YYYY') as oph_created_date"),
+            ])
+            ->map(fn ($r) => $this->mapOphRow($r))
+            ->all();
+    }
+
+    /**
+     * get_last_day_fdn: FDN for this kerani created between yesterday..today,
+     * with driver loader + vendor names. Returns last_day_fdn, fdn_persons,
+     * last_day_fdn_oph.
+     */
+    private function lastDayFdn(?string $userCode): array
+    {
+        $yesterday = Carbon::yesterday()->toDateString();
+        $today = Carbon::today()->toDateString();
+
+        $fdns = DB::table('t_fdn')
+            ->where('t_fdn.is_deleted', 0)
+            ->when($userCode, fn ($q) => $q->where('t_fdn.kerani_kirim_emp_code', $userCode))
+            ->whereDate('t_fdn.created_at', '>=', $yesterday)
+            ->whereDate('t_fdn.created_at', '<=', $today)
+            ->orderBy('t_fdn.id')
+            ->get();
+
+        $lastDayFdn = [];
+        $fdnPersons = [];
+        $fdnOph     = [];
+        foreach ($fdns as $r) {
+            $lastDayFdn[] = $this->mapFdnRow($r);
+
+            foreach (DB::table('t_fdn_loader')->where('fdn_id', $r->id)->get() as $l) {
+                $fdnPersons[] = [
+                    'fdn_loader_id'            => (int) $l->id,
+                    'fdn_id'                   => $l->fdn_id,
+                    'fdn_loader_employee_code' => $l->employee_code,
+                    'fdn_loader_employee_name' => $l->employee_name,
+                    'fdn_loader_vendor'        => $l->vendor_code,
+                    'fdn_loader_transporter'   => (int) ($l->transporter ?? 0),
+                    'fdn_loader_percentage'    => (int) ($l->percentage ?? 0),
+                    'fdn_loader_type'          => (int) ($l->loader_type ?? 0),
+                ];
+            }
+            foreach (DB::table('t_fdn_detail')->where('fdn_id', $r->id)->get() as $d) {
+                $fdnOph[] = [
+                    'fdn_id'                        => $d->fdn_id,
+                    'fdn_oph_id'                    => $d->oph_id,
+                    'fdn_oph_block_code'            => $d->oph_block_code,
+                    'fdn_oph_tph_code'              => $d->oph_tph_code,
+                    'fdn_oph_card_id'               => $d->oph_card_id,
+                    'fdn_oph_bunches_delivered'     => (int) ($d->bunches_delivered ?? 0),
+                    'fdn_oph_loose_fruit_delivered' => (float) ($d->loose_fruit_delivered ?? 0),
+                ];
+            }
+        }
+
+        return ['last_day_fdn' => $lastDayFdn, 'fdn_persons' => $fdnPersons, 'last_day_fdn_oph' => $fdnOph];
+    }
+
+    /** Map a t_fdn row (Laravel columns) to the CI3 mobile FDN contract. */
+    private function mapFdnRow(object $r): array
+    {
+        return [
+            'fdn_id'                        => $r->id,
+            'fdn_card_id'                   => $r->fdn_card_id,
+            'fdn_estate_code'               => $r->estate_code,
+            'fdn_division_code'             => $r->division_code,
+            'fdn_license_number'            => $r->license_number,
+            'fdn_license_number2'           => $r->license_number2,
+            'fdn_seal_code'                 => $r->seal_code,
+            'fdn_deliver_to_code'           => $r->deliver_to_code,
+            'fdn_deliver_to_name'           => $r->deliver_to_name,
+            'fdn_receiving_point_code'      => $r->receiving_point_code ?? null,
+            'fdn_delivery_note'             => $r->delivery_note,
+            'fdn_lat'                       => $r->lat,
+            'fdn_long'                      => $r->long,
+            'fdn_kerani_kirim_employee_code'=> $r->kerani_kirim_emp_code,
+            'fdn_kerani_kirim_employee_name'=> $r->kerani_kirim_emp_name,
+            'fdn_transporter'               => (int) ($r->transporter ?? 0),
+            'fdn_transporter2'              => (int) ($r->transporter2 ?? 0),
+            'fdn_license_number_vendor'     => $r->license_number_vendor,
+            'fdn_license_number_vendor2'    => $r->license_number_vendor2,
+            'fdn_total_bunches'             => (int) ($r->total_bunches ?? 0),
+            'fdn_total_oph'                 => (int) ($r->total_oph ?? 0),
+            'fdn_total_loose_fruit'         => (int) ($r->total_loose_fruit ?? 0),
+            'fdn_estimate_tonnage'          => (float) ($r->estimate_tonnage ?? 0),
+            'fdn_actual_tonnage'            => (float) ($r->actual_tonnage ?? 0),
+            'fdn_bruto'                     => (float) ($r->bruto ?? 0),
+            'fdn_tarra'                     => (float) ($r->tarra ?? 0),
+            'fdn_write_off'                 => (float) ($r->fdn_write_off ?? 0),
+            'fdn_line_number'               => (int) ($r->fdn_line_number ?? 0),
+            'fdn_is_closed'                 => (int) ($r->is_closed ?? 0),
+            'company_code'                  => $r->company_code ?? '',
+            'fdn_bunches_wet'               => (int) ($r->fdn_bunches_wet ?? 0),
+            'fdn_bunches_ripe'              => (int) ($r->fdn_bunches_ripe ?? 0),
+            'fdn_bunches_overripe'          => (int) ($r->fdn_bunches_overripe ?? 0),
+            'fdn_bunches_underripe'         => (int) ($r->fdn_bunches_underripe ?? 0),
+            'fdn_bunches_unripe'            => (int) ($r->fdn_bunches_unripe ?? 0),
+            'fdn_bunches_rotten'            => (int) ($r->fdn_bunches_rotten ?? 0),
+            'fdn_bunches_long_stalk'        => (int) ($r->fdn_bunches_long_stalk ?? 0),
+            'fdn_bunches_empty'             => (int) ($r->fdn_bunches_empty ?? 0),
+            'fdn_bunches_dirty'             => (int) ($r->fdn_bunches_dirty ?? 0),
+            'fdn_bunches_unfresh'           => (int) ($r->fdn_bunches_unfresh ?? 0),
+            'fdn_bunches_old'               => (int) ($r->fdn_bunches_old ?? 0),
+            'fdn_bunches_pest_damaged_old'  => (int) ($r->fdn_bunches_pest_damaged_old ?? 0),
+            'fdn_bunches_pest_damaged_new'  => (int) ($r->fdn_bunches_pest_damaged_new ?? 0),
+            'fdn_bunches_diseased'          => (int) ($r->fdn_bunches_diseased ?? 0),
+            'fdn_created_date'              => $r->created_at ? Carbon::parse($r->created_at)->toDateString() : null,
+        ];
     }
 
     private function fieldStaffBlock(): array
     {
         $emp = $this->user->user_employee_code;
-        $restan = $this->ophRestanForFieldStaff($emp);
+        $restan = $this->ophRestan(null, null, $emp);
 
         return [
             'T_Workplan_Schema'         => $this->workplanSchema(),
@@ -552,41 +810,6 @@ final class LoginPayload
             ])->all();
     }
 
-    /**
-     * get_oph_restan for field_staff: OPH not yet in a CP detail, non-permanent
-     * restant, not deleted, person_type=1, filtered by the field staff's
-     * division (from m_employee). Returns rows aliased to CI3 contract names.
-     */
-    private function ophRestanForFieldStaff(?string $fieldStaffEmp): array
-    {
-        $division = $fieldStaffEmp
-            ? DB::table('m_employee')->where('employee_code', $fieldStaffEmp)->value('employee_division_code')
-            : null;
-
-        $q = DB::table('t_oph')
-            ->leftJoin('t_cp_detail', 't_cp_detail.oph_id', '=', 't_oph.id')
-            ->join('t_oph_persons', 't_oph_persons.oph_id', '=', 't_oph.id')
-            ->whereNull('t_cp_detail.oph_id')
-            ->where('t_oph.is_restant_permanent', 0)
-            ->where('t_oph.is_deleted', 0)
-            ->where('t_oph_persons.person_type', 1);
-
-        if ($division) {
-            $q->where('t_oph.division_code', $division);
-        }
-
-        return $q->orderBy('t_oph.created_at')
-            ->get([
-                't_oph.*',
-                't_oph_persons.employee_code as cutter_employee_code',
-                't_oph_persons.employee_name as cutter_employee_name',
-                't_oph_persons.percentage as cutter_percentage',
-                DB::raw("to_char(t_oph.created_at, 'DD/MM/YYYY') as oph_created_date"),
-            ])
-            ->map(fn ($r) => $this->mapOphRow($r))
-            ->all();
-    }
-
     /** Map a t_oph row (Laravel columns) to the CI3 mobile OPH contract. */
     private function mapOphRow(object $r): array
     {
@@ -642,8 +865,11 @@ final class LoginPayload
             $row['is_backlog'] = '1';
         }
         unset($row);
-        // Last-day platform OPH merge is added with harvest_clerk (1c). For now
-        // field_staff returns the restan list (backlog-flagged), matching shape.
+
+        $lastDay = $this->lastDayOph(null, $this->estateCode(), true);
+        if (! empty($lastDay['last_day_oph'])) {
+            return array_merge($restan, $lastDay['last_day_oph']);
+        }
         return $restan;
     }
 }
