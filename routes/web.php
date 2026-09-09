@@ -700,6 +700,29 @@ Route::middleware(['auth.check'])->group(function () {
         // TODO Sprint 7+
     });
 
+    // ── Closing SAP ─────────────────────────────────────────────────────────
+    Route::prefix('closing')->name('closing.')->middleware(['roles:company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs,it_staff'])->group(function () {
+        // Helper closure: standard closing routes (index, closing, lock, relock).
+        $closingEntry = function (string $prefix, string $name, string $ctrl) {
+            Route::prefix($prefix)->name($name . '.')->group(function () use ($ctrl) {
+                Route::get('/',        [$ctrl, 'index'])->name('index');
+                Route::post('/close',  [$ctrl, 'closing'])->name('closing');
+                Route::post('/lock',   [$ctrl, 'lock'])->name('lock');
+                Route::post('/relock', [$ctrl, 'relock'])->name('relock');
+            });
+        };
+
+        $closingEntry('attendance',    'attendance',     \App\Http\Controllers\Closing\ClosingAttendanceController::class);
+        $closingEntry('oph',           'oph',            \App\Http\Controllers\Closing\ClosingOphController::class);
+        $closingEntry('workdone',      'workdone',       \App\Http\Controllers\Closing\ClosingWorkdoneController::class);
+        $closingEntry('cp',            'cp',             \App\Http\Controllers\Closing\ClosingCpController::class);
+        $closingEntry('fdn',           'fdn',            \App\Http\Controllers\Closing\ClosingFdnController::class);
+        $closingEntry('overtime',      'overtime',       \App\Http\Controllers\Closing\ClosingOvertimeController::class);
+        $closingEntry('vra',           'vra',            \App\Http\Controllers\Closing\ClosingVraController::class);
+        $closingEntry('coconut-chit',  'coconut_chit',   \App\Http\Controllers\Closing\ClosingCoconutChitController::class);
+        $closingEntry('coconut-fdn',   'coconut_fdn',    \App\Http\Controllers\Closing\ClosingCoconutFdnController::class);
+    });
+
     // ── Audit Trail ────────────────────────────────────────────────────────
     Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
         Route::get('/',          [AuditTrailController::class, 'index'])->name('index');

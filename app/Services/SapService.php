@@ -2,240 +2,180 @@
 
 namespace App\Services;
 
-use App\Models\Global\Company;
 use App\Models\Global\CompanyConfig;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * SAP master-data integration.
+ * SAP Integration Service — replicates CI3 sap_helper.php.
  *
- * Mirrors the CI4 `get_master_data_from_sap()` helper: an HTTP GET carrying a
- * JSON/XML body, HTTP Basic auth, SSL verification off, expecting an XML
- * response with an IT_EXPORT->item list.
+ * Sends transaction payloads to SAP BTP/CPI via HTTP POST with Basic Auth,
+ * parses the XML response, and updates integration_status on each record.
  *
- * Adds a DEV SIMULATION mode: when the company's Estate Settings has no
- * sap_api_url configured, the service generates deterministic dummy rows so the
- * two-step Get → Refresh flow can be exercised end-to-end without a live SAP.
+ * SAP status codes (mirroring CI3):
+ *   -1 = draft (editable)
+ *    0 = locked / queued (closing_is_approved=1, not yet sent)
+ *    2 = success (sent to SAP, REMARK empty)
+ *    3 = lost connection
+ *    4 = failed (sent to SAP, REMARK not empty)
+ *    5 = adjustment (returned from SAP for correction)
  */
 class SapService
 {
-    /**
-     * Resolve country/company context from Estate Settings for the given company.
-     *
-     * EPMS uses company_code as its tenant key. country_code / country_no come
-     * from the country the company belongs to (Estate Settings declares the
-     * country the EPMS instance serves). Defaults: MY / 1.
-     *
-     * @return array{company_code:string,country_code:string,country_no:string,config:?CompanyConfig}
-     */
-    public function context(int $companyId): array
-    {
-        $company = Company::with('country', 'config')->find($companyId);
+    public const STATUS_DRAFT       = -1;
+    public const STATUS_LOCKED      = 0;
+    public const STATUS_SUCCESS     = 2;
+    public const STATUS_LOST_CONN   = 3;
+    public const STATUS_FAILED      = 4;
+    public const STATUS_ADJUSTMENT  = 5;
 
-        return [
-            'company_code' => $company?->company_code ?? '',
-            'country_code' => strtoupper($company?->country?->code ?? 'MY'),
-            'country_no'   => (string) ($company?->country?->prefix ?? '1'),
-            'config'       => $company?->config,
-        ];
+    private string $apiUrl;
+    private string $userId;
+    private string $password;
+
+    public function __construct(?CompanyConfig $config = null)
+    {
+        $this->apiUrl   = $config?->sap_api_url   ?? '';
+        $this->userId   = $config?->sap_user_id   ?? '';
+        $this->password = $config?->sap_password  ?? '';
+    }
+
+    public static function forCompany(int $companyId): self
+    {
+        $cfg = CompanyConfig::where('company_id', $companyId)->first();
+        return new self($cfg);
     }
 
     /**
-     * Fetch master rows from SAP for a given staging URN.
+     * Send a batch of records to SAP and update integration_status.
      *
-     * @param  string  $urn      e.g. 'ZEPMS_EM_ESTATE_OUT'
-     * @param  array   $filters  SAP request filters, e.g. ['BUKRS' => '*', 'LAND1' => 'MY']
-     * @param  array   $context  from context(): company_code / country_code / country_no / config
-     * @param  array   $sampleColumns  SAP field names used to shape simulated rows
-     * @return array{status_code:int,data:array,simulated:bool}
+     * @param  array   $items         Rows already aliased to SAP field names (EMPNR, BUDAT, etc.)
+     * @param  string  $urnHeader     e.g. "urn:ZEPMS_ATTENDANCE_IN"
+     * @param  string  $imCode        e.g. "IM_ATTD"
+     * @param  string  $table         Laravel table to update (e.g. 't_attendance')
+     * @param  string  $pkColumn      PK column name in $table (e.g. 'id')
+     * @param  string  $uniqueIdField SAP response field name that maps back to $pkColumn
+     *                                (e.g. 'UNIQUE_ID'); strip estate prefix if needed
+     * @param  bool    $stripEstatePrefix CI3 strips estate_code prefix for attd/overtime UNIQUE_ID
+     * @return array{sent:int,success:int,failed:int,error:?string}
      */
-    public function fetchMasterData(string $urn, array $filters, array $context, array $sampleColumns): array
-    {
-        $config = $context['config'] ?? null;
-        $apiUrl = $config?->sap_api_url;
-
-        // ── DEV simulation: no SAP endpoint configured ──────────────────────
-        if (empty($apiUrl)) {
-            return [
-                'status_code' => 200,
-                'data'        => $this->simulateRows($context, $sampleColumns),
-                'simulated'   => true,
-            ];
+    public function send(
+        array  $items,
+        string $urnHeader,
+        string $imCode,
+        string $table,
+        string $pkColumn      = 'id',
+        string $uniqueIdField = 'UNIQUE_ID',
+        bool   $stripEstatePrefix = false
+    ): array {
+        if (empty($items)) {
+            return ['sent' => 0, 'success' => 0, 'failed' => 0, 'error' => null];
+        }
+        if (empty($this->apiUrl)) {
+            return ['sent' => 0, 'success' => 0, 'failed' => 0, 'error' => 'SAP API URL not configured.'];
         }
 
-        // ── Real SAP call ───────────────────────────────────────────────────
-        try {
-            $body = json_encode(['urn:' . $urn => $filters]);
+        $requestBody = [$urnHeader => [$imCode => ['item' => $items]]];
+        $body        = json_encode($requestBody);
 
-            $ch = curl_init($apiUrl);
+        try {
+            $ch = curl_init($this->apiUrl);
             curl_setopt_array($ch, [
                 CURLOPT_POSTFIELDS     => $body,
-                CURLOPT_USERPWD        => $config->sap_user_id . ':' . $config->sap_password,
-                CURLOPT_HTTPHEADER     => ['Content-Type:application/xml'],
+                CURLOPT_USERPWD        => $this->userId . ':' . $this->password,
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/xml'],
                 CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CUSTOMREQUEST  => 'GET',
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
-                CURLOPT_CUSTOMREQUEST  => 'GET',
-                CURLOPT_TIMEOUT        => 120,
+                CURLOPT_TIMEOUT        => 60,
             ]);
             $result   = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlErr  = curl_error($ch);
             curl_close($ch);
-
-            if ($httpCode !== 200 || $result === false) {
-                Log::warning('SAP fetch failed', ['urn' => $urn, 'http' => $httpCode, 'err' => $curlErr]);
-                return ['status_code' => $httpCode ?: 500, 'data' => [], 'simulated' => false];
-            }
-
-            return [
-                'status_code' => 200,
-                'data'        => $this->parseXml($result),
-                'simulated'   => false,
-            ];
         } catch (\Throwable $e) {
-            Log::error('SAP fetch exception', ['urn' => $urn, 'msg' => $e->getMessage()]);
-            return ['status_code' => 500, 'data' => [], 'simulated' => false];
+            Log::error('SAP send curl error: ' . $e->getMessage());
+            // Mark all as lost connection
+            DB::table($table)->whereIn($pkColumn, array_column($items, $uniqueIdField))
+                ->update(['integration_status' => self::STATUS_LOST_CONN]);
+            return ['sent' => count($items), 'success' => 0, 'failed' => 0, 'error' => $e->getMessage()];
         }
-    }
 
-    /** Parse SAP XML into a list of associative rows (IT_EXPORT->item). */
-    private function parseXml(string $xml): array
-    {
+        if ($httpCode !== 200 || $curlErr) {
+            Log::error("SAP HTTP {$httpCode}: " . $curlErr);
+            DB::table($table)->whereIn($pkColumn, array_column($items, $uniqueIdField))
+                ->update(['integration_status' => self::STATUS_LOST_CONN]);
+            return ['sent' => count($items), 'success' => 0, 'failed' => 0, 'error' => "HTTP {$httpCode}: {$curlErr}"];
+        }
+
+        // Parse XML response
         try {
-            $doc = new \SimpleXMLElement($xml);
+            $xml     = new \SimpleXMLElement($result);
+            $exported = $xml->EX_EXPORT->item ?? [];
         } catch (\Throwable $e) {
-            Log::warning('SAP XML parse failed', ['msg' => $e->getMessage()]);
-            return [];
+            Log::error('SAP XML parse error: ' . $e->getMessage() . ' | body: ' . substr($result, 0, 500));
+            return ['sent' => count($items), 'success' => 0, 'failed' => 0, 'error' => 'XML parse error: ' . $e->getMessage()];
         }
 
-        $rows = [];
-        if (isset($doc->IT_EXPORT->item)) {
-            foreach ($doc->IT_EXPORT->item as $item) {
-                $rows[] = array_map(fn ($v) => trim((string) $v), (array) $item);
+        $success = 0;
+        $failed  = 0;
+
+        foreach ($exported as $item) {
+            $item    = (array) $item;
+            $rawId   = (string) ($item[$uniqueIdField] ?? '');
+            $remark  = (string) ($item['REMARK'] ?? '');
+
+            if ($rawId === '') continue;
+
+            // CI3 strips estate prefix for attendance/overtime UNIQUE_ID
+            $dbId = $stripEstatePrefix ? substr($rawId, 2) : $rawId;
+
+            if ($remark === '') {
+                DB::table($table)->where($pkColumn, $dbId)->update([
+                    'integration_status' => self::STATUS_SUCCESS,
+                    'remark'             => null,
+                ]);
+                $success++;
+            } else {
+                DB::table($table)->where($pkColumn, $dbId)->update([
+                    'integration_status' => self::STATUS_FAILED,
+                    'remark'             => $remark,
+                ]);
+                $failed++;
             }
         }
-        return $rows;
+
+        return ['sent' => count($items), 'success' => $success, 'failed' => $failed, 'error' => null];
     }
 
     /**
-     * Generate deterministic dummy SAP rows for dev. Each row includes exactly
-     * the requested SAP field columns, populated with recognisable sample data.
+     * Lock records (set integration_status = 0 = queued/locked).
+     * CI3 "lock" = mark as ready to send but not yet sent.
      */
-    private function simulateRows(array $context, array $sampleColumns): array
+    public function lock(string $table, string $pkColumn, array $ids, ?string $requestId = null): void
     {
-        $company = $context['company_code'] ?: '1TEST';
-        $rows    = [];
-
-        for ($i = 1; $i <= 3; $i++) {
-            $row = [];
-            foreach ($sampleColumns as $col) {
-                $row[$col] = $this->sampleValue($col, $company, $i);
-            }
-            $rows[] = $row;
+        $update = ['integration_status' => self::STATUS_LOCKED];
+        if ($requestId !== null) {
+            $update['request_id'] = $requestId;
         }
-        return $rows;
+        DB::table($table)->whereIn($pkColumn, $ids)->update($update);
     }
 
-    /** Produce a plausible value for a given SAP field. */
-    private function sampleValue(string $col, string $company, int $i): string
+    /**
+     * Relock (reopen) adjustment records (status 5 → 0) for re-submission.
+     */
+    public function relock(string $table, string $pkColumn, array $ids): void
     {
-        return match ($col) {
-            'BUKRS' => $company,
-            'ESTNR' => 'EST' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
-            'DIVNR' => 'D' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
-            'SPART' => 'D' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
-            'BLOCK' => 'B' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-            'NAME1' => 'SAMPLE ESTATE ' . $i,
-            'VTEXT' => 'SAMPLE DIVISION ' . $i,
-            'BNAME' => 'SAMPLE BLOCK ' . $i,
-            'WERKS' => 'P' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-            'BSTATE' => 'MATURE',
-            'BHA'    => (string) (10 + $i),
-            'POINT'  => (string) (100 + $i),
-            'PLBLK'  => '1',
-            'CROP_TYPE' => 'PALM',
-            'KDATB'  => '2020.01.01',
-            'KDATE'  => '2099.12.31',
-            'EMPNR'  => 'EMP' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-            'ENAME'  => 'SAMPLE EMPLOYEE ' . $i,
-            'PRFNR'  => 'PRF01',
-            'JBCDE'  => 'HARV',
-            'JBTYP'  => 'FIELD',
-            'SEX'    => $i % 2 === 0 ? 'F' : 'M',
-            'STATS'  => 'ACTIVE',
-            'WOPXD'  => '2099.12.31',
-            'DEPNR'  => 'FIELD',
-            // Activity
-            'ACTVT_NO'    => 'ACT' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-            'ACTVT_NAME'  => 'SAMPLE ACTIVITY ' . $i,
-            'AMEIN'       => 'Hectare',
-            'AMEIN2'      => 'HA',
-            'BLOCK'       => 'X',
-            'COST_CENTER' => '',
-            'AUC'         => '',
-            'ORDER_NUMBER'=> '',
-            'BLOCK_LC'    => '',
-            'BLOCK_IMMATURE' => '',
-            'BLOCK_SCOUT' => '',
-            'BLOCK_MATURE'=> 'X',
-            'WRK_GRP'     => 'GRP' . $i,
-            'DTWBS'       => '',
-            // Vendor
-            'LIFNR'  => 'VEND' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-            // Material
-            'MATNR'  => 'MAT' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-            'MAKTX'  => 'SAMPLE MATERIAL ' . $i,
-            'MEINS'  => 'KG',
-            'MTART'  => 'ZFER',
-            'MATKL'  => 'GRP' . $i,
-            'LGORT'  => 'SL01',
-            'CHARG'  => '',
-            // Worktype
-            'AUART'  => 'WT' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
-            'BEZEI'  => 'SAMPLE WORKTYPE ' . $i,
-            // Work Center
-            'ARBPL'  => 'WC' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-            'KTEXT'  => 'SAMPLE WORK CENTER ' . $i,
-            // Cost Center
-            'KOSTL'  => 'CC' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-            'LTEXT'  => 'SAMPLE COST CENTER ' . $i,
-            'GSBER'  => 'BA0' . $i,
-            'DATAB'  => '2020.01.01',
-            'DATBI'  => '2099.12.31',
-            // Sales Order
-            'VBELN'  => 'SO' . str_pad((string) $i, 6, '0', STR_PAD_LEFT),
-            'POSNR'  => str_pad((string) ($i * 10), 4, '0', STR_PAD_LEFT),
-            'BSTNK'  => 'REF' . $i,
-            'KUNNR'  => 'CUST' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-            'KWMENG' => (string) ($i * 100),
-            'VRKME'  => 'KG',
-            'ZTERM'  => 'NT30',
-            'ABGRU'  => '',
-            'ARKTX'  => 'SAMPLE SO ITEM ' . $i,
-            'TYPE'   => 'ZOR',
-            'ERDAT'  => '2024.01.0' . $i,
-            'ERNAM'  => 'SAPUSER',
-            'AUDAT'  => '2024.01.0' . $i,
-            // Purchase Order
-            'EBELN'  => 'PO' . str_pad((string) $i, 6, '0', STR_PAD_LEFT),
-            'BSART'  => 'NB',
-            'BEDAT'  => '2024.02.0' . $i,
-            'EKORG'  => 'ORG1',
-            'EKGRP'  => 'G0' . $i,
-            'EBELP'  => str_pad((string) ($i * 10), 5, '0', STR_PAD_LEFT),
-            'TXZ01'  => 'SAMPLE PO MATERIAL ' . $i,
-            'MENGE'  => (string) ($i * 50),
-            'WAERS'  => 'MYR',
-            'NETPR'  => (string) ($i * 12.5),
-            'PEINH'  => '1',
-            'BPRME'  => 'KG',
-            'NETWR'  => (string) ($i * 625),
-            // Maintenance Order
-            'AUFNR'  => 'MO' . str_pad((string) $i, 6, '0', STR_PAD_LEFT),
-            'KTEXT'  => 'SAMPLE MAINT ORDER ' . $i,
-            'AUART'  => 'PM01',
-            default  => 'VAL' . $i,
-        };
+        DB::table($table)->whereIn($pkColumn, $ids)->update([
+            'integration_status' => self::STATUS_LOCKED,
+            'adjustment_status'  => 2,
+        ]);
+    }
+
+    /** Generate a request_id (same pattern as CI3). */
+    public static function requestId(int $userId): string
+    {
+        return now()->format('YmdHis') . $userId;
     }
 }

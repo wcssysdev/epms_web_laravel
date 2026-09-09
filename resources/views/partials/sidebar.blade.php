@@ -444,6 +444,39 @@
                         </li>
                         @endif
 
+                        {{-- ── Closing SAP ───────────────────────────────── --}}
+                        @if(in_array($roleCode, ['company_admin','admin','estate_manager','asst_manager','estate_staff','staff','pc','cs','it_staff']))
+                        <li x-data="{ closingSapOpen: {{ str_starts_with($route,'closing.') ? 'true':'false' }} }">
+                            <button @click="closingSapOpen = !closingSapOpen" :aria-expanded="closingSapOpen.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                                <span>Closing SAP</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="closingSapOpen ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="closingSapOpen" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('closing.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
+                                <li><a href="{{ route('closing.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.workdone') ? 'font-semibold text-primary' : '' }}">Work Completion</a></li>
+                                @if($isPalm)
+                                <li><a href="{{ route('closing.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.oph') ? 'font-semibold text-primary' : '' }}">OPH (Palm)</a></li>
+                                <li><a href="{{ route('closing.cp.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.cp') ? 'font-semibold text-primary' : '' }}">Checkpoint (CP)</a></li>
+                                <li><a href="{{ route('closing.fdn.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.fdn') ? 'font-semibold text-primary' : '' }}">FDN (Palm)</a></li>
+                                @endif
+                                <li><a href="{{ route('closing.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.overtime') ? 'font-semibold text-primary' : '' }}">Work Overtime</a></li>
+                                <li><a href="{{ route('closing.vra.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.vra') ? 'font-semibold text-primary' : '' }}">VRA</a></li>
+                                @if($isCoconut)
+                                <li><a href="{{ route('closing.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_chit') ? 'font-semibold text-primary' : '' }}">Coconut HC</a></li>
+                                <li><a href="{{ route('closing.coconut_fdn.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_fdn') ? 'font-semibold text-primary' : '' }}">FDN (Coconut)</a></li>
+                                @endif
+                            </ul>
+                        </li>
+                        @endif
+
                         {{-- Activity Log --}}
                         <li>
                             <a href="{{ route('admin.audit.index') }}" class="sidebar-item {{ $route === 'admin.audit.index' ? 'active' : '' }}">
