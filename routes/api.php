@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1_1\PingController;
 use App\Http\Controllers\Api\V1_1\AuthController;
 use App\Http\Controllers\Api\V1_1\InController;
+use App\Http\Controllers\Api\V1_1\GoodsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,9 @@ Route::prefix('v1_1')->group(function () {
 
         // Upload/sync (CI3 In::upload_post -> POST v1_1/in/upload).
         Route::post('in/upload', [InController::class, 'upload']);
+
+        // Goods master data for warehouse/store clerk (CI3 Goods::master_post).
+        Route::post('goods/master', [GoodsController::class, 'master']);
     });
 
 });
