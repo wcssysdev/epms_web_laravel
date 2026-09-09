@@ -729,6 +729,21 @@ Route::middleware(['auth.check'])->group(function () {
         });
     });
 
+    // ── SAP Closing Approval (Estate Manager) ───────────────────────────────
+    Route::prefix('sap-approval')->name('sap-approval.')->middleware(['roles:estate_manager,admin,company_admin'])->group(function () {
+        $approvalEntry = function (string $prefix, string $name, string $ctrl) {
+            Route::prefix($prefix)->name($name . '.')->group(function () use ($ctrl) {
+                Route::get('/',             [$ctrl, 'index'])->name('index');
+                Route::post('/save-approval', [$ctrl, 'saveApproval'])->name('save-approval');
+            });
+        };
+
+        $approvalEntry('attendance', 'attendance', \App\Http\Controllers\SapApproval\SapApprovalAttendanceController::class);
+        $approvalEntry('workdone',   'workdone',   \App\Http\Controllers\SapApproval\SapApprovalWorkdoneController::class);
+        $approvalEntry('oph',        'oph',        \App\Http\Controllers\SapApproval\SapApprovalOphController::class);
+        $approvalEntry('overtime',   'overtime',   \App\Http\Controllers\SapApproval\SapApprovalOvertimeController::class);
+    });
+
     // ── Audit Trail ────────────────────────────────────────────────────────
     Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
         Route::get('/',          [AuditTrailController::class, 'index'])->name('index');
