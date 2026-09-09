@@ -721,6 +721,12 @@ Route::middleware(['auth.check'])->group(function () {
         $closingEntry('vra',           'vra',            \App\Http\Controllers\Closing\ClosingVraController::class);
         $closingEntry('coconut-chit',  'coconut_chit',   \App\Http\Controllers\Closing\ClosingCoconutChitController::class);
         $closingEntry('coconut-fdn',   'coconut_fdn',    \App\Http\Controllers\Closing\ClosingCoconutFdnController::class);
+
+        // Adjustment log (read-only)
+        Route::prefix('adjustment')->name('adjustment.')->group(function () {
+            Route::get('/',          [\App\Http\Controllers\Closing\AdjustmentController::class, 'index'])->name('index');
+            Route::get('/datatable', [\App\Http\Controllers\Closing\AdjustmentController::class, 'getDatatable'])->name('datatable');
+        });
     });
 
     // ── Audit Trail ────────────────────────────────────────────────────────

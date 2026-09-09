@@ -473,6 +473,9 @@
                                 <li><a href="{{ route('closing.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_chit') ? 'font-semibold text-primary' : '' }}">Coconut HC</a></li>
                                 <li><a href="{{ route('closing.coconut_fdn.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_fdn') ? 'font-semibold text-primary' : '' }}">FDN (Coconut)</a></li>
                                 @endif
+                                <li class="pt-1 mt-1 border-t" style="border-color:var(--epms-border);">
+                                    <a href="{{ route('closing.adjustment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.adjustment') ? 'font-semibold text-primary' : '' }}">Adjustment Log</a>
+                                </li>
                             </ul>
                         </li>
                         @endif

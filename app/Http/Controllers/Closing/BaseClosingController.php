@@ -39,6 +39,9 @@ abstract class BaseClosingController extends BaseController
     abstract protected function viewPrefix(): string;
     abstract protected function title(): string;
 
+    /** Label for t_adjustment.adjustment_type. Defaults to title(). */
+    protected function adjustmentType(): string { return $this->title(); }
+
     /**
      * Build SAP item rows from raw DB rows. Each row must include UNIQUE_ID.
      * Subclasses override this to alias columns to SAP field names.
@@ -146,6 +149,16 @@ abstract class BaseClosingController extends BaseController
         if (empty($ids)) return back()->with('error', 'No records selected.');
 
         SapService::forCompany($this->companyId())->relock($this->table(), $this->pkColumn(), $ids);
+
+        // Audit log to t_adjustment (mirrors CI3 closing controllers)
+        SapService::forCompany($this->companyId())->logAdjustment(
+            $ids,
+            $this->adjustmentType(),
+            $this->userName(),
+            $this->companyId(),
+            $request->input('note', 'Adjustment / Reopen'),
+            $date
+        );
 
         return redirect()->route($this->routePrefix() . '.index', ['date' => $date])
             ->with('success', count($ids) . ' record(s) relocked for resubmission.');

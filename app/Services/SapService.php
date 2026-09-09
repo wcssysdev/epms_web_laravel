@@ -178,4 +178,37 @@ class SapService
     {
         return now()->format('YmdHis') . $userId;
     }
+
+    /**
+     * Log an adjustment action to t_adjustment (mirrors CI3 closing controllers).
+     * Called after relock() for audit trail.
+     */
+    public function logAdjustment(
+        array   $ids,
+        string  $adjustmentType,
+        string  $adjustedBy,
+        ?int    $companyId = null,
+        string  $note      = 'Adjustment / Reopen',
+        ?string $transactionDate = null
+    ): void {
+        $rows = [];
+        foreach ($ids as $id) {
+            $rows[] = [
+                'company_id'       => $companyId,
+                'global_id'        => (string) $id,
+                'note'             => $note,
+                'date'             => now()->toDateString(),
+                'time'             => now()->format('H:i:s'),
+                'employee'         => null,
+                'adjustment_type'  => $adjustmentType,
+                'transaction_date' => $transactionDate ?? now()->toDateString(),
+                'ajust_by'         => $adjustedBy,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ];
+        }
+        if (! empty($rows)) {
+            DB::table('t_adjustment')->insert($rows);
+        }
+    }
 }
