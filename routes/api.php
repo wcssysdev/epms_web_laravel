@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\V1_1\PingController;
 use App\Http\Controllers\Api\V1_1\AuthController;
 use App\Http\Controllers\Api\V1_1\InController;
 use App\Http\Controllers\Api\V1_1\GoodsController;
+use App\Http\Controllers\Api\V1_1\RampController;
+use App\Http\Controllers\Api\V1_1\ExternalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +40,13 @@ Route::prefix('v1_1')->group(function () {
 
         // Goods master data for warehouse/store clerk (CI3 Goods::master_post).
         Route::post('goods/master', [GoodsController::class, 'master']);
+
+        // Ramp (CI3 Ramp::get_cp_oph_post + get_cp_non_fdn_post).
+        Route::post('ramp/get-cp-oph',     [RampController::class, 'getCpOph']);
+        Route::post('ramp/get-cp-non-fdn', [RampController::class, 'getCpNonFdn']);
     });
+
+    // External — no token auth (CI3 External::spb_actual_tonnage_get).
+    Route::get('external/spb-actual-tonnage', [ExternalController::class, 'spbActualTonnage']);
 
 });
