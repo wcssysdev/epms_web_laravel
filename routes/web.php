@@ -81,6 +81,9 @@ use App\Http\Controllers\Transaction\AttendanceEntryController;
 use App\Http\Controllers\Transaction\WorkdoneEntryController;
 use App\Http\Controllers\Transaction\HarvesterAssignmentController;
 use App\Http\Controllers\Transaction\GeneralWorkerAssignmentController;
+use App\Http\Controllers\Transaction\OvertimeEntryController;
+use App\Http\Controllers\Transaction\VraEntryController;
+use App\Http\Controllers\Transaction\PlatformCheckingController;
 use App\Http\Controllers\Transaction\OphEntryController;
 use App\Http\Controllers\Transaction\OphMillGraderController;
 use App\Http\Controllers\Transaction\Checkpoint1Controller;
@@ -560,6 +563,25 @@ Route::middleware(['auth.check'])->group(function () {
             $txEntry('workdone',                   'workdone',                   WorkdoneEntryController::class);
             $txEntry('harvester-assignment',       'harvester_assignment',       HarvesterAssignmentController::class);
             $txEntry('general-worker-assignment',  'general_worker_assignment',  GeneralWorkerAssignmentController::class);
+            $txEntry('overtime',                   'overtime',                   OvertimeEntryController::class);
+            // Overtime AJAX
+            Route::get('overtime/activity-details', [OvertimeEntryController::class, 'activityDetails'])->name('transactions.overtime.activity-details');
+
+            $txEntry('vra',                        'vra',                        VraEntryController::class);
+            // VRA AJAX — defined outside txEntry to get correct names
+            Route::get('vra/meas-points',  [VraEntryController::class, 'measPoints'])->name('transactions.vra.meas-points');
+            Route::get('vra/by-type',      [VraEntryController::class, 'vraByType'])->name('transactions.vra.by-type');
+
+            // Platform Checking — master-detail (header + detail items)
+            Route::prefix('platform-checking')->name('platform_checking.')->group(function () {
+                Route::get('/',          [PlatformCheckingController::class, 'index'])->name('index');
+                Route::get('/datatable', [PlatformCheckingController::class, 'getDatatable'])->name('datatable');
+                Route::get('/create',    [PlatformCheckingController::class, 'create'])->name('create');
+                Route::post('/',         [PlatformCheckingController::class, 'store'])->name('store');
+                Route::get('/{id}/edit', [PlatformCheckingController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [PlatformCheckingController::class, 'update'])->name('update');
+                Route::delete('/{id}',   [PlatformCheckingController::class, 'destroy'])->name('destroy');
+            });
             // OPH — CRUD + CSV import (flat). CSV static routes before {id}.
             Route::prefix('oph')->name('oph.')->group(function () {
                 Route::get('/',                    [OphEntryController::class, 'index'])->name('index');

@@ -330,6 +330,9 @@
                                 <li><a href="{{ route('transactions.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
                                 <li><a href="{{ route('transactions.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.workdone') ? 'font-semibold text-primary' : '' }}">Work Completion</a></li>
                                 <li><a href="{{ route('transactions.general_worker_assignment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.general_worker_assignment') ? 'font-semibold text-primary' : '' }}">General Worker Assignment</a></li>
+                                <li><a href="{{ route('transactions.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.overtime') ? 'font-semibold text-primary' : '' }}">Work Overtime</a></li>
+                                <li><a href="{{ route('transactions.vra.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.vra') ? 'font-semibold text-primary' : '' }}">VRA (Equipment Activity)</a></li>
+                                <li><a href="{{ route('transactions.platform_checking.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.platform_checking') ? 'font-semibold text-primary' : '' }}">Platform Checking</a></li>
                                 @if($isPalm)
                                 <li><a href="{{ route('transactions.harvester_assignment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.harvester_assignment') ? 'font-semibold text-primary' : '' }}">Harvester Assignment</a></li>
                                 <li><a href="{{ route('transactions.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.oph.') ? 'font-semibold text-primary' : '' }}">OPH (Palm)</a></li>
