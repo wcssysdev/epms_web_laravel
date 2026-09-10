@@ -205,7 +205,23 @@ Route::middleware(['auth.check'])->group(function () {
             // GR-R Report
             Route::get('/gr-r',        [\App\Http\Controllers\Reporting\Transaction\GrRReportController::class, 'index'])->name('gr-r.index');
             Route::get('/gr-r/export', [\App\Http\Controllers\Reporting\Transaction\GrRReportController::class, 'export'])->name('gr-r.export');
+            
+            // VRA Report
+            Route::get('/vra',        [\App\Http\Controllers\Reporting\Transaction\VraReportController::class, 'index'])->name('vra.index');
+            Route::get('/vra/export', [\App\Http\Controllers\Reporting\Transaction\VraReportController::class, 'export'])->name('vra.export');
         });
+        
+        // Harvester Report
+        Route::get('/harvester',        [\App\Http\Controllers\Reporting\HarvesterReportController::class, 'index'])->name('harvester.index');
+        Route::get('/harvester/export', [\App\Http\Controllers\Reporting\HarvesterReportController::class, 'export'])->name('harvester.export');
+        
+        // Task Harvester Report
+        Route::get('/task-harvester',        [\App\Http\Controllers\Reporting\TaskHarvesterReportController::class, 'index'])->name('task-harvester.index');
+        Route::get('/task-harvester/export', [\App\Http\Controllers\Reporting\TaskHarvesterReportController::class, 'export'])->name('task-harvester.export');
+        
+        // Loader Report
+        Route::get('/loader',        [\App\Http\Controllers\Reporting\LoaderReportController::class, 'index'])->name('loader.index');
+        Route::get('/loader/export', [\App\Http\Controllers\Reporting\LoaderReportController::class, 'export'])->name('loader.export');
         
         // Muster Chit Report
         Route::get('/muster-chit',        [\App\Http\Controllers\Reporting\MusterChitController::class, 'index'])->name('muster-chit.index');
