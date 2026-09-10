@@ -209,6 +209,22 @@ Route::middleware(['auth.check'])->group(function () {
             // VRA Report
             Route::get('/vra',        [\App\Http\Controllers\Reporting\Transaction\VraReportController::class, 'index'])->name('vra.index');
             Route::get('/vra/export', [\App\Http\Controllers\Reporting\Transaction\VraReportController::class, 'export'])->name('vra.export');
+            
+            // Backlog Report
+            Route::get('/backlog',        [\App\Http\Controllers\Reporting\Transaction\BacklogReportController::class, 'index'])->name('backlog.index');
+            Route::get('/backlog/export', [\App\Http\Controllers\Reporting\Transaction\BacklogReportController::class, 'export'])->name('backlog.export');
+            
+            // Backlog Coconut Report
+            Route::get('/backlog-coconut',        [\App\Http\Controllers\Reporting\Transaction\BacklogCoconutReportController::class, 'index'])->name('backlog-coconut.index');
+            Route::get('/backlog-coconut/export', [\App\Http\Controllers\Reporting\Transaction\BacklogCoconutReportController::class, 'export'])->name('backlog-coconut.export');
+            
+            // General Allocation Report
+            Route::get('/general-allocation',        [\App\Http\Controllers\Reporting\Transaction\GeneralAllocationReportController::class, 'index'])->name('general-allocation.index');
+            Route::get('/general-allocation/export', [\App\Http\Controllers\Reporting\Transaction\GeneralAllocationReportController::class, 'export'])->name('general-allocation.export');
+            
+            // Panen Allocation Report
+            Route::get('/panen-allocation',        [\App\Http\Controllers\Reporting\Transaction\PanenAllocationReportController::class, 'index'])->name('panen-allocation.index');
+            Route::get('/panen-allocation/export', [\App\Http\Controllers\Reporting\Transaction\PanenAllocationReportController::class, 'export'])->name('panen-allocation.export');
         });
         
         // Harvester Report
