@@ -169,6 +169,18 @@ Route::middleware(['auth.check'])->group(function () {
             // Coconut Chit Report
             Route::get('/coconut-chit',        [\App\Http\Controllers\Reporting\Transaction\CoconutChitReportController::class, 'index'])->name('coconut-chit.index');
             Route::get('/coconut-chit/export', [\App\Http\Controllers\Reporting\Transaction\CoconutChitReportController::class, 'export'])->name('coconut-chit.export');
+            
+            // Daily OPH Report
+            Route::get('/daily-oph',        [\App\Http\Controllers\Reporting\Transaction\DailyOphReportController::class, 'index'])->name('daily-oph.index');
+            Route::get('/daily-oph/export', [\App\Http\Controllers\Reporting\Transaction\DailyOphReportController::class, 'export'])->name('daily-oph.export');
+            
+            // OPH by Division Report
+            Route::get('/oph-by-division',        [\App\Http\Controllers\Reporting\Transaction\OphByDivisionReportController::class, 'index'])->name('oph-by-division.index');
+            Route::get('/oph-by-division/export', [\App\Http\Controllers\Reporting\Transaction\OphByDivisionReportController::class, 'export'])->name('oph-by-division.export');
+            
+            // Summary Attendance Report
+            Route::get('/summary-attendance',        [\App\Http\Controllers\Reporting\Transaction\SummaryAttendanceReportController::class, 'index'])->name('summary-attendance.index');
+            Route::get('/summary-attendance/export', [\App\Http\Controllers\Reporting\Transaction\SummaryAttendanceReportController::class, 'export'])->name('summary-attendance.export');
         });
         
         // Muster Chit Report
