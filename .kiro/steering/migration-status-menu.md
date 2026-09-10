@@ -36,8 +36,8 @@ Menu CI3 yang diakses Estate Staff:
 | **VRA** | ✅ | `/transactions/vra` |
 | **Platform Checking** | ✅ | `/transactions/platform-checking` |
 | **Harvesting Chit Coconut** | ❌ | `/transactions/coconut-harvesting-chit` — tabel ADA (t_coconut_oph) |
-| CP Coconut | ❌ | Tabel tidak ada di CI3 (digabung ke t_checkpoint?) |
-| Grading Coconut | ❌ | Tidak ada tabel t_coconut_grading di CI3 |
+| **CP Coconut** | ❌ | `/transactions/cp-coconut` — tabel ADA (t_checkpoint) |
+| **Grading Coconut** | ❌ | Pakai `t_coconut_oph` (kolom grading_code, grading_weight) |
 | **FDN Coconut** | ❌ | `/transactions/coconut-fdn` — tabel ADA (t_coconut_fdn) |
 
 ### Closing SAP (Estate Staff)
@@ -228,14 +228,10 @@ IT Staff memiliki akses ke:
 7. **Assignment** — General Worker, Harvester (2 screens)
 8. **OPH Mill Grader** (1 screen)
 
-**Total:** ~65 screens not migrated
+**Total:** ~66 screens not migrated
 
-### 🔴 Out of Scope (Tabel Tidak Ada di CI3)
-- CP Coconut (tidak ada tabel `t_coconut_cp` di CI3 — mungkin digabung ke `t_checkpoint`?)
-- Grading Coconut (tidak ada tabel `t_coconut_grading` di CI3)
-- `m_durian_prunning_manuring` (ada di CI3 tapi tidak ada controller/menu)
-
-**Total:** ~3 items mungkin out of scope
+### 🔴 Out of Scope
+- (none — semua tabel sudah ada atau di-migrate)
 
 ---
 
@@ -261,6 +257,7 @@ IT Staff memiliki akses ke:
 - Mobile API sudah complete (v1_1 BATCH 1-4) ✅
 - SAP integration framework sudah ada (SapService) ✅
 - Role-based access control sudah bekerja ✅
-- **Coconut & Durian tabel ADA di Laravel DB** — perlu dimigrasi (sebelumnya dikira out of scope)
-- Coconut: 9 tabel (t_coconut_oph, t_coconut_fdn, t_coconut_harvesting_plan, dll)
+- **Semua tabel Coconut & Durian sudah ada** di Laravel DB
+- Coconut: 9 tabel (t_coconut_oph, t_coconut_fdn, t_coconut_harvesting_plan, **t_checkpoint**, dll)
 - Durian: 8 tabel master (m_durian_variety, m_durian_grading, m_durian_activity, dll)
+- **t_checkpoint** baru di-migrate (2026-09-09) — untuk CP Coconut
