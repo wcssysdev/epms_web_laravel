@@ -1,0 +1,30 @@
+@extends('layouts.app')
+@section('title', 'GI-R Report')
+@section('content')
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header"><h5 class="mb-0">Goods Issue Reversal (GI-R) Report</h5></div>
+        <div class="card-body">
+            <form id="filter-form" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3"><label>From Date</label><input type="date" name="from" id="from" class="form-control" value="{{ $from }}"></div>
+                    <div class="col-md-3"><label>To Date</label><input type="date" name="to" id="to" class="form-control" value="{{ $to }}"></div>
+                    <div class="col-md-3"><label>Division</label><select name="division" id="division" class="form-control"><option value="ALL">All</option>@foreach($divisions as $div)<option value="{{ $div->division_code }}">{{ $div->division_name }}</option>@endforeach</select></div>
+                    <div class="col-md-3"><label>Work Type</label><select name="worktype" id="worktype" class="form-control"><option value="ALL">All</option>@foreach($worktypes as $w)<option value="{{ $w->worktype_code }}">{{ $w->worktype_name }}</option>@endforeach</select></div>
+                </div>
+                <div class="row mt-2"><div class="col-md-12"><button type="button" id="btn-filter" class="btn btn-primary">Filter</button><a href="{{ route('reporting.transaction.gi-r.export') }}" id="btn-export" class="btn btn-success">Export CSV</a></div></div>
+            </form>
+            <div class="table-responsive"><table id="gir-table" class="table table-bordered table-sm"><thead><tr><th>No</th><th>Date</th><th>Division</th><th>MVT</th><th>Block</th><th>Work Type</th><th>Material</th><th>Mat Doc</th><th>Qty</th><th>UOM</th></tr></thead></table></div>
+        </div>
+    </div>
+</div>
+@push('scripts')
+<script>
+$(function() {
+    let table = $('#gir-table').DataTable({processing: true, serverSide: true, ajax: {url: "{{ route('reporting.transaction.gi-r.index') }}", data: d => ({...d, from: $('#from').val(), to: $('#to').val(), division: $('#division').val(), worktype: $('#worktype').val()})}, columns: [{data: 'DT_RowIndex', orderable: false, searchable: false},{data: 'posting_date'},{data: 'gi_r_division_code'},{data: 'gi_r_mvt'},{data: 'gi_r_block'},{data: 'worktype_name'},{data: 'gi_r_material'},{data: 'gi_r_mat_doc'},{data: 'gi_r_quantity'},{data: 'gi_r_uom'}], pageLength: 25});
+    $('#btn-filter').click(() => table.draw());
+    $('#btn-export').click(function(e) {e.preventDefault(); window.location.href = $(this).attr('href') + '?' + $.param({from: $('#from').val(), to: $('#to').val(), division: $('#division').val(), worktype: $('#worktype').val()});});
+});
+</script>
+@endpush
+@endsection

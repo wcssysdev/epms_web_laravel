@@ -189,6 +189,22 @@ Route::middleware(['auth.check'])->group(function () {
             // FDN Coconut Report
             Route::get('/fdn-coconut',        [\App\Http\Controllers\Reporting\Transaction\FdnCoconutReportController::class, 'index'])->name('fdn-coconut.index');
             Route::get('/fdn-coconut/export', [\App\Http\Controllers\Reporting\Transaction\FdnCoconutReportController::class, 'export'])->name('fdn-coconut.export');
+            
+            // CP Report
+            Route::get('/cp',        [\App\Http\Controllers\Reporting\Transaction\CpReportController::class, 'index'])->name('cp.index');
+            Route::get('/cp/export', [\App\Http\Controllers\Reporting\Transaction\CpReportController::class, 'export'])->name('cp.export');
+            
+            // FDN Report
+            Route::get('/fdn',        [\App\Http\Controllers\Reporting\Transaction\FdnReportController::class, 'index'])->name('fdn.index');
+            Route::get('/fdn/export', [\App\Http\Controllers\Reporting\Transaction\FdnReportController::class, 'export'])->name('fdn.export');
+            
+            // GI-R Report
+            Route::get('/gi-r',        [\App\Http\Controllers\Reporting\Transaction\GiRReportController::class, 'index'])->name('gi-r.index');
+            Route::get('/gi-r/export', [\App\Http\Controllers\Reporting\Transaction\GiRReportController::class, 'export'])->name('gi-r.export');
+            
+            // GR-R Report
+            Route::get('/gr-r',        [\App\Http\Controllers\Reporting\Transaction\GrRReportController::class, 'index'])->name('gr-r.index');
+            Route::get('/gr-r/export', [\App\Http\Controllers\Reporting\Transaction\GrRReportController::class, 'export'])->name('gr-r.export');
         });
         
         // Muster Chit Report
