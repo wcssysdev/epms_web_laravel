@@ -133,6 +133,50 @@ Route::middleware(['auth.check'])->group(function () {
          ->get('/dashboard/harvesting', [DashboardHarvestingController::class, 'index'])
          ->name('dashboard.harvesting');
 
+    // ── Reporting routes (roles: estate_manager, asst_manager, estate_staff) ──────
+    Route::middleware(['roles:estate_manager,asst_manager,estate_staff'])->prefix('reporting')->name('reporting.')->group(function () {
+        
+        // Audit Trail
+        Route::prefix('audit-trail')->name('audit-trail.')->group(function () {
+            Route::get('/',                    [\App\Http\Controllers\Reporting\AuditTrailController::class, 'index'])->name('index');
+            Route::get('/export',              [\App\Http\Controllers\Reporting\AuditTrailController::class, 'export'])->name('export');
+            Route::get('/{id}/{type}/detail',  [\App\Http\Controllers\Reporting\AuditTrailController::class, 'detail'])->name('detail');
+        });
+        
+        // Transaction Reports
+        Route::prefix('transaction')->name('transaction.')->group(function () {
+            
+            // Workdone Report
+            Route::get('/workdone',         [\App\Http\Controllers\Reporting\Transaction\WorkdoneReportController::class, 'index'])->name('workdone.index');
+            Route::get('/workdone/export',  [\App\Http\Controllers\Reporting\Transaction\WorkdoneReportController::class, 'export'])->name('workdone.export');
+            
+            // Attendance Report
+            Route::get('/attendance',        [\App\Http\Controllers\Reporting\Transaction\AttendanceReportController::class, 'index'])->name('attendance.index');
+            Route::get('/attendance/export', [\App\Http\Controllers\Reporting\Transaction\AttendanceReportController::class, 'export'])->name('attendance.export');
+            
+            // OPH Report
+            Route::get('/oph',        [\App\Http\Controllers\Reporting\Transaction\OphReportController::class, 'index'])->name('oph.index');
+            Route::get('/oph/export', [\App\Http\Controllers\Reporting\Transaction\OphReportController::class, 'export'])->name('oph.export');
+            
+            // OPH Summary Report
+            Route::get('/oph-summary',        [\App\Http\Controllers\Reporting\Transaction\OphSummaryReportController::class, 'index'])->name('oph-summary.index');
+            Route::get('/oph-summary/export', [\App\Http\Controllers\Reporting\Transaction\OphSummaryReportController::class, 'export'])->name('oph-summary.export');
+            
+            // Overtime Report
+            Route::get('/overtime',        [\App\Http\Controllers\Reporting\Transaction\OvertimeReportController::class, 'index'])->name('overtime.index');
+            Route::get('/overtime/export', [\App\Http\Controllers\Reporting\Transaction\OvertimeReportController::class, 'export'])->name('overtime.export');
+            
+            // Coconut Chit Report
+            Route::get('/coconut-chit',        [\App\Http\Controllers\Reporting\Transaction\CoconutChitReportController::class, 'index'])->name('coconut-chit.index');
+            Route::get('/coconut-chit/export', [\App\Http\Controllers\Reporting\Transaction\CoconutChitReportController::class, 'export'])->name('coconut-chit.export');
+        });
+        
+        // Muster Chit Report
+        Route::get('/muster-chit',        [\App\Http\Controllers\Reporting\MusterChitController::class, 'index'])->name('muster-chit.index');
+        Route::get('/muster-chit/export', [\App\Http\Controllers\Reporting\MusterChitController::class, 'export'])->name('muster-chit.export');
+        
+    });
+
     // ── Admin routes (CI3 role 1 = admin family: super/country/company/estate admin) ──
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
 
