@@ -504,6 +504,56 @@
                         </li>
                         @endif
 
+                        {{-- ── Planning (Estate Manager) ────────────────────── --}}
+                        @if(in_array($roleCode, ['estate_manager','admin','company_admin']))
+                        <li x-data="{ planningOpen: {{ str_starts_with($route,'planning.') ? 'true':'false' }} }">
+                            <button @click="planningOpen = !planningOpen" :aria-expanded="planningOpen.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                                </svg>
+                                <span>Planning</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="planningOpen ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="planningOpen" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('planning.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                                <li><a href="{{ route('planning.harvesting_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.harvesting_plan') && !str_contains($route,'coconut') ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Palm)</a></li>
+                                <li><a href="{{ route('planning.harvesting_plan_coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.harvesting_plan_coconut') ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Coconut)</a></li>
+                                <li><a href="{{ route('planning.gi_plan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'planning.gi_plan') ? 'font-semibold text-primary' : '' }}">GI Plan</a></li>
+                            </ul>
+                        </li>
+                        @endif
+
+                        {{-- ── Approval (Assistant Manager) ─────────────────── --}}
+                        @if(in_array($roleCode, ['asst_manager','admin','company_admin']))
+                        <li x-data="{ approvalOpen: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
+                            <button @click="approvalOpen = !approvalOpen" :aria-expanded="approvalOpen.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                                <span>Approval</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="approvalOpen ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="approvalOpen" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('approval.workplan.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.workplan') ? 'font-semibold text-primary' : '' }}">Workplan</a></li>
+                                <li><a href="{{ route('approval.harvesting_plan.index', ['type' => 'palm']) }}" class="sidebar-subitem {{ str_starts_with($route,'approval.harvesting_plan') && request('type') === 'palm' ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Palm)</a></li>
+                                <li><a href="{{ route('approval.harvesting_plan.index', ['type' => 'coconut']) }}" class="sidebar-subitem {{ str_starts_with($route,'approval.harvesting_plan') && request('type') === 'coconut' ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Coconut)</a></li>
+                                <li><a href="{{ route('approval.unplanned_activity.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.unplanned_activity') ? 'font-semibold text-primary' : '' }}">Unplanned Activity</a></li>
+                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                <li><a href="{{ route('approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
+                            </ul>
+                        </li>
+                        @endif
+
                         {{-- Activity Log --}}
                         <li>
                             <a href="{{ route('admin.audit.index') }}" class="sidebar-item {{ $route === 'admin.audit.index' ? 'active' : '' }}">

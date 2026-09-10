@@ -1,18 +1,18 @@
 @extends('layouts.app')
 @section('title', $title)
 @section('breadcrumb')
-    <li><a href="{{ route('planning.workplan.index', ['date' => $date]) }}" class="hover:text-primary">Planning / Workplan</a></li>
+    <li><a href="{{ route('planning.harvesting_plan_coconut.index', ['date' => $date]) }}" class="hover:text-primary">Planning / Harvesting Plan (Coconut)</a></li>
     <li><span class="font-medium text-primary">Detail</span></li>
 @endsection
 @section('page-title', $title)
-@section('page-subtitle', 'Workplan activities for ' . $division . ' on ' . $date)
+@section('page-subtitle', 'Coconut harvesting plan for ' . $division . ' on ' . $date)
 
 @section('content')
 <div class="rounded-xl border shadow-sm overflow-hidden mb-4"
      style="background:var(--epms-header-bg);border-color:var(--epms-border);">
     <div class="px-5 py-3 border-b flex items-center justify-between" style="border-color:var(--epms-border);">
-        <h3 class="font-semibold">Workplan Activities ({{ count($workplans) }} total)</h3>
-        <a href="{{ route('planning.workplan.index', ['date' => $date]) }}"
+        <h3 class="font-semibold">Coconut Harvesting Plan Blocks ({{ count($plans) }} total)</h3>
+        <a href="{{ route('planning.harvesting_plan_coconut.index', ['date' => $date]) }}"
            class="text-sm text-primary hover:underline">← Back to List</a>
     </div>
     
@@ -21,27 +21,25 @@
             <thead>
                 <tr class="border-b" style="border-color:var(--epms-border);">
                     <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Block</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Activity</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Target Qty</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">UOM</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Mandor</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Worker Count</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Assistant Manager</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Qty Target (Pcs)</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">HA</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Total HK</th>
                     <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Status</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($workplans as $wp)
-                @php $w = (array)$wp; @endphp
+                @foreach($plans as $plan)
+                @php $p = (array)$plan; @endphp
                 <tr class="border-b hover:bg-opacity-50" style="border-color:var(--epms-border);">
-                    <td class="px-3 py-2 font-medium">{{ $w['block_code'] ?? '-' }}</td>
-                    <td class="px-3 py-2">{{ $w['activity_code'] ?? '-' }} - {{ $w['activity_name'] ?? '' }}</td>
-                    <td class="px-3 py-2">{{ $w['total_qty_target'] ?? '-' }}</td>
-                    <td class="px-3 py-2">HA</td>
-                    <td class="px-3 py-2">{{ $w['mandor_employee_code'] ?? '-' }} - {{ $w['mandor_employee_name'] ?? '' }}</td>
-                    <td class="px-3 py-2">{{ $w['total_hk'] ?? '-' }}</td>
+                    <td class="px-3 py-2 font-medium">{{ $p['block_code'] ?? '-' }}</td>
+                    <td class="px-3 py-2">{{ $p['assistant_emp_code'] ?? '-' }} - {{ $p['assistant_emp_name'] ?? '' }}</td>
+                    <td class="px-3 py-2">{{ number_format($p['qty_target'] ?? 0, 0) }}</td>
+                    <td class="px-3 py-2">{{ number_format($p['ha'] ?? 0, 2) }}</td>
+                    <td class="px-3 py-2">{{ $p['total_hk'] ?? '-' }}</td>
                     <td class="px-3 py-2">
                         @php
-                            $status = $w['is_approved'] ?? null;
+                            $status = $p['is_approved'] ?? null;
                             [$badge, $color] = match($status) {
                                 null => ['Draft', 'bg-gray-100 text-gray-600'],
                                 0 => ['Pending', 'bg-yellow-100 text-yellow-700'],

@@ -744,6 +744,56 @@ Route::middleware(['auth.check'])->group(function () {
         $approvalEntry('overtime',   'overtime',   \App\Http\Controllers\SapApproval\SapApprovalOvertimeController::class);
     });
 
+    // ── Planning (Estate Manager) ────────────────────────────────────────────
+    Route::prefix('planning')->name('planning.')->middleware(['roles:estate_manager,admin,company_admin'])->group(function () {
+        Route::prefix('workplan')->name('workplan.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Planning\PlanningWorkplanController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Planning\PlanningWorkplanController::class, 'detail'])->name('detail');
+            Route::post('/submit', [\App\Http\Controllers\Planning\PlanningWorkplanController::class, 'submitForApproval'])->name('submit');
+        });
+        Route::prefix('harvesting-plan')->name('harvesting_plan.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Planning\PlanningHarvestingPlanController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Planning\PlanningHarvestingPlanController::class, 'detail'])->name('detail');
+            Route::post('/submit', [\App\Http\Controllers\Planning\PlanningHarvestingPlanController::class, 'submitForApproval'])->name('submit');
+        });
+        Route::prefix('harvesting-plan-coconut')->name('harvesting_plan_coconut.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Planning\PlanningHarvestingPlanCoconutController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Planning\PlanningHarvestingPlanCoconutController::class, 'detail'])->name('detail');
+            Route::post('/submit', [\App\Http\Controllers\Planning\PlanningHarvestingPlanCoconutController::class, 'submitForApproval'])->name('submit');
+        });
+        Route::prefix('gi-plan')->name('gi_plan.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Planning\PlanningGiPlanController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Planning\PlanningGiPlanController::class, 'detail'])->name('detail');
+            Route::post('/submit', [\App\Http\Controllers\Planning\PlanningGiPlanController::class, 'submitForApproval'])->name('submit');
+        });
+    });
+
+    // -- Approval (Assistant Manager) -----------------------------------------
+    Route::prefix('approval')->name('approval.')->middleware(['roles:asst_manager,admin,company_admin'])->group(function () {
+        Route::prefix('workplan')->name('workplan.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalWorkplanController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Approval\ApprovalWorkplanController::class, 'detail'])->name('detail');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalWorkplanController::class, 'approve'])->name('approve');
+        });
+        Route::prefix('harvesting-plan')->name('harvesting_plan.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalHarvestingPlanController::class, 'index'])->name('index');
+            Route::get('/detail', [\App\Http\Controllers\Approval\ApprovalHarvestingPlanController::class, 'detail'])->name('detail');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalHarvestingPlanController::class, 'approve'])->name('approve');
+        });
+        Route::prefix('unplanned-activity')->name('unplanned_activity.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalUnplannedActivityController::class, 'index'])->name('index');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalUnplannedActivityController::class, 'approve'])->name('approve');
+        });
+        Route::prefix('oph')->name('oph.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalOphController::class, 'index'])->name('index');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalOphController::class, 'approve'])->name('approve');
+        });
+        Route::prefix('overtime')->name('overtime.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalOvertimeController::class, 'index'])->name('index');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalOvertimeController::class, 'approve'])->name('approve');
+        });
+    });
+
     // ── Audit Trail ────────────────────────────────────────────────────────
     Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
         Route::get('/',          [AuditTrailController::class, 'index'])->name('index');

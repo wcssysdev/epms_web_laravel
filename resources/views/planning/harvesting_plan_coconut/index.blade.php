@@ -4,10 +4,10 @@
     <li><span class="font-medium text-primary">Planning / {{ $title }}</span></li>
 @endsection
 @section('page-title', $title)
-@section('page-subtitle', 'Manage daily harvesting plan for palm oil')
+@section('page-subtitle', 'Manage daily harvesting plan for coconut')
 
 @section('content')
-<div x-data="harvestingPlanPage('{{ $date }}')">
+<div x-data="harvestingPlanCoconutPage('{{ $date }}')">
 
     {{-- Date filter --}}
     <form method="GET" class="flex items-end gap-3 mb-4 rounded-xl border px-5 py-4"
@@ -44,22 +44,22 @@
 
     {{-- DRAFTED --}}
     <div x-show="activeTab==='drafted'" x-cloak>
-        @include('planning.harvesting_plan._table', ['rows' => $drafted, 'tab' => 'drafted', 'canSubmit' => true])
+        @include('planning.harvesting_plan_coconut._table', ['rows' => $drafted, 'tab' => 'drafted', 'canSubmit' => true])
     </div>
 
     {{-- SUBMITTED --}}
     <div x-show="activeTab==='submitted'" x-cloak>
-        @include('planning.harvesting_plan._table', ['rows' => $submitted, 'tab' => 'submitted', 'canSubmit' => false])
+        @include('planning.harvesting_plan_coconut._table', ['rows' => $submitted, 'tab' => 'submitted', 'canSubmit' => false])
     </div>
 
     {{-- APPROVED --}}
     <div x-show="activeTab==='approved'" x-cloak>
-        @include('planning.harvesting_plan._table', ['rows' => $approved, 'tab' => 'approved', 'canSubmit' => false])
+        @include('planning.harvesting_plan_coconut._table', ['rows' => $approved, 'tab' => 'approved', 'canSubmit' => false])
     </div>
 
     {{-- REJECTED --}}
     <div x-show="activeTab==='rejected'" x-cloak>
-        @include('planning.harvesting_plan._table', ['rows' => $rejected, 'tab' => 'rejected', 'canSubmit' => false])
+        @include('planning.harvesting_plan_coconut._table', ['rows' => $rejected, 'tab' => 'rejected', 'canSubmit' => false])
     </div>
 
 </div>
@@ -70,7 +70,7 @@
 @endpush
 @push('scripts')
 <script>
-function harvestingPlanPage(date) {
+function harvestingPlanCoconutPage(date) {
     return {
         activeTab: 'drafted',
         init() {

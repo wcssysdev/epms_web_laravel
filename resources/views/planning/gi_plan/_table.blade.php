@@ -7,7 +7,7 @@
 
     @if(count($rows) === 0)
         <div class="p-8 text-center text-sm" style="color:var(--epms-text-muted);">
-            No workplans for this status.
+            No GI plans for this status.
         </div>
     @else
         <div class="overflow-x-auto">
@@ -15,13 +15,17 @@
                 <thead>
                     <tr class="border-b" style="border-color:var(--epms-border);">
                         <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
-                            style="color:var(--epms-text-muted);">Division</th>
+                            style="color:var(--epms-text-muted);">GI Date</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
-                            style="color:var(--epms-text-muted);">Date</th>
+                            style="color:var(--epms-text-muted);">Estate</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                            style="color:var(--epms-text-muted);">Plant</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                            style="color:var(--epms-text-muted);">Doc Number</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                            style="color:var(--epms-text-muted);">Items</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
                             style="color:var(--epms-text-muted);">Created By</th>
-                        <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
-                            style="color:var(--epms-text-muted);">Activities</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide"
                             style="color:var(--epms-text-muted);">Actions</th>
                     </tr>
@@ -30,32 +34,28 @@
                     @foreach($rows as $row)
                     @php $r = (array)$row; @endphp
                     <tr class="border-b hover:opacity-80" style="border-color:var(--epms-border);">
-                        <td class="px-3 py-2 font-medium">{{ $r['division_code'] ?? '-' }}</td>
-                        <td class="px-3 py-2">{{ $r['workplan_date'] ?? '-' }}</td>
-                        <td class="px-3 py-2">{{ $r['created_by'] ?? '-' }}</td>
+                        <td class="px-3 py-2 font-medium">{{ $r['gi_date'] ?? '-' }}</td>
+                        <td class="px-3 py-2">{{ $r['estate_code'] ?? '-' }}</td>
+                        <td class="px-3 py-2">{{ $r['plant_code'] ?? '-' }}</td>
+                        <td class="px-3 py-2">{{ $r['gi_document_number'] ?? '-' }}</td>
                         <td class="px-3 py-2">
                             <span class="rounded bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-semibold">
-                                {{ $r['activity_count'] ?? 0 }} activities
+                                {{ $r['detail_count'] ?? 0 }} items
                             </span>
                         </td>
+                        <td class="px-3 py-2">{{ $r['created_by'] ?? '-' }}</td>
                         <td class="px-3 py-2">
-                            <a href="{{ route('planning.workplan.detail', [
-                                    'date' => $r['workplan_date'] ?? $date,
-                                    'division' => $r['division_code'] ?? '',
-                                    'created_by' => $r['created_by'] ?? ''
-                                ]) }}"
+                            <a href="{{ route('planning.gi_plan.detail', ['id' => $r['id'] ?? 0]) }}"
                                class="text-primary hover:underline text-xs font-medium">
                                 View Detail
                             </a>
                             
                             @if($canSubmit ?? false)
-                            <form method="POST" action="{{ route('planning.workplan.submit') }}" class="inline ml-2">
+                            <form method="POST" action="{{ route('planning.gi_plan.submit') }}" class="inline ml-2">
                                 @csrf
-                                <input type="hidden" name="date" value="{{ $r['workplan_date'] ?? $date }}">
-                                <input type="hidden" name="division" value="{{ $r['division_code'] ?? '' }}">
-                                <input type="hidden" name="created_by" value="{{ $r['created_by'] ?? '' }}">
+                                <input type="hidden" name="id" value="{{ $r['id'] ?? 0 }}">
                                 <button type="submit"
-                                        onclick="return confirm('Submit {{ $r['activity_count'] ?? 0 }} workplan(s) for approval?')"
+                                        onclick="return confirm('Submit GI Plan for approval?')"
                                         class="text-green-600 hover:underline text-xs font-medium">
                                     Submit for Approval
                                 </button>
