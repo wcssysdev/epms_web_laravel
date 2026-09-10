@@ -51,8 +51,8 @@
                             <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Date</th>
                             <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Division</th>
                             <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Block</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Employee</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">BJR</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Mandor</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">Bunches</th>
                             <th class="px-3 py-3 text-left text-xs font-semibold uppercase" style="color:var(--epms-text-muted);">TPH</th>
                         </tr>
                     </thead>
@@ -64,8 +64,8 @@
                             <td class="px-3 py-2">{{ $r['oph_date'] ?? '-' }}</td>
                             <td class="px-3 py-2 font-medium">{{ $r['division_code'] ?? '-' }}</td>
                             <td class="px-3 py-2">{{ $r['block_code'] ?? '-' }}</td>
-                            <td class="px-3 py-2">{{ $r['employee_code'] ?? '-' }} - {{ $r['employee_name'] ?? '' }}</td>
-                            <td class="px-3 py-2">{{ $r['bjr'] ?? '-' }}</td>
+                            <td class="px-3 py-2">{{ $r['mandor_employee_code'] ?? '-' }} - {{ $r['mandor_employee_name'] ?? '' }}</td>
+                            <td class="px-3 py-2">{{ $r['bunches_total'] ?? '-' }}</td>
                             <td class="px-3 py-2">{{ $r['tph_code'] ?? '-' }}</td>
                         </tr>
                         @endforeach

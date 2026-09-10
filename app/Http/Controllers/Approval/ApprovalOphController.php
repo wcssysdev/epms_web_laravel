@@ -46,6 +46,7 @@ class ApprovalOphController extends BaseController
 
         $updated = DB::table('t_oph')
             ->whereIn('id', $ids)
+            ->where('is_planned', 0) // unplanned only (from mobile)
             ->where('is_approved', 0) // pending only
             ->when($this->companyId(), fn($q) => $q->where('company_id', $this->companyId()))
             ->update([
@@ -67,9 +68,10 @@ class ApprovalOphController extends BaseController
     private function queryPending(string $date): array
     {
         return DB::table('t_oph')
-            ->select('id', 'oph_date', 'division_code', 'block_code', 'employee_code', 'employee_name',
-                     'bjr', 'tph_code', 'created_by', 'created_at')
-            ->where('oph_date', Carbon::parse($date)->toDateString())
+            ->selectRaw("id, division_code, block_code, mandor_employee_code, mandor_employee_name, 
+                         bunches_total, tph_code, DATE(created_at) as oph_date, created_at")
+            ->whereRaw("DATE(created_at) = ?", [Carbon::parse($date)->toDateString()])
+            ->where('is_planned', 0)
             ->where('is_approved', 0)
             ->when($this->companyId(), fn($q) => $q->where('company_id', $this->companyId()))
             ->orderBy('division_code')
