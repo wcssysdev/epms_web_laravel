@@ -181,6 +181,14 @@ Route::middleware(['auth.check'])->group(function () {
             // Summary Attendance Report
             Route::get('/summary-attendance',        [\App\Http\Controllers\Reporting\Transaction\SummaryAttendanceReportController::class, 'index'])->name('summary-attendance.index');
             Route::get('/summary-attendance/export', [\App\Http\Controllers\Reporting\Transaction\SummaryAttendanceReportController::class, 'export'])->name('summary-attendance.export');
+            
+            // Coconut Chit Grading Report
+            Route::get('/coconut-chit-grading',        [\App\Http\Controllers\Reporting\Transaction\CoconutChitGradingReportController::class, 'index'])->name('coconut-chit-grading.index');
+            Route::get('/coconut-chit-grading/export', [\App\Http\Controllers\Reporting\Transaction\CoconutChitGradingReportController::class, 'export'])->name('coconut-chit-grading.export');
+            
+            // FDN Coconut Report
+            Route::get('/fdn-coconut',        [\App\Http\Controllers\Reporting\Transaction\FdnCoconutReportController::class, 'index'])->name('fdn-coconut.index');
+            Route::get('/fdn-coconut/export', [\App\Http\Controllers\Reporting\Transaction\FdnCoconutReportController::class, 'export'])->name('fdn-coconut.export');
         });
         
         // Muster Chit Report
