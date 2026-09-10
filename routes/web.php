@@ -792,6 +792,10 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/',       [\App\Http\Controllers\Approval\ApprovalOvertimeController::class, 'index'])->name('index');
             Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalOvertimeController::class, 'approve'])->name('approve');
         });
+        Route::prefix('harvesting-chit-coconut')->name('harvesting_chit_coconut.')->group(function () {
+            Route::get('/',       [\App\Http\Controllers\Approval\ApprovalHarvestingChitCoconutController::class, 'index'])->name('index');
+            Route::post('/approve', [\App\Http\Controllers\Approval\ApprovalHarvestingChitCoconutController::class, 'approve'])->name('approve');
+        });
     });
 
     // ── Audit Trail ────────────────────────────────────────────────────────

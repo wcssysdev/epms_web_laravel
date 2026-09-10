@@ -548,7 +548,8 @@
                                 <li><a href="{{ route('approval.harvesting_plan.index', ['type' => 'palm']) }}" class="sidebar-subitem {{ str_starts_with($route,'approval.harvesting_plan') && request('type') === 'palm' ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Palm)</a></li>
                                 <li><a href="{{ route('approval.harvesting_plan.index', ['type' => 'coconut']) }}" class="sidebar-subitem {{ str_starts_with($route,'approval.harvesting_plan') && request('type') === 'coconut' ? 'font-semibold text-primary' : '' }}">Harvesting Plan (Coconut)</a></li>
                                 <li><a href="{{ route('approval.unplanned_activity.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.unplanned_activity') ? 'font-semibold text-primary' : '' }}">Unplanned Activity</a></li>
-                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                <li><a href="{{ route('approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.oph') ? 'font-semibold text-primary' : '' }}">OPH (Palm)</a></li>
+                                <li><a href="{{ route('approval.harvesting_chit_coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.harvesting_chit_coconut') ? 'font-semibold text-primary' : '' }}">Harvesting Chit (Coconut)</a></li>
                                 <li><a href="{{ route('approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'approval.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
                             </ul>
                         </li>
