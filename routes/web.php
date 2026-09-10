@@ -223,6 +223,22 @@ Route::middleware(['auth.check'])->group(function () {
         Route::get('/loader',        [\App\Http\Controllers\Reporting\LoaderReportController::class, 'index'])->name('loader.index');
         Route::get('/loader/export', [\App\Http\Controllers\Reporting\LoaderReportController::class, 'export'])->name('loader.export');
         
+        // Supervisor Report
+        Route::get('/supervisor',        [\App\Http\Controllers\Reporting\SupervisorReportController::class, 'index'])->name('supervisor.index');
+        Route::get('/supervisor/export', [\App\Http\Controllers\Reporting\SupervisorReportController::class, 'export'])->name('supervisor.export');
+        
+        // Card Report
+        Route::get('/card',        [\App\Http\Controllers\Reporting\CardReportController::class, 'index'])->name('card.index');
+        Route::get('/card/export', [\App\Http\Controllers\Reporting\CardReportController::class, 'export'])->name('card.export');
+        
+        // Device Report
+        Route::get('/device',        [\App\Http\Controllers\Reporting\DeviceReportController::class, 'index'])->name('device.index');
+        Route::get('/device/export', [\App\Http\Controllers\Reporting\DeviceReportController::class, 'export'])->name('device.export');
+        
+        // Task Result Report
+        Route::get('/task-result',        [\App\Http\Controllers\Reporting\TaskResultReportController::class, 'index'])->name('task-result.index');
+        Route::get('/task-result/export', [\App\Http\Controllers\Reporting\TaskResultReportController::class, 'export'])->name('task-result.export');
+        
         // Muster Chit Report
         Route::get('/muster-chit',        [\App\Http\Controllers\Reporting\MusterChitController::class, 'index'])->name('muster-chit.index');
         Route::get('/muster-chit/export', [\App\Http\Controllers\Reporting\MusterChitController::class, 'export'])->name('muster-chit.export');
