@@ -370,11 +370,21 @@ abstract class BaseMasterController extends BaseController
     protected function stagingCounts(): array
     {
         $sap = $this->sapConfig();
-        $ctx = app(\App\Services\SapService::class)->context($this->companyId());
-
         $newRows = 0;
-        if ($sap && Schema::hasTable($sap['staging'])) {
-            $newRows = DB::table($sap['staging'])->where('company_code', $ctx['company_code'])->count();
+        
+        // Check if SapService exists and has context method
+        if ($sap && class_exists('\App\Services\SapService')) {
+            try {
+                $sapService = app(\App\Services\SapService::class);
+                if (method_exists($sapService, 'context')) {
+                    $ctx = $sapService->context($this->companyId());
+                    if (Schema::hasTable($sap['staging'])) {
+                        $newRows = DB::table($sap['staging'])->where('company_code', $ctx['company_code'])->count();
+                    }
+                }
+            } catch (\Throwable $e) {
+                // SapService not available or error, skip SAP staging count
+            }
         }
 
         return [

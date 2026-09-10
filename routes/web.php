@@ -4,8 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Dashboard\HarvestingController as DashboardHarvestingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ConfigController;
+use App\Http\Controllers\Admin\Approval\SubstitutionController;
+use App\Http\Controllers\Admin\Approval\MasterDataSubstitutionController;
 // Grouping
 use App\Http\Controllers\Admin\Grouping\GangEmployeeController;
 use App\Http\Controllers\Admin\Grouping\FieldStaffController;
@@ -124,6 +127,11 @@ Route::middleware(['auth.check'])->group(function () {
     // ── Dashboard ──────────────────────────────────────────────────────────
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/home',      [DashboardController::class, 'index'])->name('home');
+    
+    // Dashboard Harvesting (roles: admin, estate_manager, asst_manager, estate_staff)
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,estate_staff'])
+         ->get('/dashboard/harvesting', [DashboardHarvestingController::class, 'index'])
+         ->name('dashboard.harvesting');
 
     // ── Admin routes (CI3 role 1 = admin family: super/country/company/estate admin) ──
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -147,6 +155,26 @@ Route::middleware(['auth.check'])->group(function () {
             Route::put('/',             [ConfigController::class, 'update'])->name('update');
             Route::post('/test-sap',    [ConfigController::class, 'testSapConnection'])->name('test-sap');
             Route::post('/toggle-lock', [ConfigController::class, 'toggleSystemLock'])->name('toggle-lock');
+        });
+
+        // Substitution (Manager Substitution)
+        Route::prefix('substitution')->name('substitution.')->group(function () {
+            Route::get('/',            [SubstitutionController::class, 'index'])->name('index');
+            Route::get('/create',      [SubstitutionController::class, 'create'])->name('create');
+            Route::post('/',           [SubstitutionController::class, 'store'])->name('store');
+            Route::get('/{id}/edit',   [SubstitutionController::class, 'edit'])->name('edit');
+            Route::put('/{id}',        [SubstitutionController::class, 'update'])->name('update');
+            Route::delete('/{id}',     [SubstitutionController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master Data Substitution
+        Route::prefix('master-data-substitution')->name('master-data-substitution.')->group(function () {
+            Route::get('/',            [MasterDataSubstitutionController::class, 'index'])->name('index');
+            Route::get('/create',      [MasterDataSubstitutionController::class, 'create'])->name('create');
+            Route::post('/',           [MasterDataSubstitutionController::class, 'store'])->name('store');
+            Route::get('/{id}/edit',   [MasterDataSubstitutionController::class, 'edit'])->name('edit');
+            Route::put('/{id}',        [MasterDataSubstitutionController::class, 'update'])->name('update');
+            Route::delete('/{id}',     [MasterDataSubstitutionController::class, 'destroy'])->name('destroy');
         });
 
     });
