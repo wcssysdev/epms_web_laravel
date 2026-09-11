@@ -225,6 +225,22 @@ Route::middleware(['auth.check'])->group(function () {
             // Panen Allocation Report
             Route::get('/panen-allocation',        [\App\Http\Controllers\Reporting\Transaction\PanenAllocationReportController::class, 'index'])->name('panen-allocation.index');
             Route::get('/panen-allocation/export', [\App\Http\Controllers\Reporting\Transaction\PanenAllocationReportController::class, 'export'])->name('panen-allocation.export');
+            
+            // Platform Checking Report
+            Route::get('/platform-checking',        [\App\Http\Controllers\Reporting\Transaction\PlatformCheckingReportController::class, 'index'])->name('platform-checking.index');
+            Route::get('/platform-checking/export', [\App\Http\Controllers\Reporting\Transaction\PlatformCheckingReportController::class, 'export'])->name('platform-checking.export');
+            
+            // Infield Grading Report
+            Route::get('/infield-grading',        [\App\Http\Controllers\Reporting\Transaction\InfieldGradingReportController::class, 'index'])->name('infield-grading.index');
+            Route::get('/infield-grading/export', [\App\Http\Controllers\Reporting\Transaction\InfieldGradingReportController::class, 'export'])->name('infield-grading.export');
+            
+            // Mill Bunch Audit Report
+            Route::get('/mill-bunch-audit',        [\App\Http\Controllers\Reporting\Transaction\MillBunchAuditReportController::class, 'index'])->name('mill-bunch-audit.index');
+            Route::get('/mill-bunch-audit/export', [\App\Http\Controllers\Reporting\Transaction\MillBunchAuditReportController::class, 'export'])->name('mill-bunch-audit.export');
+            
+            // Production Detail Report
+            Route::get('/production-detail',        [\App\Http\Controllers\Reporting\Transaction\ProductionDetailReportController::class, 'index'])->name('production-detail.index');
+            Route::get('/production-detail/export', [\App\Http\Controllers\Reporting\Transaction\ProductionDetailReportController::class, 'export'])->name('production-detail.export');
         });
         
         // Harvester Report
