@@ -410,11 +410,23 @@
                         {{-- Manager Substitution (CI3 role 1 / admin family) --}}
                         @if($adminFamily)
                         <li>
-                            <a href="#" class="sidebar-item {{ $route === 'grouping.substitution' ? 'active' : '' }}">
+                            <a href="{{ route('admin.substitution.index') }}"
+                               class="sidebar-item {{ str_starts_with($route, 'admin.substitution') ? 'active' : '' }}">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
                                     <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                                 </svg>
                                 <span>Manager Substitution</span>
+                            </a>
+                        </li>
+
+                        {{-- Master Data Substitution (CI3 role 1 / admin family) --}}
+                        <li>
+                            <a href="{{ route('admin.master-data-substitution.index') }}"
+                               class="sidebar-item {{ str_starts_with($route, 'admin.master-data-substitution') ? 'active' : '' }}">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14h2v2h-2v-2zm0-10h2v8h-2V6z"/>
+                                </svg>
+                                <span>Master Data Substitution</span>
                             </a>
                         </li>
                         @endif

@@ -121,6 +121,16 @@ class User extends Authenticatable
         return $this->access?->company?->config;
     }
 
+    public function getNameAttribute(): string
+    {
+        return $this->user_name ?? $this->username ?? '';
+    }
+
+    public function getEmployeeCodeAttribute(): string
+    {
+        return $this->user_internal_employee_code ?: ($this->user_employee_code ?: '');
+    }
+
     // ── Permission Checks ─────────────────────────────────────────────────────
     public function isSuperAdmin(): bool
     {

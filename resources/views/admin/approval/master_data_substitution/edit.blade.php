@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Add Manager Substitution')
+@section('title', 'Edit Master Data Substitution')
 
 @section('content')
 <div class="page-head">
     <div class="page-title">
-        <h1>Add Estate Manager Substitution</h1>
+        <h1>Edit Master Data Substitution</h1>
     </div>
 </div>
 
@@ -30,53 +30,39 @@
         @endif
         @if($systemLocked)
             <div class="alert alert-warning">
-                <i class="fa fa-lock"></i> <strong>System Locked:</strong> System is currently locked. New substitutions cannot be saved.
+                <i class="fa fa-lock"></i> <strong>System Locked:</strong> System is currently locked. Modifications cannot be saved.
             </div>
         @endif
 
         <div class="portlet light bordered">
             <div class="portlet-title">
                 <div class="caption font-blue">
-                    <i class="fa fa-plus font-blue"></i>
-                    <span class="caption-subject bold uppercase">Add Estate Manager Substitution</span>
+                    <i class="fa fa-pencil font-blue"></i>
+                    <span class="caption-subject bold uppercase">Edit Master Data Substitution</span>
                 </div>
                 <div class="actions">
-                    <a href="{{ route('admin.substitution.index') }}" class="btn btn-sm btn-default">
+                    <a href="{{ route('admin.master-data-substitution.index') }}" class="btn btn-sm btn-default">
                         <i class="fa fa-arrow-left"></i> Back to List
                     </a>
                 </div>
             </div>
             <div class="portlet-body form">
-                <form action="{{ route('admin.substitution.store') }}" method="POST" class="form-horizontal">
+                <form action="{{ route('admin.master-data-substitution.update', $substitution->id) }}" method="POST" class="form-horizontal">
                     @csrf
+                    @method('PUT')
                     <div class="form-body">
-                        <div class="form-group {{ $errors->has('employee_code') ? 'has-error' : '' }}">
-                            <label class="control-label col-md-3">Estate Manager <span class="required">*</span></label>
-                            <div class="col-md-6">
-                                <select name="employee_code" class="form-control select2" required {{ $systemLocked ? 'disabled' : '' }}>
-                                    <option value="">-- Choose Estate Manager --</option>
-                                    @foreach($estateManagers as $em)
-                                        <option value="{{ $em->id }}" {{ old('employee_code') == $em->id ? 'selected' : '' }}>
-                                            {{ $em->user_name }} {{ $em->employee_code ? '(' . $em->employee_code . ')' : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <span class="help-block">Select the Estate Manager to be substituted</span>
-                            </div>
-                        </div>
-
                         <div class="form-group {{ $errors->has('target_employee_code') ? 'has-error' : '' }}">
-                            <label class="control-label col-md-3">Substitute (Assistant Manager) <span class="required">*</span></label>
+                            <label class="control-label col-md-3">Targeted User <span class="required">*</span></label>
                             <div class="col-md-6">
                                 <select name="target_employee_code" class="form-control select2" required {{ $systemLocked ? 'disabled' : '' }}>
-                                    <option value="">-- Choose Assistant Manager --</option>
-                                    @foreach($assistantManagers as $am)
-                                        <option value="{{ $am->id }}" {{ old('target_employee_code') == $am->id ? 'selected' : '' }}>
-                                            {{ $am->user_name }} {{ $am->employee_code ? '(' . $am->employee_code . ')' : '' }}
+                                    <option value="">-- Choose User --</option>
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}" {{ old('target_employee_code', $substitution->target_employee_code) == $user->id ? 'selected' : '' }}>
+                                            {{ $user->user_name }} {{ $user->employee_code ? '(' . $user->employee_code . ')' : '' }} - {{ ucfirst(str_replace('_', ' ', $user->role_name ?? $user->role_code)) }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <span class="help-block">Select the Assistant Manager who will take over manager approval duties</span>
+                                <span class="help-block">Select the employee who will receive temporary Master Data access</span>
                             </div>
                         </div>
 
@@ -85,10 +71,9 @@
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <input type="text" name="substitution_from" class="form-control date-picker" 
-                                           value="{{ old('substitution_from', date('Y-m-d')) }}" required readonly {{ $systemLocked ? 'disabled' : '' }}>
+                                           value="{{ old('substitution_from', $substitution->substitution_from ? $substitution->substitution_from->format('Y-m-d') : '') }}" required readonly {{ $systemLocked ? 'disabled' : '' }}>
                                     <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
                                 </div>
-                                <span class="help-block">Start date of substitution</span>
                             </div>
                         </div>
 
@@ -97,10 +82,9 @@
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <input type="text" name="substitution_to" class="form-control date-picker" 
-                                           value="{{ old('substitution_to', date('Y-m-d')) }}" required readonly {{ $systemLocked ? 'disabled' : '' }}>
+                                           value="{{ old('substitution_to', $substitution->substitution_to ? $substitution->substitution_to->format('Y-m-d') : '') }}" required readonly {{ $systemLocked ? 'disabled' : '' }}>
                                     <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
                                 </div>
-                                <span class="help-block">End date of substitution</span>
                             </div>
                         </div>
                     </div>
@@ -110,10 +94,10 @@
                             <div class="col-md-offset-3 col-md-6">
                                 @if(!$systemLocked)
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-check"></i> Save Substitution
+                                    <i class="fa fa-check"></i> Update Substitution
                                 </button>
                                 @endif
-                                <a href="{{ route('admin.substitution.index') }}" class="btn btn-default">Cancel</a>
+                                <a href="{{ route('admin.master-data-substitution.index') }}" class="btn btn-default">Cancel</a>
                             </div>
                         </div>
                     </div>

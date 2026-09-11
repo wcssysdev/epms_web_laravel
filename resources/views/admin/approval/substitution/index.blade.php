@@ -3,59 +3,80 @@
 @section('title', 'Manager Substitution')
 
 @section('content')
-<div class="portlet light bordered">
-    <div class="portlet-title">
-        <div class="caption">
-            <i class="fa fa-exchange"></i>
-            <span class="caption-subject bold uppercase">Manager Substitution</span>
-            <span class="caption-helper">Estate Manager → Assistant Manager</span>
-        </div>
-        <div class="actions">
-            <a href="{{ route('admin.substitution.create') }}" class="btn btn-primary">
-                <i class="fa fa-plus"></i> Add Substitution
-            </a>
-        </div>
-    </div>
-    <div class="portlet-body">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ session('success') }}
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ session('error') }}
-            </div>
-        @endif
-
-        <table class="table table-striped table-bordered table-hover" id="substitution-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Estate Manager</th>
-                    <th>Substitute (Assistant Manager)</th>
-                    <th>Valid From</th>
-                    <th>Valid To</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-        </table>
+<div class="page-head">
+    <div class="page-title">
+        <h1>Estate Manager Substitution</h1>
     </div>
 </div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+<div class="row">
+    <div class="col-md-12">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade in">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="fa fa-check-circle"></i> {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade in">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="fa fa-exclamation-circle"></i> {{ session('error') }}
+            </div>
+        @endif
+        @if($systemLocked)
+            <div class="alert alert-warning">
+                <i class="fa fa-lock"></i> <strong>System Locked:</strong> System is currently locked. Adding or modifying substitutions is restricted.
+            </div>
+        @endif
+
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption font-blue">
+                    <i class="fa fa-exchange font-blue"></i>
+                    <span class="caption-subject bold uppercase">Estate Manager Substitution</span>
+                    <span class="caption-helper">Estate Manager &rarr; Assistant Manager Delegation</span>
+                </div>
+                <div class="actions">
+                    @if(!$systemLocked)
+                    <a href="{{ route('admin.substitution.create') }}" class="btn btn-sm btn-primary">
+                        <i class="fa fa-plus"></i> Add Substitution
+                    </a>
+                    @endif
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="substitution-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Estate Manager</th>
+                                <th>Substitute (Assistant Manager)</th>
+                                <th style="width: 120px;">Valid From</th>
+                                <th style="width: 120px;">Valid To</th>
+                                <th style="width: 100px;">Status</th>
+                                <th style="width: 100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Confirm Delete</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title bold"><i class="fa fa-exclamation-triangle text-danger"></i> Confirm Delete</h4>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this substitution?
+                Are you sure you want to delete this Estate Manager substitution record?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -75,12 +96,12 @@ $(function() {
         ajax: '{{ route("admin.substitution.index") }}',
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-            {data: 'approval_substitution_employee_name', name: 'approval_substitution_employee_name'},
-            {data: 'approval_substitution_employee_name_target', name: 'approval_substitution_employee_name_target'},
-            {data: 'approval_substitution_from', name: 'approval_substitution_from'},
-            {data: 'approval_substitution_to', name: 'approval_substitution_to'},
-            {data: 'status', name: 'status', orderable: false},
-            {data: 'action', name: 'action', orderable: false, searchable: false}
+            {data: 'employee_display', name: 'employee_name'},
+            {data: 'target_employee_display', name: 'target_employee_name'},
+            {data: 'substitution_from_formatted', name: 'substitution_from'},
+            {data: 'substitution_to_formatted', name: 'substitution_to'},
+            {data: 'status', name: 'status', orderable: false, searchable: false, className: 'text-center'},
+            {data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center'}
         ],
         order: [[3, 'desc']]
     });
@@ -92,28 +113,41 @@ $(function() {
     });
 
     $('#confirm-delete').on('click', function() {
-        if (deleteId) {
-            $.ajax({
-                url: '{{ route("admin.substitution.index") }}/' + deleteId,
-                type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    $('#deleteModal').modal('hide');
-                    if (response.success) {
-                        table.ajax.reload();
+        if (!deleteId) return;
+
+        $.ajax({
+            url: '{{ url("admin/substitution") }}/' + deleteId,
+            type: 'DELETE',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('#deleteModal').modal('hide');
+                if (response.success) {
+                    table.ajax.reload(null, false);
+                    if (typeof toastr !== 'undefined') {
                         toastr.success(response.message);
                     } else {
-                        toastr.error(response.message);
+                        alert(response.message);
                     }
-                },
-                error: function() {
-                    $('#deleteModal').modal('hide');
-                    toastr.error('Failed to delete substitution.');
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(response.message);
+                    } else {
+                        alert(response.message);
+                    }
                 }
-            });
-        }
+            },
+            error: function(xhr) {
+                $('#deleteModal').modal('hide');
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to delete substitution.';
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+        });
     });
 });
 </script>
