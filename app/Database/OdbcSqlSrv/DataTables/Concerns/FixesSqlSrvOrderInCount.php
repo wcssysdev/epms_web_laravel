@@ -71,6 +71,25 @@ trait FixesSqlSrvOrderInCount
     }
 
     /**
+     * Organize ordering.
+     * Overridden for SQL Server: if the frontend requested specific column ordering,
+     * clear any preexisting order clauses from the base query to avoid duplicate
+     * order columns, which triggers SQL Server Error 402 with prepared statements on ODBC.
+     */
+    public function ordering(): void
+    {
+        if ($this->disableUserOrdering) {
+            return;
+        }
+
+        if ($this->request->orderableColumns()) {
+            $this->clearQueryOrders($this->query);
+        }
+
+        parent::ordering();
+    }
+
+    /**
      * Clear orders from query builder.
      */
     protected function clearQueryOrders(mixed $builder): void

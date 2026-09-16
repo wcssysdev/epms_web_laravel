@@ -96,9 +96,7 @@ abstract class BaseTransactionController extends BaseController
 
         /** @var Builder $query */
         $query = $this->modelClass()::query()
-            ->whereBetween($this->dateColumn(), [$from, $to])
-            ->orderByDesc($this->dateColumn())
-            ->orderByDesc('id');
+            ->whereBetween($this->dateColumn(), [$from, $to]);
 
         $dt = DataTables::eloquent($query)->addIndexColumn();
         $dt = $this->decorateDatatable($dt);
