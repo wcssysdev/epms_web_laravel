@@ -158,7 +158,7 @@ class OphEntryController extends BaseTransactionController
                                     ->get(['mhm_indicator', 'mhm_abbreviation', 'mhm_description']),
             'grading'        => self::GRADING,
             'cutter'         => null,
-            'carriers'       => [],
+            'carriers'       => collect(),
         ];
     }
 

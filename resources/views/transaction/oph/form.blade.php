@@ -200,7 +200,7 @@ function ophForm() {
         selTph:      @js(old('tph_code', $item?->tph_code ?? '')),
         total: 0,
         pctTotal: 0,
-        carriers: @js(old('carriers', $carriers->map(fn($c) => ['employee_code' => $c->employee_code, 'percentage' => $c->percentage])->values())),
+        carriers: @js(old('carriers', collect($carriers)->map(fn($c) => ['employee_code' => is_array($c) ? ($c['employee_code'] ?? '') : ($c->employee_code ?? ''), 'percentage' => is_array($c) ? ($c['percentage'] ?? 0) : ($c->percentage ?? 0)])->values())),
         init() {
             this.divisionEl = this.$root.querySelector('[name="division_code"]');
             this.blockEl    = this.$root.querySelector('[name="block_code"]');
