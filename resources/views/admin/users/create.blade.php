@@ -31,7 +31,7 @@
             <h2 class="font-semibold text-sm" style="color: var(--epms-text);">User Information</h2>
         </div>
 
-        <form method="POST" action="{{ route('admin.users.store') }}" class="p-5" x-data="createUserForm()">
+        <form method="POST" action="{{ route('admin.users.store') }}" class="p-5" x-data="createUserForm()" @submit="loading = true">
             @csrf
 
             {{-- Row 1: Display Name + Username --}}
@@ -202,10 +202,9 @@
             {{-- Buttons --}}
             <div class="flex items-center gap-3 pt-4 border-t" style="border-color: var(--epms-border);">
                 <button type="submit"
-                        class="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
-                        :disabled="loading" x-data="{ loading: false }" @click="loading = true">
+                        class="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90">
                     <span x-show="!loading">Save User</span>
-                    <span x-show="loading" class="flex items-center gap-2">
+                    <span x-show="loading" x-cloak class="flex items-center gap-2">
                         <span class="loading loading-spinner loading-xs"></span> Saving...
                     </span>
                 </button>
