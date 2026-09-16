@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class WorkdoneMonitoringController extends BaseMonitoringController
 {
-    protected function baseQuery(): Builder { return Workdone::query()->orderByDesc('workdone_date'); }
+    protected function baseQuery(): Builder { return Workdone::query(); }
     protected function dateColumn(): string { return 'workdone_date'; }
     protected function viewPrefix(): string { return 'transaction.monitoring.workdone'; }
     protected function routePrefix(): string { return 'transactions.monitoring.workdone'; }

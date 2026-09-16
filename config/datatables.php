@@ -1,10 +1,10 @@
 <?php
 
+use App\Database\OdbcSqlSrv\DataTables\SqlSrvEloquentDataTable;
+use App\Database\OdbcSqlSrv\DataTables\SqlSrvQueryDataTable;
 use Yajra\DataTables\ApiResourceDataTable;
 use Yajra\DataTables\CollectionDataTable;
-use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\PaginatorDataTable;
-use Yajra\DataTables\QueryDataTable;
 
 return [
     /*
@@ -51,8 +51,8 @@ return [
      * This is where you can register your custom DataTables builder.
      */
     'engines' => [
-        'eloquent' => EloquentDataTable::class,
-        'query' => QueryDataTable::class,
+        'eloquent' => SqlSrvEloquentDataTable::class,
+        'query' => SqlSrvQueryDataTable::class,
         'collection' => CollectionDataTable::class,
         'paginator' => PaginatorDataTable::class,
         'resource' => ApiResourceDataTable::class,
@@ -64,11 +64,9 @@ return [
      * Note, only change this if you know what you are doing!
      */
     'builders' => [
-        // Illuminate\Database\Eloquent\Relations\Relation::class => 'eloquent',
-        // Illuminate\Database\Eloquent\Builder::class            => 'eloquent',
-        // Illuminate\Database\Query\Builder::class               => 'query',
-        // Illuminate\Support\Collection::class                   => 'collection',
-        // Illuminate\Pagination\LengthAwarePaginator::class      => 'paginator',
+        Illuminate\Database\Eloquent\Relations\Relation::class => 'eloquent',
+        Illuminate\Database\Eloquent\Builder::class            => 'eloquent',
+        Illuminate\Database\Query\Builder::class               => 'query',
     ],
 
     /*

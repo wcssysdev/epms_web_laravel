@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class OvertimeMonitoringController extends BaseMonitoringController
 {
-    protected function baseQuery(): Builder { return Overtime::query()->orderByDesc('overtime_date'); }
+    protected function baseQuery(): Builder { return Overtime::query(); }
     protected function dateColumn(): string { return 'overtime_date'; }
     protected function viewPrefix(): string { return 'transaction.monitoring.overtime'; }
     protected function routePrefix(): string { return 'transactions.monitoring.overtime'; }
