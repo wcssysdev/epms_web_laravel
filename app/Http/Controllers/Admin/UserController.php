@@ -133,6 +133,7 @@ class UserController extends BaseController
             'user_id'    => $user->id,
             'role_id'    => $data['role_id'],
             'company_id' => $request->input('company_id') ?? $this->companyId(),
+            'estate_code' => $request->input('estate_code') ?? $this->estateCode(),
             'country_id' => null,
             'is_active'  => true,
             'created_by' => $this->userName(),
@@ -209,6 +210,7 @@ class UserController extends BaseController
             $user->access->update([
                 'role_id'    => $data['role_id'],
                 'company_id' => $request->input('company_id') ?? $user->access->company_id,
+                'estate_code' => $request->input('estate_code') ?? $user->access->estate_code,
                 'updated_by' => $this->userName(),
                 'updated_at' => now(),
             ]);

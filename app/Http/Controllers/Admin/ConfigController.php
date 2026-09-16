@@ -233,7 +233,12 @@ class ConfigController extends BaseController
         // Safety net: never create a CompanyConfig without a company context.
         abort_if(! $companyId, 403, 'Estate Settings requires a specific company context.');
 
-        $config = CompanyConfig::where('company_id', $companyId)->first();
+        $estateCode = $this->estateCode();
+        $query = CompanyConfig::where('company_id', $companyId);
+        if ($estateCode) {
+            $query->where('estate_code', $estateCode);
+        }
+        $config = $query->first();
 
         if (!$config) {
             $config = CompanyConfig::create([

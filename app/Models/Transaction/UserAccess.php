@@ -14,6 +14,7 @@ class UserAccess extends Model
 
     protected $fillable = [
         'user_id',
+        'estate_code',
         'role_id',
         'country_id',
         'company_id',

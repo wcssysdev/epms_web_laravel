@@ -30,7 +30,7 @@ class LoginController extends Controller
             'password.required' => 'Password is required.',
         ]);
 
-        $user = User::with(['access.role', 'access.company.config', 'access.country'])
+        $user = User::with(['access.role', 'access.company.configs', 'access.country'])
             ->where('username', $request->username)
             ->first();
 

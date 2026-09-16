@@ -46,3 +46,7 @@ Thumbs.db
 # IDE project files
 /nbproject/
 /.nbproject/
+
+*.dump
+.env.bak*
+

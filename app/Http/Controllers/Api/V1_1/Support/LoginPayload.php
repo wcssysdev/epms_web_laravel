@@ -171,14 +171,16 @@ final class LoginPayload
     private function estateSchema(): array
     {
         return DB::table('m_estate')
-            ->when($this->companyId(), fn ($q) => $q->where('company_id', $this->companyId()))
-            ->orderBy('estate_code')
-            ->get()
+            ->leftJoin('m_company', 'm_estate.company_id', '=', 'm_company.id')
+            ->when($this->companyId(), fn ($q) => $q->where('m_estate.company_id', $this->companyId()))
+            ->orderBy('m_estate.estate_code')
+            ->get(['m_estate.*', 'm_company.company_code as estate_company_code'])
             ->map(fn ($r) => [
-                'estate_id'         => (int) $r->id,
-                'estate_code'       => $r->estate_code,
-                'estate_name'       => $r->estate_name,
-                'estate_plant_code' => $r->estate_plant_code,
+                'estate_id'           => (int) $r->id,
+                'estate_company_code' => $r->estate_company_code ?? '',
+                'estate_code'         => $r->estate_code,
+                'estate_name'         => $r->estate_name,
+                'estate_plant_code'   => $r->estate_plant_code,
             ])->all();
     }
 
@@ -635,7 +637,7 @@ final class LoginPayload
             ->orderBy('t_coconut_oph.created_at')
             ->get([
                 't_coconut_oph.*',
-                DB::raw("to_char(t_coconut_oph.created_at, 'DD/MM/YYYY') as coconut_oph_created_date_fmt"),
+                self::dateFmtRaw('t_coconut_oph.created_at', 'coconut_oph_created_date_fmt'),
             ]);
 
         return $rows->map(function ($r) {
@@ -772,7 +774,7 @@ final class LoginPayload
             $q->where('t_oph.estate_code', $estate);
         }
 
-        $select = ['t_oph.*', DB::raw("to_char(t_oph.created_at, 'DD/MM/YYYY') as oph_created_date")];
+        $select = ['t_oph.*', self::dateFmtRaw('t_oph.created_at', 'oph_created_date')];
         if ($platform) {
             $select[] = DB::raw("COALESCE(t_cp_detail.oph_id, 'NA') as cpophid");
         }
@@ -844,7 +846,7 @@ final class LoginPayload
                 't_oph_persons.employee_code as cutter_employee_code',
                 't_oph_persons.employee_name as cutter_employee_name',
                 't_oph_persons.percentage as cutter_percentage',
-                DB::raw("to_char(t_oph.created_at, 'DD/MM/YYYY') as oph_created_date"),
+                self::dateFmtRaw('t_oph.created_at', 'oph_created_date'),
             ])
             ->map(fn ($r) => $this->mapOphRow($r))
             ->all();
@@ -1100,5 +1102,15 @@ final class LoginPayload
             return array_merge($restan, $lastDay['last_day_oph']);
         }
         return $restan;
+    }
+
+    /** Database-agnostic date formatting helper (Postgres vs SQL Server). */
+    private static function dateFmtRaw(string $column, string $alias)
+    {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['sqlsrv', 'odbc_sqlsrv'])) {
+            return DB::raw("CONVERT(varchar, {$column}, 103) as [{$alias}]");
+        }
+        return DB::raw("to_char({$column}, 'DD/MM/YYYY') as {$alias}");
     }
 }

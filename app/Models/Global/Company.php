@@ -20,6 +20,19 @@ class Company extends Model
         return $this->belongsTo(Country::class, 'country_id');
     }
 
+        public function configs(): HasMany
+    {
+        return $this->hasMany(CompanyConfig::class, 'company_id');
+    }
+
+    public function estateConfig(?string $estateCode = null): ?CompanyConfig
+    {
+        if ($estateCode) {
+            return $this->configs()->where('estate_code', $estateCode)->first();
+        }
+        return $this->configs()->first();
+    }
+
     public function config(): HasOne
     {
         return $this->hasOne(CompanyConfig::class, 'company_id');

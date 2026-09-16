@@ -23,6 +23,26 @@ class Estate extends Model
         'updated_by',
     ];
 
+    protected $appends = [
+        'estate_company_code',
+    ];
+
+    // ── Computed Attributes ───────────────────────────────────────────────────
+    public function getEstateCompanyCodeAttribute(): string
+    {
+        return $this->company?->company_code ?? '';
+    }
+
+    public function getCompanyCodeAttribute(): string
+    {
+        return $this->company?->company_code ?? '';
+    }
+
+    public function getPlantCodeAttribute(): string
+    {
+        return $this->estate_plant_code ?? '';
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
     public function company(): BelongsTo
     {

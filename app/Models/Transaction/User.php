@@ -108,7 +108,7 @@ class User extends Authenticatable
 
     public function getEstateCodeAttribute(): string
     {
-        return $this->companyConfig?->estate_code ?? '';
+        return $this->access?->estate_code ?? ($this->companyConfig?->estate_code ?? '');
     }
 
     public function getSapClientAttribute(): string
@@ -118,7 +118,29 @@ class User extends Authenticatable
 
     public function getCompanyConfigAttribute(): ?CompanyConfig
     {
-        return $this->access?->company?->config;
+        $company = $this->access?->company;
+        if (! $company) {
+            return null;
+        }
+
+        $estateCode = $this->access?->estate_code ?? session('estate_code');
+        if ($estateCode) {
+            if ($company->relationLoaded('configs')) {
+                $config = $company->configs->firstWhere('estate_code', $estateCode);
+                if ($config) {
+                    return $config;
+                }
+            } else {
+                $config = $company->configs()->where('estate_code', $estateCode)->first();
+                if ($config) {
+                    return $config;
+                }
+            }
+        }
+
+        return $company->relationLoaded('configs')
+            ? $company->configs->first()
+            : ($company->config ?? $company->configs()->first());
     }
 
     public function getNameAttribute(): string
