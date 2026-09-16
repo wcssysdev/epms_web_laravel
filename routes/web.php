@@ -18,7 +18,7 @@ use App\Http\Controllers\Admin\Grouping\FieldAssistantDivisionController;
 use App\Http\Controllers\Admin\AuditTrailController;
 use App\Http\Controllers\Admin\RetrieveMasterDataController;
 use App\Http\Controllers\Admin\DeletePicturesController;
-// Masters — company-scoped
+// Masters â€” company-scoped
 use App\Http\Controllers\Admin\Masters\EstateController;
 use App\Http\Controllers\Admin\Masters\DivisionController;
 use App\Http\Controllers\Admin\Masters\BlockController;
@@ -30,12 +30,12 @@ use App\Http\Controllers\Admin\Masters\DeviceController;
 use App\Http\Controllers\Admin\Masters\WorktypeController;
 use App\Http\Controllers\Admin\Masters\WorkCenterController;
 use App\Http\Controllers\Admin\Masters\CostCenterController;
-// Masters — global lookups
+// Masters â€” global lookups
 use App\Http\Controllers\Admin\Masters\AttendanceController;
 use App\Http\Controllers\Admin\Masters\UomController;
 use App\Http\Controllers\Admin\Masters\HarvestMethodController;
 use App\Http\Controllers\Admin\Masters\MovementTypeController;
-// Masters — batch 3 (SAP + CSV)
+// Masters â€” batch 3 (SAP + CSV)
 use App\Http\Controllers\Admin\Masters\SlocController;
 use App\Http\Controllers\Admin\Masters\DestinationController;
 use App\Http\Controllers\Admin\Masters\ReceivingPointController;
@@ -45,11 +45,11 @@ use App\Http\Controllers\Admin\Masters\CoconutMaterialController;
 use App\Http\Controllers\Admin\Masters\WbsController;
 use App\Http\Controllers\Admin\Masters\VraController;
 use App\Http\Controllers\Admin\Masters\MeasPointController;
-// Masters — batch 4 (multi-column SAP)
+// Masters â€” batch 4 (multi-column SAP)
 use App\Http\Controllers\Admin\Masters\SalesOrderController;
 use App\Http\Controllers\Admin\Masters\PurchaseOrderController;
 use App\Http\Controllers\Admin\Masters\MaintenanceOrderController;
-// Masters — CRUD-only (no SAP/CSV)
+// Masters â€” CRUD-only (no SAP/CSV)
 use App\Http\Controllers\Admin\Masters\BinController;
 use App\Http\Controllers\Admin\Masters\ConfirmationTextController;
 use App\Http\Controllers\Admin\Masters\CoconutActivityTypeController;
@@ -58,7 +58,7 @@ use App\Http\Controllers\Admin\Masters\FdnCardController;
 use App\Http\Controllers\Admin\Masters\TphController;
 use App\Http\Controllers\Admin\Masters\ReportOphController;
 use App\Http\Controllers\Admin\Masters\QrCodeController;
-// Masters — Durian (CRUD)
+// Masters â€” Durian (CRUD)
 use App\Http\Controllers\Admin\Masters\Durian\VarietyController as DurianVarietyController;
 use App\Http\Controllers\Admin\Masters\Durian\GradingController as DurianGradingController;
 use App\Http\Controllers\Admin\Masters\Durian\TaskController as DurianTaskController;
@@ -96,15 +96,17 @@ use App\Http\Controllers\Transaction\CoconutHarvestingChitController;
 use App\Http\Controllers\Transaction\CoconutFdnController;
 use App\Http\Controllers\Transaction\CheckpointCoconutController;
 use App\Http\Controllers\Transaction\GradingCoconutController;
+use App\Http\Controllers\Transaction\GoodsIssueController;
+use App\Http\Controllers\Transaction\GoodsReceiptController;
 // Transaction monitoring (read-only)
 use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\OvertimeMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\WorkdoneMonitoringController;
 
-// ──────────────────────────────────────────────────────────────────────────────
-// PUBLIC — Auth routes (no auth required)
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PUBLIC â€” Auth routes (no auth required)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
     Route::post('/login',[LoginController::class, 'login'])->name('login.post');
@@ -115,16 +117,16 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth.check')
     ->name('logout');
 
-// ──────────────────────────────────────────────────────────────────────────────
-// PROTECTED — All authenticated routes
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PROTECTED â€” All authenticated routes
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Route::middleware(['auth.check'])->group(function () {
 
     // Change Password (accessible to all roles)
     Route::get('/change-password',  [ChangePasswordController::class, 'index'])->name('change-password');
     Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('change-password.post');
 
-    // ── Dashboard ──────────────────────────────────────────────────────────
+    // â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/home',      [DashboardController::class, 'index'])->name('home');
     
@@ -133,7 +135,7 @@ Route::middleware(['auth.check'])->group(function () {
          ->get('/dashboard/harvesting', [DashboardHarvestingController::class, 'index'])
          ->name('dashboard.harvesting');
 
-    // ── Reporting routes (roles: estate_manager, asst_manager, estate_staff) ──────
+    // â”€â”€ Reporting routes (roles: estate_manager, asst_manager, estate_staff) â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:estate_manager,asst_manager,estate_staff'])->prefix('reporting')->name('reporting.')->group(function () {
         
         // Audit Trail
@@ -277,7 +279,7 @@ Route::middleware(['auth.check'])->group(function () {
         
     });
 
-    // ── Admin routes (CI3 role 1 = admin family: super/country/company/estate admin) ──
+    // â”€â”€ Admin routes (CI3 role 1 = admin family: super/country/company/estate admin) â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
 
         // User Management
@@ -323,10 +325,10 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Masters routes (CI3 role 1 = admin family + IT Staff; company-scoped) ──
+    // â”€â”€ Masters routes (CI3 role 1 = admin family + IT Staff; company-scoped) â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin,it_staff', 'company.scope'])->prefix('masters')->name('masters.')->group(function () {
 
-        // ── Macro: register standard master data routes ───────────────────────
+        // â”€â”€ Macro: register standard master data routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Each master: index, datatable, upload/preview/save/cancel (CSV),
         // get-from-sap (Step 1), refresh-from-master (Step 2), staging-info,
         // export (data), generate-csv (template)
@@ -346,51 +348,51 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/generate-csv',        [$controller, 'generateCsv'])->name('generate-csv');
         };
 
-        // ── Estate ────────────────────────────────────────────────────────────
+        // â”€â”€ Estate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('estate')->name('estate.')->group(function () use ($masterRoutes) {
             $masterRoutes('estate', EstateController::class);
             Route::get('/lookup', [EstateController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Division ──────────────────────────────────────────────────────────
+        // â”€â”€ Division â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('division')->name('division.')->group(function () use ($masterRoutes) {
             $masterRoutes('division', DivisionController::class);
             Route::get('/by-estate/{estateCode}', [DivisionController::class, 'getByEstate'])->name('by-estate');
         });
 
-        // ── Block ─────────────────────────────────────────────────────────────
+        // â”€â”€ Block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('block')->name('block.')->group(function () use ($masterRoutes) {
             $masterRoutes('block', BlockController::class);
             Route::get('/by-division/{estateCode}/{divisionCode}', [BlockController::class, 'getByDivision'])->name('by-division');
         });
 
-        // ── Employee ──────────────────────────────────────────────────────────
+        // â”€â”€ Employee â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('employee')->name('employee.')->group(function () use ($masterRoutes) {
             $masterRoutes('employee', EmployeeController::class);
             Route::post('/generate-qr',  [EmployeeController::class, 'generateQr'])->name('generate-qr');
             Route::get('/lookup',        [EmployeeController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Activity ──────────────────────────────────────────────────────────
+        // â”€â”€ Activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('activity')->name('activity.')->group(function () use ($masterRoutes) {
             $masterRoutes('activity', ActivityController::class);
         });
 
-        // ── Vendor ────────────────────────────────────────────────────────────
+        // â”€â”€ Vendor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('vendor')->name('vendor.')->group(function () use ($masterRoutes) {
             $masterRoutes('vendor', VendorController::class);
             Route::post('/generate-qr', [VendorController::class, 'generateQr'])->name('generate-qr');
             Route::get('/lookup',       [VendorController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Material ──────────────────────────────────────────────────────────
+        // â”€â”€ Material â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('material')->name('material.')->group(function () use ($masterRoutes) {
             $masterRoutes('material', MaterialController::class);
             Route::post('/generate-qr', [MaterialController::class, 'generateQr'])->name('generate-qr');
             Route::get('/lookup',       [MaterialController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Device ────────────────────────────────────────────────────────────
+        // â”€â”€ Device â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('device')->name('device.')->group(function () use ($masterRoutes) {
             $masterRoutes('device', DeviceController::class);
             Route::get('/add',         [DeviceController::class, 'add'])->name('add');
@@ -400,24 +402,24 @@ Route::middleware(['auth.check'])->group(function () {
             Route::delete('/{id}',     [DeviceController::class, 'destroy'])->name('destroy');
         });
 
-        // ── Worktype ──────────────────────────────────────────────────────────
+        // â”€â”€ Worktype â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('worktype')->name('worktype.')->group(function () use ($masterRoutes) {
             $masterRoutes('worktype', WorktypeController::class);
         });
 
-        // ── Work Center ───────────────────────────────────────────────────────
+        // â”€â”€ Work Center â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('work_center')->name('work_center.')->group(function () use ($masterRoutes) {
             $masterRoutes('work_center', WorkCenterController::class);
             Route::get('/lookup', [WorkCenterController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Cost Center ───────────────────────────────────────────────────────
+        // â”€â”€ Cost Center â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('cost_center')->name('cost_center.')->group(function () use ($masterRoutes) {
             $masterRoutes('cost_center', CostCenterController::class);
             Route::get('/lookup', [CostCenterController::class, 'lookup'])->name('lookup');
         });
 
-        // ── Batch 3 masters (SAP/CSV) ─────────────────────────────────────────
+        // â”€â”€ Batch 3 masters (SAP/CSV) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('sloc')->name('sloc.')->group(function () use ($masterRoutes) {
             $masterRoutes('sloc', SlocController::class);
             Route::get('/lookup', [SlocController::class, 'lookup'])->name('lookup');
@@ -467,7 +469,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/lookup', [MaintenanceOrderController::class, 'lookup'])->name('lookup');
         });
 
-        // ── CRUD-only masters (no SAP/CSV) ────────────────────────────────────
+        // â”€â”€ CRUD-only masters (no SAP/CSV) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $crudRoutes = function (string $controller) {
             Route::get('/',          [$controller, 'index'])->name('index');
             Route::get('/datatable', [$controller, 'getDatatable'])->name('datatable');
@@ -478,8 +480,8 @@ Route::middleware(['auth.check'])->group(function () {
             Route::delete('/{id}',   [$controller, 'destroy'])->name('destroy');
         };
 
-        // ── CRUD + CSV masters (no SAP) — CSV static routes registered BEFORE
-        //    the {id} routes so words like "upload" aren't captured as ids. ──
+        // â”€â”€ CRUD + CSV masters (no SAP) â€” CSV static routes registered BEFORE
+        //    the {id} routes so words like "upload" aren't captured as ids. â”€â”€
         $crudCsvRoutes = function (string $controller) {
             Route::get('/',                    [$controller, 'index'])->name('index');
             Route::get('/datatable',           [$controller, 'getDatatable'])->name('datatable');
@@ -514,7 +516,7 @@ Route::middleware(['auth.check'])->group(function () {
         Route::prefix('report_oph')->name('report_oph.')->group(fn() => $crudCsvRoutes(ReportOphController::class));
         Route::get('qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');
 
-        // ── Durian masters (CRUD, durian-enabled companies) ───────────────────
+        // â”€â”€ Durian masters (CRUD, durian-enabled companies) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('durian')->name('durian.')->group(function () use ($crudRoutes) {
             Route::prefix('variety')->name('variety.')->group(fn() => $crudRoutes(DurianVarietyController::class));
             Route::prefix('grading')->name('grading.')->group(fn() => $crudRoutes(DurianGradingController::class));
@@ -526,7 +528,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::prefix('activity')->name('activity.')->group(fn() => $crudRoutes(DurianActivityController::class));
         });
 
-        // ── Global Lookups (Super/Country Admin manage, all roles read) ───────
+        // â”€â”€ Global Lookups (Super/Country Admin manage, all roles read) â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('global')->name('global.')->group(function () {
 
             // Reusable macro for global CRUD
@@ -551,7 +553,7 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Grouping routes (CI3 roles 1,2,3 = admin family + EM + Asst + IT Staff; company-scoped) ──
+    // â”€â”€ Grouping routes (CI3 roles 1,2,3 = admin family + EM + Asst + IT Staff; company-scoped) â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,it_staff', 'company.scope'])->prefix('grouping')->name('grouping.')->group(function () {
 
         // Reusable macro for grouping CRUD
@@ -585,10 +587,10 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Planning routes (CI3 role 3 = Assistant Manager only) ───────────────
+    // â”€â”€ Planning routes (CI3 role 3 = Assistant Manager only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:asst_manager'])->prefix('planning')->name('planning.')->group(function () {
 
-        // ── Workplan ──────────────────────────────────────────────────────────
+        // â”€â”€ Workplan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('workplan')->name('workplan.')->group(function () {
             Route::get('/',              [WorkplanController::class, 'index'])->name('index');
             Route::get('/create',        [WorkplanController::class, 'create'])->name('create');
@@ -605,7 +607,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/ajax/materials',  [WorkplanController::class, 'searchMaterials'])->name('materials');
         });
 
-        // ── Harvesting Plan ─────────────────────────────────────────────────
+        // â”€â”€ Harvesting Plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('harvesting-plan')->name('harvesting_plan.')->group(function () {
             Route::get('/',              [HarvestingPlanController::class, 'index'])->name('index');
             Route::get('/create',        [HarvestingPlanController::class, 'create'])->name('create');
@@ -617,7 +619,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/ajax/blocks',   [HarvestingPlanController::class, 'getBlocks'])->name('blocks');
         });
 
-        // ── Coconut Harvesting Plan (coconut-enabled companies) ─────────────
+        // â”€â”€ Coconut Harvesting Plan (coconut-enabled companies) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('coconut-harvesting-plan')->name('coconut_harvesting_plan.')->group(function () {
             Route::get('/',              [CoconutHarvestingPlanController::class, 'index'])->name('index');
             Route::get('/create',        [CoconutHarvestingPlanController::class, 'create'])->name('create');
@@ -631,7 +633,7 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Approval routes (CI3 role 2 = Estate Manager only) ──────────────────
+    // â”€â”€ Approval routes (CI3 role 2 = Estate Manager only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:estate_manager'])->prefix('approval')->name('approval.')->group(function () {
 
         // Workplan approval is Estate-Manager-only
@@ -643,23 +645,23 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Approval routes (CI3 role 3 = Assistant Manager only) ───────────────
+    // â”€â”€ Approval routes (CI3 role 3 = Assistant Manager only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:asst_manager'])->prefix('approval')->name('approval.')->group(function () {
 
-        // Overtime — Asst Manager (division-scoped)
+        // Overtime â€” Asst Manager (division-scoped)
         Route::prefix('overtime')->name('overtime.')->group(function () {
             Route::get('/',        [OvertimeApprovalController::class, 'index'])->name('index');
             Route::post('/submit', [OvertimeApprovalController::class, 'submit'])->name('submit');
         });
 
-        // Unplanned Activity — Asst Manager (division-scoped)
+        // Unplanned Activity â€” Asst Manager (division-scoped)
         Route::prefix('unplanned-activity')->name('unplanned_activity.')->group(function () {
             Route::get('/',            [UnplannedActivityApprovalController::class, 'index'])->name('index');
             Route::get('/{id}',        [UnplannedActivityApprovalController::class, 'detail'])->name('detail');
             Route::post('/submit',     [UnplannedActivityApprovalController::class, 'submit'])->name('submit');
         });
 
-        // Harvesting Chit (Coconut) — Asst Manager (coconut-enabled)
+        // Harvesting Chit (Coconut) â€” Asst Manager (coconut-enabled)
         Route::prefix('coconut-chit')->name('coconut_chit.')->group(function () {
             Route::get('/',        [CoconutHarvestingChitApprovalController::class, 'index'])->name('index');
             Route::get('/{id}',    [CoconutHarvestingChitApprovalController::class, 'detail'])->name('detail');
@@ -668,10 +670,10 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── OPH Approval (CI3 roles 2 & 3 = Estate Manager + Assistant Manager) ──
+    // â”€â”€ OPH Approval (CI3 roles 2 & 3 = Estate Manager + Assistant Manager) â”€â”€
     Route::middleware(['roles:estate_manager,asst_manager'])->prefix('approval')->name('approval.')->group(function () {
 
-        // OPH — Estate Manager (all) or Asst Manager (division-scoped)
+        // OPH â€” Estate Manager (all) or Asst Manager (division-scoped)
         Route::prefix('oph')->name('oph.')->group(function () {
             Route::get('/',        [OphApprovalController::class, 'index'])->name('index');
             Route::get('/{id}',    [OphApprovalController::class, 'detail'])->name('detail');
@@ -680,10 +682,10 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── GI Plan (CI3: admin family + Assistant Manager) ─────────────────────
+    // â”€â”€ GI Plan (CI3: admin family + Assistant Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin,asst_manager'])->prefix('transactions')->name('transactions.')->group(function () {
 
-        // ── GI Plan (Goods Issue Plan) ──────────────────────────────────────
+        // â”€â”€ GI Plan (Goods Issue Plan) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Route::prefix('gi-plan')->name('gi_plan.')->group(function () {
             Route::get('/',              [GiPlanController::class, 'index'])->name('index');
             Route::get('/create',        [GiPlanController::class, 'create'])->name('create');
@@ -699,9 +701,9 @@ Route::middleware(['auth.check'])->group(function () {
 
     });
 
-    // ── Transaction Monitoring (read-only): CI3 admin family + managers +
+    // â”€â”€ Transaction Monitoring (read-only): CI3 admin family + managers +
     //    Estate Staff family (Estate Staff, Staff, Plantation Controller,
-    //    Company Staff) for oversight. ────────────────────────────────────
+    //    Company Staff) for oversight. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs'])
         ->prefix('transactions/monitoring')->name('transactions.monitoring.')->group(function () {
             $monitor = function (string $prefix, string $controller) {
@@ -716,7 +718,7 @@ Route::middleware(['auth.check'])->group(function () {
             $monitor('workdone',   WorkdoneMonitoringController::class);
         });
 
-    // ── Transaction Entry (CI3 role 4 = Estate Staff family + managers) ─────
+    // â”€â”€ Transaction Entry (CI3 role 4 = Estate Staff family + managers) â”€â”€â”€â”€â”€
     //    Operational manual entry / correction (mobile captures GPS/photo/QR).
     Route::middleware(['roles:company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs', 'company.scope'])
         ->prefix('transactions')->name('transactions.')->group(function () {
@@ -740,11 +742,11 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('overtime/activity-details', [OvertimeEntryController::class, 'activityDetails'])->name('transactions.overtime.activity-details');
 
             $txEntry('vra',                        'vra',                        VraEntryController::class);
-            // VRA AJAX — defined outside txEntry to get correct names
+            // VRA AJAX â€” defined outside txEntry to get correct names
             Route::get('vra/meas-points',  [VraEntryController::class, 'measPoints'])->name('transactions.vra.meas-points');
             Route::get('vra/by-type',      [VraEntryController::class, 'vraByType'])->name('transactions.vra.by-type');
 
-            // Platform Checking — master-detail (header + detail items)
+            // Platform Checking â€” master-detail (header + detail items)
             Route::prefix('platform-checking')->name('platform_checking.')->group(function () {
                 Route::get('/',          [PlatformCheckingController::class, 'index'])->name('index');
                 Route::get('/datatable', [PlatformCheckingController::class, 'getDatatable'])->name('datatable');
@@ -754,7 +756,7 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::put('/{id}',      [PlatformCheckingController::class, 'update'])->name('update');
                 Route::delete('/{id}',   [PlatformCheckingController::class, 'destroy'])->name('destroy');
             });
-            // OPH — CRUD + CSV import (flat). CSV static routes before {id}.
+            // OPH â€” CRUD + CSV import (flat). CSV static routes before {id}.
             Route::prefix('oph')->name('oph.')->group(function () {
                 Route::get('/',                    [OphEntryController::class, 'index'])->name('index');
                 Route::get('/datatable',           [OphEntryController::class, 'getDatatable'])->name('datatable');
@@ -770,14 +772,14 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::delete('/{id}',             [OphEntryController::class, 'destroy'])->name('destroy');
             });
 
-            // OPH Mill Grader — read-only monitoring (no CRUD).
+            // OPH Mill Grader â€” read-only monitoring (no CRUD).
             Route::prefix('oph-mill-grader')->name('oph_mill_grader.')->group(function () {
                 Route::get('/',          [OphMillGraderController::class, 'index'])->name('index');
                 Route::get('/datatable', [OphMillGraderController::class, 'getDatatable'])->name('datatable');
                 Route::get('/{id}',      [OphMillGraderController::class, 'detail'])->name('detail');
             });
 
-            // Checkpoint CP1 / CP2 — master-detail (header + OPH lines + loaders).
+            // Checkpoint CP1 / CP2 â€” master-detail (header + OPH lines + loaders).
             $cpEntry = function (string $uri, string $name, string $controller) {
                 Route::prefix($uri)->name($name.'.')->group(function () use ($controller) {
                     Route::get('/',                    [$controller, 'index'])->name('index');
@@ -798,7 +800,7 @@ Route::middleware(['auth.check'])->group(function () {
             $cpEntry('checkpoint-1', 'checkpoint_1', Checkpoint1Controller::class);
             $cpEntry('checkpoint-2', 'checkpoint_2', Checkpoint2Controller::class);
 
-            // FDN / Delivery Note — master-detail (header + OPH lines + loaders).
+            // FDN / Delivery Note â€” master-detail (header + OPH lines + loaders).
             Route::prefix('delivery-note')->name('delivery_note.')->group(function () {
                 Route::get('/',                    [FdnController::class, 'index'])->name('index');
                 Route::get('/datatable',           [FdnController::class, 'getDatatable'])->name('datatable');
@@ -815,7 +817,7 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::delete('/{id}',             [FdnController::class, 'destroy'])->name('destroy');
             });
 
-            // ── Coconut: Harvesting Chit + FDN (master-detail) ─────────────────
+            // â”€â”€ Coconut: Harvesting Chit + FDN (master-detail) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Route::prefix('harvesting-chit-coconut')->name('harvesting_chit_coconut.')->group(function () {
                 Route::get('/',                    [CoconutHarvestingChitController::class, 'index'])->name('index');
                 Route::get('/datatable',           [CoconutHarvestingChitController::class, 'getDatatable'])->name('datatable');
@@ -846,7 +848,7 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::delete('/{id}',             [CoconutFdnController::class, 'destroy'])->name('destroy');
             });
 
-            // Coconut: CP (Checkpoint) — master-detail (header + chit lines + loaders).
+            // Coconut: CP (Checkpoint) â€” master-detail (header + chit lines + loaders).
             Route::prefix('checkpoint-coconut')->name('checkpoint_coconut.')->group(function () {
                 Route::get('/',              [CheckpointCoconutController::class, 'index'])->name('index');
                 Route::get('/datatable',     [CheckpointCoconutController::class, 'getDatatable'])->name('datatable');
@@ -858,21 +860,50 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::delete('/{id}',       [CheckpointCoconutController::class, 'destroy'])->name('destroy');
             });
 
-            // Coconut: Grading — edit grading material lines of a chit already in a CP.
+            // Coconut: Grading â€” edit grading material lines of a chit already in a CP.
             Route::prefix('grading-coconut')->name('grading_coconut.')->group(function () {
                 Route::get('/',          [GradingCoconutController::class, 'index'])->name('index');
                 Route::get('/datatable', [GradingCoconutController::class, 'getDatatable'])->name('datatable');
                 Route::get('/{id}/edit', [GradingCoconutController::class, 'edit'])->name('edit');
                 Route::put('/{id}',      [GradingCoconutController::class, 'update'])->name('update');
             });
+
+            // Goods Issue (GI)
+            Route::prefix('goods-issue')->name('goods_issue.')->group(function () {
+                Route::get('/',                [GoodsIssueController::class, 'index'])->name('index');
+                Route::get('/create',          [GoodsIssueController::class, 'create'])->name('create');
+                Route::post('/',               [GoodsIssueController::class, 'store'])->name('store');
+                Route::get('/search-material', [GoodsIssueController::class, 'searchMaterial'])->name('search_material');
+                Route::get('/ajax/orders',     [GoodsIssueController::class, 'getMasterOrder'])->name('orders');
+                Route::get('/ajax/wbs',        [GoodsIssueController::class, 'getWbsList'])->name('wbs');
+                Route::get('/ajax/gl',         [GoodsIssueController::class, 'getGlAccounts'])->name('gl');
+                Route::get('/{id}',            [GoodsIssueController::class, 'detail'])->name('detail');
+                Route::get('/{id}/edit',       [GoodsIssueController::class, 'edit'])->name('edit');
+                Route::put('/{id}',            [GoodsIssueController::class, 'update'])->name('update');
+                Route::delete('/{id}',         [GoodsIssueController::class, 'destroy'])->name('destroy');
+            });
+            Route::get('goods_issue', fn() => redirect()->route('transactions.goods_issue.index'));
+
+            // Goods Receipt (GR)
+            Route::prefix('goods-receipt')->name('goods_receipt.')->group(function () {
+                Route::get('/',          [GoodsReceiptController::class, 'index'])->name('index');
+                Route::get('/create',    [GoodsReceiptController::class, 'create'])->name('create');
+                Route::post('/',         [GoodsReceiptController::class, 'store'])->name('store');
+                Route::get('/po-detail', [GoodsReceiptController::class, 'poDetail'])->name('po_detail');
+                Route::get('/{id}',      [GoodsReceiptController::class, 'detail'])->name('detail');
+                Route::get('/{id}/edit', [GoodsReceiptController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [GoodsReceiptController::class, 'update'])->name('update');
+                Route::delete('/{id}',   [GoodsReceiptController::class, 'destroy'])->name('destroy');
+            });
+            Route::get('goods_receipt', fn() => redirect()->route('transactions.goods_receipt.index'));
         });
 
-    // ── Reporting routes ───────────────────────────────────────────────────
+    // â”€â”€ Reporting routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('reporting')->name('reporting.')->group(function () {
         // TODO Sprint 7+
     });
 
-    // ── Closing SAP ─────────────────────────────────────────────────────────
+    // â”€â”€ Closing SAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('closing')->name('closing.')->middleware(['roles:company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs,it_staff'])->group(function () {
         // Helper closure: standard closing routes (index, closing, lock, relock).
         $closingEntry = function (string $prefix, string $name, string $ctrl) {
@@ -901,7 +932,7 @@ Route::middleware(['auth.check'])->group(function () {
         });
     });
 
-    // ── SAP Closing Approval (Estate Manager) ───────────────────────────────
+    // â”€â”€ SAP Closing Approval (Estate Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('sap-approval')->name('sap-approval.')->middleware(['roles:estate_manager,admin,company_admin'])->group(function () {
         $approvalEntry = function (string $prefix, string $name, string $ctrl) {
             Route::prefix($prefix)->name($name . '.')->group(function () use ($ctrl) {
@@ -916,7 +947,7 @@ Route::middleware(['auth.check'])->group(function () {
         $approvalEntry('overtime',   'overtime',   \App\Http\Controllers\SapApproval\SapApprovalOvertimeController::class);
     });
 
-    // ── Planning (Estate Manager) ────────────────────────────────────────────
+    // â”€â”€ Planning (Estate Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('planning')->name('planning.')->middleware(['roles:estate_manager,admin,company_admin'])->group(function () {
         Route::prefix('workplan')->name('workplan.')->group(function () {
             Route::get('/',       [\App\Http\Controllers\Planning\PlanningWorkplanController::class, 'index'])->name('index');
@@ -970,13 +1001,13 @@ Route::middleware(['auth.check'])->group(function () {
         });
     });
 
-    // ── Audit Trail ────────────────────────────────────────────────────────
+    // â”€â”€ Audit Trail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
         Route::get('/',          [AuditTrailController::class, 'index'])->name('index');
         Route::get('/datatable', [AuditTrailController::class, 'getDatatable'])->name('datatable');
     });
 
-    // ── Retrieve Master Data (CI3 role 1 = admin family) ────────────────────
+    // â”€â”€ Retrieve Master Data (CI3 role 1 = admin family) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])
         ->prefix('admin/retrieve-master')->name('admin.retrieve-master.')->group(function () {
         Route::get('/',          [RetrieveMasterDataController::class, 'index'])->name('index');
@@ -984,7 +1015,7 @@ Route::middleware(['auth.check'])->group(function () {
         Route::post('/sync-all', [RetrieveMasterDataController::class, 'syncAll'])->name('sync-all');
     });
 
-    // ── Delete Pictures (CI3 role 1 = admin family) ────────────────────────
+    // â”€â”€ Delete Pictures (CI3 role 1 = admin family) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::middleware(['roles:super_admin,country_admin,company_admin,admin'])->prefix('admin/delete-pictures')->name('admin.delete-pictures.')->group(function () {
         Route::get('/',        [DeletePicturesController::class, 'index'])->name('index');
         Route::post('/count',  [DeletePicturesController::class, 'count'])->name('count');
@@ -993,16 +1024,16 @@ Route::middleware(['auth.check'])->group(function () {
 
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SUPER ADMIN routes
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Route::middleware(['auth.check', 'role:10'])->prefix('super-admin')->name('super-admin.')->group(function () {
     // TODO Sprint 1: Country, Company management
 });
 
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // COUNTRY ADMIN routes
-// ──────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Route::middleware(['auth.check', 'role:20'])->prefix('country-admin')->name('country-admin.')->group(function () {
     // TODO Sprint 1: Cross-company views
 });

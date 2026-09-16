@@ -75,8 +75,13 @@
 
 **Laravel Status**: ✅ **ALL MIGRATED** (visible in sidebar)
 
-### 7. ❌ **Trans GI & GR** (roles 23,33 ONLY)
-- **Admin does NOT have Trans GI & GR**
+### 7. ✅ **Trans GI & GR** (roles 23,33 in CI3, now migrated in Laravel)
+1. GR Form (Goods Receipt) → `/transactions/goods-receipt`
+2. GI Form (Goods Issue) → `/transactions/goods-issue`
+
+**Laravel Status**: ✅ **100% COMPLETE & VERIFIED (September 16, 2026)**
+- Accessible via dedicated **Trans GI & GR** accordion menu (`GR Form`, `GI Form`) and also under **Transactions → Entry** (`Goods Receipt (GR)`, `Goods Issue (GI)`).
+- Complete with PO material lines auto-population, stock check, over-receipt warning, movement types (201, 221, 261), dynamic line items, SAP integration status indicators, and audit logging.
 
 ### 8. ❌ **SAP Closing Approval** (role 2 only or substituted role 3)
 - **Admin does NOT have SAP Closing Approval** (Estate Manager only)
@@ -111,6 +116,7 @@
 | **Master Data** | 31+ masters | ✅ **100% COMPLETE** | All 450 routes registered under `masters.*` |
 | **Grouping** | 4 items | ✅ **100% COMPLETE** | All 4 modules active under `grouping.*` |
 | **Master GI & GR** | 7 items | ✅ **100% COMPLETE** | All 7 masters active |
+| **Trans GI & GR** | 2 modules (GI & GR) | ✅ **100% COMPLETE** | Goods Issue & Goods Receipt active with CRUD, details, AJAX & audit logs |
 | **Substitution** | 2 screens | ✅ **100% COMPLETE** | Manager & Master Data Substitution implemented with Eloquent & PostgreSQL |
 | **User Management** | CRUD & Security | ✅ **100% COMPLETE** | User CRUD, Password Reset, Active Toggle under `admin.users.*` |
 | **Estate Settings** | Config | ✅ **100% COMPLETE** | Config & System Lock under `admin.config.*` |

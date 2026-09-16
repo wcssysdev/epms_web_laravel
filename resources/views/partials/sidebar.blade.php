@@ -34,7 +34,8 @@
     // Operational entry (CI3 role 4): Estate Staff family + managers + company admin.
     $canTxEntry      = ($adminFamily && $roleCode !== 'super_admin' && $roleCode !== 'country_admin')
                        || $isEstateManager || $isAsstManager || $isEstateStaffFamily;
-    $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring || $canTxEntry;
+        $canTransGiGr    = $adminFamily || $isItStaff || $isEstateStaffFamily || $isEstateManager || $isAsstManager;
+    $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring || $canTxEntry || $canTransGiGr;
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -300,6 +301,34 @@
             </div>
 
             @endif {{-- /canMasters --}}
+
+            {{-- ── Trans GI & GR (CI3 roles 23, 33 + Admins & Staff) ────────────────────────── --}}
+            @if($canTransGiGr)
+            <div class="mb-6" x-data="{ open: {{ (str_starts_with($route,'transactions.goods_receipt') || str_starts_with($route,'transactions.goods_issue')) ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>
+                                </svg>
+                                <span>Trans GI &amp; GR</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                <li><a href="{{ route('transactions.goods_receipt.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.goods_receipt') ? 'font-semibold text-primary' : '' }}">GR Form</a></li>
+                                <li><a href="{{ route('transactions.goods_issue.index') }}" class="sidebar-subitem {{ str_starts_with($route,'transactions.goods_issue') ? 'font-semibold text-primary' : '' }}">GI Form</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            @endif
 
             {{-- ── Transactions (GI Plan: admins/asst/EM; Monitoring: + PC/CS/staff) ── --}}
             @if($canTransactions)
