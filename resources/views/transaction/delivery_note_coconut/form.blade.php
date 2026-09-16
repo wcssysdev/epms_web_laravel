@@ -184,9 +184,10 @@
 <script>
 function cfdnForm() {
     return {
-        details: @js($details->map(fn($d) => [
-            'coconut_oph_id' => $d->coconut_oph_id, 'coconut_oph_card_id' => $d->coconut_oph_card_id,
-            'total_customer_nut_qty' => $d->total_customer_nut_qty,
+        details: @js(collect($details ?? [])->map(fn($d) => [
+            'coconut_oph_id' => is_array($d) ? ($d['coconut_oph_id'] ?? '') : ($d->coconut_oph_id ?? ''),
+            'coconut_oph_card_id' => is_array($d) ? ($d['coconut_oph_card_id'] ?? '') : ($d->coconut_oph_card_id ?? ''),
+            'total_customer_nut_qty' => is_array($d) ? ($d['total_customer_nut_qty'] ?? 0) : ($d->total_customer_nut_qty ?? 0),
         ])->values()),
         available: [],
         totalQty: 0,

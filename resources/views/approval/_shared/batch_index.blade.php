@@ -122,7 +122,7 @@
                     </table>
                 </div>
 
-                @if($isPending && $items->isNotEmpty())
+                @if($isPending && count($items ?? []))
                 <div class="flex items-center justify-end gap-3 px-5 py-4 border-t" style="border-color: var(--epms-border);">
                     <button type="submit" @click="decision = 'rejected'"
                             class="rounded-lg border border-red-300 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-100 transition">

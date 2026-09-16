@@ -155,8 +155,13 @@ function chitForm() {
         selDivision: @js(old('division_code', $item?->division_code ?? '')),
         selBlock:    @js(old('block_code', $item?->block_code ?? '')),
         selTph:      @js(old('tph_code', $item?->tph_code ?? '')),
-        details: @js($details->map(fn($d) => ['material_code' => $d->material_code, 'customer_nut_qty' => $d->customer_nut_qty])->values()),
-        persons: @js($persons->map(fn($p) => ['employee_code' => $p->employee_code])->values()),
+        details: @js(collect($details ?? [])->map(fn($d) => [
+            'material_code' => is_array($d) ? ($d['material_code'] ?? '') : ($d->material_code ?? ''),
+            'customer_nut_qty' => is_array($d) ? ($d['customer_nut_qty'] ?? 0) : ($d->customer_nut_qty ?? 0),
+        ])->values()),
+        persons: @js(collect($persons ?? [])->map(fn($p) => [
+            'employee_code' => is_array($p) ? ($p['employee_code'] ?? '') : ($p->employee_code ?? ''),
+        ])->values()),
         init() {
             this.divisionEl = this.$root.querySelector('[name="division_code"]');
             this.blockEl    = this.$root.querySelector('[name="block_code"]');

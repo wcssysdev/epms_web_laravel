@@ -120,7 +120,10 @@
 <script>
 function pcForm() {
     return {
-        rows: @js($details->map(fn($d) => ['type' => $d->detail_type, 'value' => $d->detail_value])->values()),
+        rows: @js(collect($details ?? [])->map(fn($d) => [
+            'type' => is_array($d) ? ($d['type'] ?? $d['detail_type'] ?? '') : ($d->detail_type ?? $d->type ?? ''),
+            'value' => is_array($d) ? ($d['value'] ?? $d['detail_value'] ?? '') : ($d->detail_value ?? $d->value ?? ''),
+        ])->values()),
         addRow()  { this.rows.push({ type: '', value: '' }); },
         removeRow(i) { this.rows.splice(i, 1); },
     };

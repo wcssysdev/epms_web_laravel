@@ -208,11 +208,17 @@
 <script>
 function cpCoconutForm() {
     return {
-        details: @js($details->map(fn($d) => [
-            'oph_id' => $d->oph_id, 'oph_card_id' => $d->oph_card_id, 'oph_block_code' => $d->oph_block_code,
-            'oph_tph_code' => $d->oph_tph_code, 'bunches_delivered' => $d->bunches_delivered,
+        details: @js(collect($details ?? [])->map(fn($d) => [
+            'oph_id' => is_array($d) ? ($d['oph_id'] ?? '') : ($d->oph_id ?? ''),
+            'oph_card_id' => is_array($d) ? ($d['oph_card_id'] ?? '') : ($d->oph_card_id ?? ''),
+            'oph_block_code' => is_array($d) ? ($d['oph_block_code'] ?? '') : ($d->oph_block_code ?? ''),
+            'oph_tph_code' => is_array($d) ? ($d['oph_tph_code'] ?? '') : ($d->oph_tph_code ?? ''),
+            'bunches_delivered' => is_array($d) ? ($d['bunches_delivered'] ?? 0) : ($d->bunches_delivered ?? 0),
         ])->values()),
-        loaders: @js($loaders->map(fn($l) => ['employee_code' => $l->employee_code, 'percentage' => $l->percentage])->values()),
+        loaders: @js(collect($loaders ?? [])->map(fn($l) => [
+            'employee_code' => is_array($l) ? ($l['employee_code'] ?? '') : ($l->employee_code ?? ''),
+            'percentage' => is_array($l) ? ($l['percentage'] ?? 0) : ($l->percentage ?? 0),
+        ])->values()),
         available: [],
         totalNuts: 0,
         availableUrl: '{{ route($routePrefix.".available-chit") }}',

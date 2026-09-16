@@ -36,13 +36,13 @@
             <div><span class="block text-xs" style="color: var(--epms-text-muted);">TPH</span>{{ $item->tph_code }}</div>
             <div><span class="block text-xs" style="color: var(--epms-text-muted);">Nuts Total</span><span class="font-bold text-primary">{{ $item->nuts_total }}</span></div>
         </div>
-        @if($persons->isNotEmpty())
+        @if(count($persons ?? []))
         <div class="px-5 pb-4">
             <span class="block text-xs mb-1" style="color: var(--epms-text-muted);">Harvesters</span>
             <div class="flex flex-wrap gap-2">
                 @foreach($persons as $p)
                     <span class="rounded-md border px-2 py-1 text-xs" style="border-color: var(--epms-border); color: var(--epms-text);">
-                        {{ $p->employee_name ?: $p->employee_code }}
+                        {{ is_array($p) ? (($p['employee_name'] ?? '') ?: ($p['employee_code'] ?? '')) : ($p->employee_name ?: $p->employee_code) }}
                     </span>
                 @endforeach
             </div>
@@ -126,8 +126,9 @@
 <script>
 function gradingForm() {
     return {
-        rows: @js($gradings->map(fn($g) => [
-            'material_code' => $g->material_code, 'customer_nut_qty' => $g->customer_nut_qty,
+        rows: @js(collect($gradings ?? [])->map(fn($g) => [
+            'material_code' => is_array($g) ? ($g['material_code'] ?? '') : ($g->material_code ?? ''),
+            'customer_nut_qty' => is_array($g) ? ($g['customer_nut_qty'] ?? 0) : ($g->customer_nut_qty ?? 0),
         ])->values()),
         totalQty: 0,
         init() { this.recalc(); },
