@@ -136,7 +136,7 @@ Route::middleware(['auth.check'])->group(function () {
          ->name('dashboard.harvesting');
 
     // â”€â”€ Reporting routes (roles: estate_manager, asst_manager, estate_staff) â”€â”€â”€â”€â”€â”€
-    Route::middleware(['roles:estate_manager,asst_manager,estate_staff'])->prefix('reporting')->name('reporting.')->group(function () {
+    Route::middleware(['roles:super_admin,country_admin,company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs,it_staff'])->prefix('reporting')->name('reporting.')->group(function () {
         
         // Audit Trail
         Route::prefix('audit-trail')->name('audit-trail.')->group(function () {
@@ -924,6 +924,8 @@ Route::middleware(['auth.check'])->group(function () {
         $closingEntry('vra',           'vra',            \App\Http\Controllers\Closing\ClosingVraController::class);
         $closingEntry('coconut-chit',  'coconut_chit',   \App\Http\Controllers\Closing\ClosingCoconutChitController::class);
         $closingEntry('coconut-fdn',   'coconut_fdn',    \App\Http\Controllers\Closing\ClosingCoconutFdnController::class);
+        $closingEntry('goods-issue',   'goods_issue',    \App\Http\Controllers\Closing\ClosingGoodsIssueController::class);
+        $closingEntry('goods-receipt', 'goods_receipt',  \App\Http\Controllers\Closing\ClosingGoodsReceiptController::class);
 
         // Adjustment log (read-only)
         Route::prefix('adjustment')->name('adjustment.')->group(function () {
@@ -945,6 +947,8 @@ Route::middleware(['auth.check'])->group(function () {
         $approvalEntry('workdone',   'workdone',   \App\Http\Controllers\SapApproval\SapApprovalWorkdoneController::class);
         $approvalEntry('oph',        'oph',        \App\Http\Controllers\SapApproval\SapApprovalOphController::class);
         $approvalEntry('overtime',   'overtime',   \App\Http\Controllers\SapApproval\SapApprovalOvertimeController::class);
+        $approvalEntry('goods-issue',   'goods_issue',   \App\Http\Controllers\SapApproval\SapApprovalGoodsIssueController::class);
+        $approvalEntry('goods-receipt', 'goods_receipt', \App\Http\Controllers\SapApproval\SapApprovalGoodsReceiptController::class);
     });
 
     // â”€â”€ Planning (Estate Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

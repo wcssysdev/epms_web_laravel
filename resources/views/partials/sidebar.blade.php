@@ -36,6 +36,7 @@
                        || $isEstateManager || $isAsstManager || $isEstateStaffFamily;
         $canTransGiGr    = $adminFamily || $isItStaff || $isEstateStaffFamily || $isEstateManager || $isAsstManager;
     $canTransactions = $canGiPlan || $isEstateManager || $canMonitoring || $canTxEntry || $canTransGiGr;
+    $canReport       = $adminFamily || $isItStaff || $isEstateStaffFamily || $isEstateManager || $isAsstManager;
 @endphp
 
 <aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
@@ -397,6 +398,98 @@
             @endif
 
             {{-- ── Grouping (Asst Manager 50 + IT Staff) ─────────────────── --}}
+                        {{-- ── Reports ──────────────────────────────────────── --}}
+            @if($canReport)
+            <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'reporting.') ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 2h2v5h-2V5zm-4 3h2v2H8V8zm0 4h2v5H8v-5zm8 5h-2v-3h2v3zm0-5h-2v-2h2v2zm4 5h-2V9h2v8z"/>
+                                </svg>
+                                <span>Reports</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10 max-h-[420px] overflow-y-auto custom-scrollbar">
+                                {{-- Operations --}}
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Operations</span>
+                                </li>
+                                <li><a href="{{ route('reporting.transaction.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.workdone') ? 'font-semibold text-primary' : '' }}">Workdone</a></li>
+                                <li><a href="{{ route('reporting.transaction.attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.attendance') ? 'font-semibold text-primary' : '' }}">Attendance</a></li>
+                                <li><a href="{{ route('reporting.transaction.summary-attendance.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.summary-attendance') ? 'font-semibold text-primary' : '' }}">Summary Attendance</a></li>
+                                <li><a href="{{ route('reporting.transaction.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.overtime') ? 'font-semibold text-primary' : '' }}">Overtime</a></li>
+                                <li><a href="{{ route('reporting.transaction.vra.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.vra') ? 'font-semibold text-primary' : '' }}">VRA</a></li>
+                                <li><a href="{{ route('reporting.transaction.general-allocation.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.general-allocation') ? 'font-semibold text-primary' : '' }}">General Allocation</a></li>
+                                <li><a href="{{ route('reporting.transaction.panen-allocation.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.panen-allocation') ? 'font-semibold text-primary' : '' }}">Panen Allocation</a></li>
+                                <li><a href="{{ route('reporting.transaction.backlog.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.backlog') && !str_contains($route, 'coconut') ? 'font-semibold text-primary' : '' }}">Backlog</a></li>
+
+                                {{-- Palm Harvesting --}}
+                                @if($isPalm)
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Palm Harvesting</span>
+                                </li>
+                                <li><a href="{{ route('reporting.transaction.oph.index') }}" class="sidebar-subitem {{ $route === 'reporting.transaction.oph.index' ? 'font-semibold text-primary' : '' }}">OPH</a></li>
+                                <li><a href="{{ route('reporting.transaction.oph-summary.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.oph-summary') ? 'font-semibold text-primary' : '' }}">OPH Summary</a></li>
+                                <li><a href="{{ route('reporting.transaction.daily-oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.daily-oph') ? 'font-semibold text-primary' : '' }}">Daily OPH</a></li>
+                                <li><a href="{{ route('reporting.transaction.oph-by-division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.oph-by-division') ? 'font-semibold text-primary' : '' }}">OPH Division</a></li>
+                                <li><a href="{{ route('reporting.transaction.cp.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.cp') ? 'font-semibold text-primary' : '' }}">Checkpoint (CP)</a></li>
+                                <li><a href="{{ route('reporting.transaction.fdn.index') }}" class="sidebar-subitem {{ $route === 'reporting.transaction.fdn.index' ? 'font-semibold text-primary' : '' }}">FDN</a></li>
+                                <li><a href="{{ route('reporting.transaction.infield-grading.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.infield-grading') ? 'font-semibold text-primary' : '' }}">Infield Grading</a></li>
+                                <li><a href="{{ route('reporting.transaction.mill-bunch-audit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.mill-bunch-audit') ? 'font-semibold text-primary' : '' }}">Mill Bunch Audit</a></li>
+                                <li><a href="{{ route('reporting.transaction.platform-checking.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.platform-checking') ? 'font-semibold text-primary' : '' }}">Platform Checking</a></li>
+                                <li><a href="{{ route('reporting.transaction.production-detail.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.production-detail') ? 'font-semibold text-primary' : '' }}">Production Detail</a></li>
+                                @endif
+
+                                {{-- Coconut Harvesting --}}
+                                @if($isCoconut)
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Coconut</span>
+                                </li>
+                                <li><a href="{{ route('reporting.transaction.coconut-chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.coconut-chit.') || $route === 'reporting.transaction.coconut-chit.index' ? 'font-semibold text-primary' : '' }}">Coconut Chit</a></li>
+                                <li><a href="{{ route('reporting.transaction.coconut-chit-grading.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.coconut-chit-grading') ? 'font-semibold text-primary' : '' }}">Coconut Chit Grading</a></li>
+                                <li><a href="{{ route('reporting.transaction.fdn-coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.fdn-coconut') ? 'font-semibold text-primary' : '' }}">FDN Coconut</a></li>
+                                <li><a href="{{ route('reporting.transaction.backlog-coconut.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.backlog-coconut') ? 'font-semibold text-primary' : '' }}">Backlog Coconut</a></li>
+                                @endif
+
+                                {{-- Personnel --}}
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Personnel</span>
+                                </li>
+                                <li><a href="{{ route('reporting.harvester.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.harvester') ? 'font-semibold text-primary' : '' }}">Harvester Report</a></li>
+                                <li><a href="{{ route('reporting.task-harvester.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.task-harvester') ? 'font-semibold text-primary' : '' }}">Task Harvester</a></li>
+                                <li><a href="{{ route('reporting.loader.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.loader') ? 'font-semibold text-primary' : '' }}">Loader Report</a></li>
+                                <li><a href="{{ route('reporting.supervisor.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.supervisor') ? 'font-semibold text-primary' : '' }}">Supervisor / Audit Bunch</a></li>
+                                <li><a href="{{ route('reporting.muster-chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.muster-chit') ? 'font-semibold text-primary' : '' }}">Muster Chit</a></li>
+                                <li><a href="{{ route('reporting.task-result.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.task-result') ? 'font-semibold text-primary' : '' }}">Task Result</a></li>
+
+                                {{-- Inventory & Reversal --}}
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">Inventory &amp; Reversal</span>
+                                </li>
+                                <li><a href="{{ route('reporting.transaction.gr-r.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.gr-r') ? 'font-semibold text-primary' : '' }}">GR Reversal (GR-R)</a></li>
+                                <li><a href="{{ route('reporting.transaction.gi-r.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.transaction.gi-r') ? 'font-semibold text-primary' : '' }}">GI Reversal (GI-R)</a></li>
+
+                                {{-- System & Device --}}
+                                <li class="pt-1 mt-1 border-t" style="border-color: var(--epms-border);">
+                                    <span class="block px-0 py-1 text-[11px] font-semibold uppercase tracking-wide" style="color: var(--epms-text-muted);">System &amp; Device</span>
+                                </li>
+                                <li><a href="{{ route('reporting.audit-trail.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.audit-trail') ? 'font-semibold text-primary' : '' }}">Audit Trail</a></li>
+                                <li><a href="{{ route('reporting.card.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.card') ? 'font-semibold text-primary' : '' }}">Card Report</a></li>
+                                <li><a href="{{ route('reporting.device.index') }}" class="sidebar-subitem {{ str_starts_with($route,'reporting.device') ? 'font-semibold text-primary' : '' }}">Device Report</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            @endif
+
             @if($canGrouping)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'grouping.') ? 'true':'false' }} }">
                 <nav>
@@ -514,6 +607,8 @@
                                 <li><a href="{{ route('closing.coconut_chit.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_chit') ? 'font-semibold text-primary' : '' }}">Coconut HC</a></li>
                                 <li><a href="{{ route('closing.coconut_fdn.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.coconut_fdn') ? 'font-semibold text-primary' : '' }}">FDN (Coconut)</a></li>
                                 @endif
+                                <li><a href="{{ route('closing.goods_receipt.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.goods_receipt') ? 'font-semibold text-primary' : '' }}">Goods Receipt (GR)</a></li>
+                                <li><a href="{{ route('closing.goods_issue.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.goods_issue') ? 'font-semibold text-primary' : '' }}">Goods Issue (GI)</a></li>
                                 <li class="pt-1 mt-1 border-t" style="border-color:var(--epms-border);">
                                     <a href="{{ route('closing.adjustment.index') }}" class="sidebar-subitem {{ str_starts_with($route,'closing.adjustment') ? 'font-semibold text-primary' : '' }}">Adjustment Log</a>
                                 </li>
@@ -541,6 +636,8 @@
                                 <li><a href="{{ route('sap-approval.workdone.index') }}" class="sidebar-subitem {{ str_starts_with($route,'sap-approval.workdone') ? 'font-semibold text-primary' : '' }}">General Work</a></li>
                                 <li><a href="{{ route('sap-approval.oph.index') }}" class="sidebar-subitem {{ str_starts_with($route,'sap-approval.oph') ? 'font-semibold text-primary' : '' }}">OPH (Palm)</a></li>
                                 <li><a href="{{ route('sap-approval.overtime.index') }}" class="sidebar-subitem {{ str_starts_with($route,'sap-approval.overtime') ? 'font-semibold text-primary' : '' }}">Work Overtime</a></li>
+                                <li><a href="{{ route('sap-approval.goods_receipt.index') }}" class="sidebar-subitem {{ str_starts_with($route,'sap-approval.goods_receipt') ? 'font-semibold text-primary' : '' }}">Goods Receipt (GR)</a></li>
+                                <li><a href="{{ route('sap-approval.goods_issue.index') }}" class="sidebar-subitem {{ str_starts_with($route,'sap-approval.goods_issue') ? 'font-semibold text-primary' : '' }}">Goods Issue (GI)</a></li>
                             </ul>
                         </li>
                         @endif

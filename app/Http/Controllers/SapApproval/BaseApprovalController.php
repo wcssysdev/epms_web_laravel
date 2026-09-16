@@ -32,7 +32,15 @@ abstract class BaseApprovalController extends BaseController
     abstract protected function approvedAtColumn(): string;  // e.g. 'closing_approved_at'
     abstract protected function routePrefix(): string;
     abstract protected function viewPrefix(): string;
-    abstract protected function title(): string;
+        abstract protected function title(): string;
+
+    /** Column to order by in queryByApproval. Subclasses may override. */
+    protected function orderByColumn(): string
+    {
+        return \Illuminate\Support\Facades\Schema::hasColumn($this->table(), 'employee_code')
+            ? 'employee_code'
+            : $this->pkColumn();
+    }
 
     /** Extra query conditions for the index (e.g. filter by estate). */
     protected function extraConditions(): array { return []; }
@@ -106,7 +114,8 @@ abstract class BaseApprovalController extends BaseController
             $q->where($this->approvalColumn(), $status);
         }
 
-        return $q->orderBy('employee_code')->get()->toArray();
+                $orderCol = $this->orderByColumn();
+        return $q->orderBy($orderCol)->get()->toArray();
     }
 
     protected function resolveDate(Request $request): array

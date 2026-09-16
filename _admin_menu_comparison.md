@@ -83,8 +83,28 @@
 - Accessible via dedicated **Trans GI & GR** accordion menu (`GR Form`, `GI Form`) and also under **Transactions → Entry** (`Goods Receipt (GR)`, `Goods Issue (GI)`).
 - Complete with PO material lines auto-population, stock check, over-receipt warning, movement types (201, 221, 261), dynamic line items, SAP integration status indicators, and audit logging.
 
-### 8. ❌ **SAP Closing Approval** (role 2 only or substituted role 3)
-- **Admin does NOT have SAP Closing Approval** (Estate Manager only)
+### 8. ✅ **SAP Closing Approval (Estate Manager)** & **Closing SAP (Estate Staff)**
+- **Closing SAP (Estate Staff / Roles 1,2,3,4)**:
+  - Goods Receipt (GR) → `/closing/goods-receipt` (`closing.goods_receipt.*`)
+  - Goods Issue (GI) → `/closing/goods-issue` (`closing.goods_issue.*`)
+  - Status buckets: Opened (lockable), Locked, Success, Failed, Adjustment.
+  - Full SAP Service XML payload generation with URNs (`urn:ZEPMS_GOODS_RECEIPT_IN`, `urn:ZEPMS_GOODS_ISSUE_IN`).
+- **SAP Closing Approval (Estate Manager / Role 2 + Admins)**:
+  - Goods Receipt (GR) → `/sap-approval/goods-receipt` (`sap-approval.goods_receipt.*`)
+  - Goods Issue (GI) → `/sap-approval/goods-issue` (`sap-approval.goods_issue.*`)
+  - Status buckets: Pending (closing_is_approved = 0), Approved (1), Rejected (-1).
+  - Bulk approval / rejection workflow prior to SAP transmission.
+
+### 8b. ✅ **Reports Navigation** (All Roles - EM, AM, Staff, Admins)
+- Mounted directly into sidebar navigation (`resources/views/partials/sidebar.blade.php`)
+- Categorized into 6 logical groups:
+  1. Operations (Workdone, Attendance, Summary Attendance, Overtime, VRA, General Allocation, Panen Allocation, Backlog)
+  2. Palm Harvesting (OPH, OPH Summary, Daily OPH, OPH Division, CP, FDN, Infield Grading, Mill Bunch Audit, Platform Checking, Production Detail)
+  3. Coconut Harvesting (Coconut Chit, Coconut Chit Grading, FDN Coconut, Backlog Coconut)
+  4. Personnel (Harvester, Task Harvester, Loader, Supervisor/Audit Bunch, Muster Chit, Task Result)
+  5. Inventory & Reversal (GR-R, GI-R)
+  6. System & Device (Audit Trail, Card, Device)
+- All 33 report controllers with DataTables & CSV exports active.
 
 ### 9. ✅ **Manager Substitution** (role 1 ONLY)
 - `/approval/substitution`
@@ -124,6 +144,9 @@
 | **Delete Pictures** | Purge tool | ✅ **100% COMPLETE** | Batch delete OPH/CP/FDN images under `admin.delete-pictures.*` |
 | **Activity Log** | Audit Trail | ✅ **100% COMPLETE** | Activity log under `admin.audit.*` |
 | **Dashboard Harvesting** | 1 screen | ✅ **100% COMPLETE** | Active under `dashboard.harvesting` |
+| **Closing SAP (GI & GR)** | 2 modules | ✅ **100% COMPLETE** | Goods Receipt & Issue closing with lock/relock/SAP push under `closing.*` |
+| **SAP Approval (GI & GR)** | 2 modules | ✅ **100% COMPLETE** | EM approval workflows under `sap-approval.*` |
+| **Reports** | 33 modules | ✅ **100% COMPLETE** | Full sidebar navigation mounted and accessible under `reporting.*` |
 
 ### ❌ **OBSOLETE / NOT USED**
 - **Generate Audit File**: Legacy CI3 utility script, removed from active sidebar navigation as it is not part of standard operational admin workflows.
