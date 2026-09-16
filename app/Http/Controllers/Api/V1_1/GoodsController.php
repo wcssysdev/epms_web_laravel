@@ -37,7 +37,7 @@ class GoodsController extends ApiController
         }
 
         // Verify user is warehouse_clerk or store_clerk (role 23 / 33).
-        if (! in_array($user->role_code, ['warehouse_clerk', 'store_clerk'], true)) {
+        if (! in_array($user->role_code, ['warehouse_clerk', 'store_clerk', 'gi_gr_staff', 'material_staff'], true)) {
             return $this->respondMessage('Invalid Role', self::HTTP_BAD_REQUEST);
         }
 
