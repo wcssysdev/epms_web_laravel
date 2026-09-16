@@ -36,7 +36,9 @@ final class MobileRole
         'ramp_dispatch_coconut' => 10,
         'mill_grader'           => 11,
         'warehouse_clerk'       => 23,
+        'gi_gr_staff'           => 23,
         'store_clerk'           => 33,
+        'material_staff'        => 33,
     ];
 
     /** CI3 numeric user_role => mobile role string used in Roles_Schema. */
