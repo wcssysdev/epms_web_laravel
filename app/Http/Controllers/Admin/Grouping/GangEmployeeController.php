@@ -58,4 +58,27 @@ class GangEmployeeController extends BaseGroupingController
             ->pluck('gang_code');
         return $this->jsonSuccess('OK', $codes);
     }
+
+    protected function hasGetFromSap(): bool
+    {
+        return false; // Gang Employee only has "Refresh Master Data From SAP" in CI3
+    }
+
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_EMPLOYEE_OUT',
+            'urn'     => 'ZEPMS_EMPLOYEE_OUT',
+            'filters' => ['BUKRS' => '*', 'ESTNR' => '{estate_code}'],
+            'columns' => ['BUKRS', 'ESTNR', 'DIVNR', 'PRFNR', 'EMPNR', 'ENAME', 'KDATB', 'KDATE', 'DEPNR'],
+            'staging_conditions' => [
+                'DEPNR' => '!= ""',
+            ],
+            'mapping' => [
+                'gang_code'          => 'DEPNR',
+                'gang_employee_code' => 'EMPNR',
+                'gang_employee_name' => 'ENAME',
+            ],
+        ];
+    }
 }

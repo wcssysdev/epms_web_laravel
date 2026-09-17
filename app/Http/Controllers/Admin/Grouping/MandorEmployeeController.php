@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Grouping;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class MandorEmployeeController extends BaseGroupingController
@@ -49,5 +50,35 @@ class MandorEmployeeController extends BaseGroupingController
         $query = $this->baseQuery()->orderBy('mandor_employee_code');
         if ($request->filled('mandor_code')) $query->where('mandor_employee_code', $request->mandor_code);
         return DataTables::query($query)->addIndexColumn()->make(true);
+    }
+
+    protected function hasGetFromSap(): bool
+    {
+        return true; // Mandor Employee has both Get All and Refresh in CI3
+    }
+
+    protected function sapConfig(): ?array
+    {
+        return [
+            'staging' => 'ZEPMS_MEMBER_OUT',
+            'urn'     => 'ZEPMS_MEMBER_OUT',
+            'filters' => ['PRFNR' => '{estate_name}'],
+            'columns' => ['PRFNR', 'EMPNR', 'EMPNR_M', 'KDATB', 'KDATE'],
+            'mapping' => [
+                'mandor_employee_code'      => 'EMPNR_M',
+                'field_staff_employee_code' => 'EMPNR',
+            ],
+        ];
+    }
+
+    protected function transformSapRow(array $master, array $staging): array
+    {
+        $mandorEmp = DB::table('m_employee')->where('employee_code', $master['mandor_employee_code'])->value('employee_name');
+        $fsEmp     = DB::table('m_employee')->where('employee_code', $master['field_staff_employee_code'])->value('employee_name');
+
+        $master['mandor_employee_name']      = $mandorEmp ?? $master['mandor_employee_code'];
+        $master['field_staff_employee_name'] = $fsEmp ?? $master['field_staff_employee_code'];
+
+        return $master;
     }
 }

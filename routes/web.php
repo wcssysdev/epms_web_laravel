@@ -558,13 +558,22 @@ Route::middleware(['auth.check'])->group(function () {
 
         // Reusable macro for grouping CRUD
         $groupRoutes = function (string $controller) {
-            Route::get('/',           [$controller, 'index'])->name('index');
-            Route::get('/datatable',  [$controller, 'getDatatable'])->name('datatable');
-            Route::get('/create',     [$controller, 'create'])->name('create');
-            Route::post('/',          [$controller, 'store'])->name('store');
-            Route::get('/{id}/edit',  [$controller, 'edit'])->name('edit');
-            Route::put('/{id}',       [$controller, 'update'])->name('update');
-            Route::delete('/{id}',    [$controller, 'destroy'])->name('destroy');
+            Route::get('/',                 [$controller, 'index'])->name('index');
+            Route::get('/datatable',        [$controller, 'getDatatable'])->name('datatable');
+            Route::get('/create',           [$controller, 'create'])->name('create');
+            Route::post('/',                [$controller, 'store'])->name('store');
+            Route::get('/upload',           [$controller, 'upload'])->name('upload');
+            Route::post('/preview',         [$controller, 'preview'])->name('preview');
+            Route::post('/save-upload',     [$controller, 'saveUploadedData'])->name('save-upload');
+            Route::post('/cancel-upload',   [$controller, 'cancelUpload'])->name('cancel-upload');
+            Route::get('/generate-csv',     [$controller, 'generateCsv'])->name('generate-csv');
+            Route::get('/export',           [$controller, 'exportMasterData'])->name('export');
+            Route::post('/get-from-sap',    [$controller, 'getFromSap'])->name('get-from-sap');
+            Route::post('/refresh-from-sap',[$controller, 'refreshMasterDataFromStaging'])->name('refresh-from-sap');
+            Route::get('/staging-info',     [$controller, 'stagingInfo'])->name('staging-info');
+            Route::get('/{id}/edit',        [$controller, 'edit'])->name('edit');
+            Route::put('/{id}',             [$controller, 'update'])->name('update');
+            Route::delete('/{id}',          [$controller, 'destroy'])->name('destroy');
         };
 
         Route::prefix('gang_employee')->name('gang_employee.')->group(function () use ($groupRoutes) {
