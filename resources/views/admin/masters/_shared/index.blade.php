@@ -108,7 +108,7 @@
              style="background: var(--epms-header-bg); border-color: var(--epms-border);">
             <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--epms-border);">
                 <h3 class="text-base font-bold" style="color: var(--epms-text);">Replace {{ $resourceName }} Master Data Confirmation</h3>
-                <button @click="$store.masterSap.showRefreshModal = false" class="text-gray-400 hover:text-gray-600">
+                <button @click="$store.masterSap.showRefreshModal = false" class="cursor-pointer text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -132,7 +132,7 @@
             </div>
             <div class="flex justify-end gap-3 px-5 py-4 border-t" style="border-color: var(--epms-border);">
                 <button @click="$store.masterSap.showRefreshModal = false"
-                        class="flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">
+                        class="cursor-pointer flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -140,7 +140,7 @@
                 </button>
                 <button @click="$store.masterSap.confirmRefresh()"
                         :disabled="$store.masterSap.busy || $store.masterSap.newRows === 0"
-                        class="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition disabled:opacity-50">
+                        class="cursor-pointer flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': $store.masterSap.busy==='refresh' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
