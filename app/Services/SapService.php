@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Services;
 
@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * SAP Integration Service — replicates CI3 sap_helper.php.
+ * SAP Integration Service â€” replicates CI3 sap_helper.php.
  *
  * Sends transaction payloads to SAP BTP/CPI via HTTP POST with Basic Auth,
  * parses the XML response, and updates integration_status on each record.
@@ -163,7 +163,7 @@ class SapService
     }
 
     /**
-     * Relock (reopen) adjustment records (status 5 → 0) for re-submission.
+     * Relock (reopen) adjustment records (status 5 â†’ 0) for re-submission.
      */
     public function relock(string $table, string $pkColumn, array $ids): void
     {
@@ -210,5 +210,101 @@ class SapService
         if (! empty($rows)) {
             DB::table('t_adjustment')->insert($rows);
         }
+    }
+
+    // ─── Master Data Fetch (used by Grouping & Masters SAP sync) ───────────
+
+    /**
+     * Build a context array for the given company:
+     * company_code, country_code, country_no, and the CompanyConfig record.
+     * Mirrors the CI3 pattern used in master-data controllers.
+     */
+    public function context(int $companyId): array
+    {
+        $config = CompanyConfig::where('company_id', $companyId)->first();
+
+        // company_code = estate_code (mirrors CI3 usage)
+        $companyCode = $config?->estate_code ?? '';
+
+        // country_code: first 2 chars of profile_code, fallback 'MY'
+        $countryCode = $config?->profile_code
+            ? strtoupper(substr($config->profile_code, 0, 2))
+            : 'MY';
+
+        return [
+            'company_code' => $companyCode,
+            'country_code' => $countryCode,
+            'country_no'   => null,
+            'config'       => $config,
+        ];
+    }
+
+    /**
+     * Fetch master data from SAP API.
+     * Mirrors CI3 sap_helper->get_master_data().
+     *
+     * @param  string $urn      SAP URN / endpoint key  (e.g. 'ZEPMS_MEMBER_OUT')
+     * @param  array  $filters  Key-value pairs for the SAP request payload
+     * @param  array  $ctx      Context array returned by context()
+     * @param  array  $columns  Expected column keys in the response items
+     * @return array{status_code:int, data:array}
+     */
+    public function fetchMasterData(string $urn, array $filters, array $ctx, array $columns): array
+    {
+        $config = $ctx['config'] ?? null;
+
+        if (empty($config?->sap_api_url)) {
+            Log::warning("fetchMasterData: SAP API URL not configured for company.");
+            return ['status_code' => 0, 'data' => []];
+        }
+
+        $payload = array_merge(['URN' => $urn], $filters);
+        $body    = json_encode($payload);
+
+        try {
+            $ch = curl_init($config->sap_api_url);
+            curl_setopt_array($ch, [
+                CURLOPT_POSTFIELDS     => $body,
+                CURLOPT_USERPWD        => $config->sap_user_id . ':' . $config->sap_password,
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_TIMEOUT        => 60,
+            ]);
+
+            $result   = curl_exec($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+        } catch (\Throwable $e) {
+            Log::error('fetchMasterData curl error: ' . $e->getMessage());
+            return ['status_code' => 0, 'data' => []];
+        }
+
+        if ($curlErr || $httpCode !== 200) {
+            Log::error("fetchMasterData HTTP {$httpCode}: {$curlErr} | body: " . substr((string) $result, 0, 300));
+            return ['status_code' => $httpCode ?: 0, 'data' => []];
+        }
+
+        // Parse JSON response — support common SAP response shapes
+        $json = json_decode($result, true);
+        if (! is_array($json)) {
+            Log::error("fetchMasterData: non-JSON response for URN={$urn}. Body: " . substr($result, 0, 300));
+            return ['status_code' => $httpCode, 'data' => []];
+        }
+
+        $items = $json['item']
+            ?? $json['data']
+            ?? $json['ET_OUT']['item']
+            ?? $json['EX_EXPORT']['item']
+            ?? [];
+
+        if (isset($items[0]) && is_object($items[0])) {
+            $items = array_map(fn($i) => (array) $i, $items);
+        }
+
+        return ['status_code' => $httpCode, 'data' => $items];
     }
 }
