@@ -39,8 +39,13 @@ class InController extends ApiController
 
         $raw  = $request->input('epms_data');
         $data = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : null);
-        if (! is_array($data)) {
-            return $this->respondMessage('Invalid payload', self::HTTP_BAD_REQUEST);
+        if (! is_array($data) || empty($data)) {
+            $all = $request->all();
+            if (isset($all['field_staff']) || isset($all['harvest_clerk']) || isset($all['transport_clerk']) || isset($all['data_t_gi']) || isset($all['data_t_gr']) || isset($all['harvest_clerk_coconut']) || isset($all['transport_clerk_coconut']) || isset($all['mill_grader'])) {
+                $data = $all;
+            } else {
+                return $this->respondMessage('Invalid payload', self::HTTP_BAD_REQUEST);
+            }
         }
 
         $companyId = $user->company_id;

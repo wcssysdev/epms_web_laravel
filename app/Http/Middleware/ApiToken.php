@@ -25,7 +25,14 @@ class ApiToken
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->header('X-Api-Key');
+        $token = $request->header('X-Api-Key') ?? $request->bearerToken();
+
+        if (! $token) {
+            $auth = $request->header('Authorization');
+            if ($auth) {
+                $token = trim(preg_replace('/^Bearer\s+/i', '', $auth));
+            }
+        }
 
         if (! $token) {
             return response()->json(['message' => 'Token not valid'], 403);
