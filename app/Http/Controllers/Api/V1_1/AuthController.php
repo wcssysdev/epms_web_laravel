@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 /**
- * EPMS Mobile API — Auth (login). Replicates CI3 Auth::login_post contract.
+ * EPMS Mobile API Ã¢â‚¬â€ Auth (login). Replicates CI3 Auth::login_post contract.
  *
  * POST /api/v1_1/auth/login
  * Body: user_login, password, is_empty (0|1), imei (optional),
@@ -72,7 +72,7 @@ class AuthController extends ApiController
         $roleNum = MobileRole::toNumber($user->role_code);
 
         // 5) Issue an opaque token (CI3 stored a JWT string in user_token; we keep
-        //    it opaque for the X-Api-Key guard — no JWT verification is done).
+        //    it opaque for the X-Api-Key guard Ã¢â‚¬â€ no JWT verification is done).
         $token = (string) Str::uuid() . Str::random(24);
         DB::table('tc_user')->where('id', $user->id)->update(['user_token' => $token]);
         $user->refresh();
@@ -110,6 +110,15 @@ class AuthController extends ApiController
             loginId: $loginId,
         ))->build();
 
-        return $this->respond($payload, self::HTTP_OK);
+                return $this->respond($payload, self::HTTP_OK);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        $token = $request->header('X-Api-Key') ?? $request->bearerToken();
+        if ($token) {
+            DB::table('tc_user')->where('user_token', $token)->update(['user_token' => null]);
+        }
+        return $this->respondMessage('Logout successful', self::HTTP_OK);
     }
 }
