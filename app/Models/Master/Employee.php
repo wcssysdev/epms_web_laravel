@@ -11,6 +11,17 @@ class Employee extends Model
 {
     use HasCompanyScope;
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('company_code_scope', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $user = auth()->user();
+            if ($user && $user->company_code) {
+                $builder->where('m_employee.employee_code', 'LIKE', $user->company_code . '%');
+            }
+        });
+    }
+
+
     protected $table = 'm_employee';
 
     protected $fillable = [

@@ -225,7 +225,9 @@ final class LoginPayload
     private function employeeSchema(): array
     {
         $profile = $this->cfg()->profile_name ?? null;
+        $companyCode = $this->user->company_code ?? null;
         return DB::table('m_employee')
+            ->when($companyCode, fn ($q) => $q->where('employee_code', 'LIKE', $companyCode . '%'))
             ->when($profile, fn ($q) => $q->where('employee_profile', $profile))
             ->whereDate('valid_from', '<=', $this->today())
             ->whereDate('valid_to', '>=', $this->today())

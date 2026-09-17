@@ -126,6 +126,15 @@ class EmployeeController extends BaseMasterController
     }
 
     // DataTables with filters
+    protected function baseQuery()
+    {
+        $query = parent::baseQuery();
+        if ($this->companyCode()) {
+            $query->where('employee_code', 'LIKE', $this->companyCode() . '%');
+        }
+        return $query;
+    }
+
     public function getDatatable(Request $request): JsonResponse
     {
         $query = $this->baseQuery()
@@ -184,6 +193,7 @@ class EmployeeController extends BaseMasterController
     {
         $query = DB::table('m_employee')
             ->where('company_id', $this->companyId())
+            ->when($this->companyCode(), fn($q) => $q->where('employee_code', 'LIKE', $this->companyCode() . '%'))
             ->where('valid_from', '<=', now()->toDateString())
             ->where('valid_to', '>=', now()->toDateString())
             ->orderBy('employee_name');

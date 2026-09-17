@@ -73,8 +73,16 @@ class MandorEmployeeController extends BaseGroupingController
 
     protected function transformSapRow(array $master, array $staging): array
     {
-        $mandorEmp = DB::table('m_employee')->where('employee_code', $master['mandor_employee_code'])->value('employee_name');
-        $fsEmp     = DB::table('m_employee')->where('employee_code', $master['field_staff_employee_code'])->value('employee_name');
+        $companyCode = $this->companyCode();
+        $mandorEmp = DB::table('m_employee')
+            ->where('employee_code', $master['mandor_employee_code'])
+            ->when($companyCode, fn($q) => $q->where('employee_code', 'LIKE', $companyCode . '%'))
+            ->value('employee_name');
+
+        $fsEmp = DB::table('m_employee')
+            ->where('employee_code', $master['field_staff_employee_code'])
+            ->when($companyCode, fn($q) => $q->where('employee_code', 'LIKE', $companyCode . '%'))
+            ->value('employee_name');
 
         $master['mandor_employee_name']      = $mandorEmp ?? $master['mandor_employee_code'];
         $master['field_staff_employee_name'] = $fsEmp ?? $master['field_staff_employee_code'];
