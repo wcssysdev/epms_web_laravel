@@ -258,17 +258,22 @@ class SapService
             return ['status_code' => 0, 'data' => []];
         }
 
-        $payload = array_merge(['URN' => $urn], $filters);
-        $body    = json_encode($payload);
+        // Mirror CI3 payload format: {"urn:URN": {filters}}
+        // If filters is empty, format is: {"urn:URN": ""}
+        $payloadArray = empty($filters)
+            ? ["urn:{$urn}" => ""]
+            : ["urn:{$urn}" => $filters];
+
+        $body = json_encode($payloadArray);
 
         try {
             $ch = curl_init($config->sap_api_url);
             curl_setopt_array($ch, [
                 CURLOPT_POSTFIELDS     => $body,
                 CURLOPT_USERPWD        => $config->sap_user_id . ':' . $config->sap_password,
-                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/xml'],
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
+                CURLOPT_CUSTOMREQUEST  => 'GET',
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
                 CURLOPT_TIMEOUT        => 60,
@@ -288,21 +293,37 @@ class SapService
             return ['status_code' => $httpCode ?: 0, 'data' => []];
         }
 
-        // Parse JSON response — support common SAP response shapes
-        $json = json_decode($result, true);
-        if (! is_array($json)) {
-            Log::error("fetchMasterData: non-JSON response for URN={$urn}. Body: " . substr($result, 0, 300));
-            return ['status_code' => $httpCode, 'data' => []];
+        // CI3 returns XML (<SimpleXMLElement>). Parse XML first, fallback to JSON.
+        $items = [];
+        try {
+            $xml = @simplexml_load_string($result);
+            if ($xml !== false) {
+                // Common SAP master data response has IT_EXPORT->item or EX_EXPORT->item
+                $export = $xml->IT_EXPORT->item ?? $xml->EX_EXPORT->item ?? $xml->item ?? null;
+                if ($export !== null) {
+                    foreach ($export as $node) {
+                        $items[] = (array) $node;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('fetchMasterData XML parse failed, trying JSON: ' . $e->getMessage());
         }
 
-        $items = $json['item']
-            ?? $json['data']
-            ?? $json['ET_OUT']['item']
-            ?? $json['EX_EXPORT']['item']
-            ?? [];
+        // Fallback to JSON if XML didn't parse items
+        if (empty($items)) {
+            $json = json_decode($result, true);
+            if (is_array($json)) {
+                $raw = $json['item']
+                    ?? $json['data']
+                    ?? $json['IT_EXPORT']['item']
+                    ?? $json['EX_EXPORT']['item']
+                    ?? [];
 
-        if (isset($items[0]) && is_object($items[0])) {
-            $items = array_map(fn($i) => (array) $i, $items);
+                foreach ($raw as $i) {
+                    $items[] = (array) $i;
+                }
+            }
         }
 
         return ['status_code' => $httpCode, 'data' => $items];

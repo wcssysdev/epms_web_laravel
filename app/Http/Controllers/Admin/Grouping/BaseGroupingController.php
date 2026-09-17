@@ -420,7 +420,7 @@ abstract class BaseGroupingController extends BaseController
         });
 
         AuditService::log(
-            AuditService::TYPE_SAP_SYNC, AuditService::ACTION_CREATE,
+            AuditService::TYPE_MASTER, AuditService::ACTION_CREATE,
             "Fetched " . count($result['data']) . " " . $this->resourceName() . " records from SAP into staging"
         );
 
