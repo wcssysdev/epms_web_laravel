@@ -47,9 +47,11 @@ class FieldAssistantDivisionController extends BaseGroupingController
         $asstName = $asstUser?->user_name ?? ($asstUser?->username ?? $request->assistant_manager_code);
         $asstCode = $asstUser?->user_internal_employee_code ?: ($asstUser?->id ?? $request->assistant_manager_code);
 
+        $estateCode = $this->estateCode();
         $division = DB::table('m_division')
             ->where('division_code', $request->division_code)
             ->when($this->companyId(), fn($q) => $q->where('company_id', $this->companyId()))
+            ->when($estateCode, fn($q) => $q->where('estate_code', $estateCode))
             ->first();
 
         $divName = $division?->division_name ?? $request->division_code;
@@ -79,9 +81,13 @@ class FieldAssistantDivisionController extends BaseGroupingController
             })->get(['id', 'username', 'user_name', 'user_internal_employee_code']);
         }
 
-        // Get Divisions for this company
+        // Get Divisions for this estate and company (per CI3: division_estate_code == estate_code)
+        $estateCode = $this->estateCode();
         $divisions = DB::table('m_division')
             ->where('company_id', $companyId)
+            ->when($estateCode, fn($q) => $q->where('estate_code', $estateCode))
+            ->where('valid_from', '<=', now()->toDateString())
+            ->where('valid_to', '>=', now()->toDateString())
             ->orderBy('division_name')
             ->get(['division_code', 'division_name']);
 
@@ -112,8 +118,12 @@ class FieldAssistantDivisionController extends BaseGroupingController
             })->get(['id', 'username', 'user_name', 'user_internal_employee_code']);
         }
 
+        $estateCode = $this->estateCode();
         $divisions = DB::table('m_division')
             ->where('company_id', $companyId)
+            ->when($estateCode, fn($q) => $q->where('estate_code', $estateCode))
+            ->where('valid_from', '<=', now()->toDateString())
+            ->where('valid_to', '>=', now()->toDateString())
             ->orderBy('division_name')
             ->get(['division_code', 'division_name']);
 
