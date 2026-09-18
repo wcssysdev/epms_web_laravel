@@ -30,6 +30,8 @@ class TphController extends BaseGroupingController
     }
 
     protected function tableName(): string    { return 'm_tph'; }
+    protected function hasEdit(): bool { return true; }
+
     protected function resourceName(): string { return 'Task (TPH)'; }
     protected function viewPrefix(): string   { return 'admin.masters.tph'; }
     protected function routePrefix(): string  { return 'masters.tph'; }
@@ -291,5 +293,95 @@ class TphController extends BaseGroupingController
         }
 
         return null;
+    }
+    public function index()
+    {
+        $cid = $this->companyId();
+        
+        // Calculate total_palm_exceed banner matching CI3
+        $blocks = DB::table('m_block as b')
+            ->leftJoin('m_tph as t', function ($join) {
+                $join->on('t.company_id', '=', 'b.company_id')
+                     ->on('t.estate_code', '=', 'b.estate_code')
+                     ->on('t.division_code', '=', 'b.division_code')
+                     ->on('t.block_code', '=', 'b.block_code');
+            })
+            ->where('b.company_id', $cid)
+            ->groupBy('b.block_code', 'b.block_name', 'b.division_code', 'b.estate_code', 'b.total_palm')
+            ->select([
+                'b.block_code',
+                'b.block_name',
+                'b.division_code as block_division_code',
+                'b.estate_code as block_estate_code',
+                'b.total_palm as block_total_palm',
+                DB::raw('COALESCE(SUM(t.tph_palm_total), 0) as ttl_plm'),
+            ])
+            ->get();
+
+        $totalPalmExceed = [];
+        foreach ($blocks as $blk) {
+            if ($blk->block_total_palm !== null && $blk->ttl_plm > $blk->block_total_palm) {
+                $totalPalmExceed[] = $blk;
+            }
+        }
+
+        return view($this->viewPrefix() . '.index', [
+            'resourceName'    => $this->resourceName(),
+            'routePrefix'     => $this->routePrefix(),
+            'columns'         => $this->datatableColumns(),
+            'totalRows'       => $this->baseQuery()->count(),
+            'newRows'         => 0,
+            'hasEdit'         => $this->hasEdit(),
+            'hasCsv'          => $this->hasCsv(),
+            'hasSap'          => false,
+            'hasGetFromSap'   => false,
+            'hasQr'           => $this->hasQr(),
+            'totalPalmExceed' => $totalPalmExceed,
+        ]);
+    }
+
+    /**
+     * Generate QR code for selected tasks (matching CI3).
+     * Format: EST:{estate};BLOCK:{block};PLATFORM:{platform};TASK:{task}
+     */
+    public function generateQr(Request $request)
+    {
+        $request->validate([
+            'tph_id'   => 'required|array|min:1',
+            'tph_id.*' => 'required|integer',
+        ]);
+
+        $taskIds = $request->input('tph_id');
+
+        $tasks = DB::table('m_tph as t')
+            ->leftJoin('m_block as b', function ($join) {
+                $join->on('t.company_id', '=', 'b.company_id')
+                     ->on('t.estate_code', '=', 'b.estate_code')
+                     ->on('t.division_code', '=', 'b.division_code')
+                     ->on('t.block_code', '=', 'b.block_code');
+            })
+            ->where('t.company_id', $this->companyId())
+            ->whereIn('t.id', $taskIds)
+            ->orderByDesc('t.id')
+            ->select([
+                't.id',
+                't.estate_code',
+                't.division_code',
+                't.block_code',
+                'b.block_name',
+                't.section_code',
+                't.tph_code',
+                't.tph_palm_total',
+            ])
+            ->get()
+            ->map(function ($t) {
+                $t->qr_text = "EST:{$t->estate_code};BLOCK:{$t->block_code};PLATFORM:{$t->section_code};TASK:{$t->tph_code}";
+                return $t;
+            });
+
+        return view($this->viewPrefix() . '.print_qr', [
+            'tasks'        => $tasks,
+            'resourceName' => $this->resourceName(),
+        ]);
     }
 }

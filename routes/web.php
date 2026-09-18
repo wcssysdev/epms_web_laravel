@@ -510,6 +510,7 @@ Route::middleware(['auth.check'])->group(function () {
             $crudCsvRoutes(FdnCardController::class);
         });
         Route::prefix('tph')->name('tph.')->group(function () use ($crudCsvRoutes) {
+            Route::post('/generate-qr', [TphController::class, 'generateQr'])->name('generate-qr');
             Route::get('/{id}/print-qr', [TphController::class, 'printQr'])->name('print-qr');
             $crudCsvRoutes(TphController::class);
         });
