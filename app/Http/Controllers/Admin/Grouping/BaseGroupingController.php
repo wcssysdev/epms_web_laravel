@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Yajra\DataTables\Facades\DataTables;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Http\Controllers\Admin\Masters\Concerns\HandlesCsvMaster;
 
 abstract class BaseGroupingController extends BaseController
 {
@@ -36,7 +37,7 @@ abstract class BaseGroupingController extends BaseController
 
     protected function hasCsv(): bool
     {
-        return true;
+        return in_array(HandlesCsvMaster::class, class_uses_recursive(static::class));
     }
 
     /** Whether this grouping exposes SAP sync. */
