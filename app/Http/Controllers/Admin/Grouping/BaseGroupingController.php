@@ -28,6 +28,12 @@ abstract class BaseGroupingController extends BaseController
     }
 
     /** Whether this master exposes CSV upload/template/export buttons. */
+    /** Whether this grouping exposes per-row Edit action (CI3 grouping modules do not have edit, only delete). */
+    protected function hasEdit(): bool
+    {
+        return false;
+    }
+
     protected function hasCsv(): bool
     {
         return true;
@@ -83,6 +89,7 @@ abstract class BaseGroupingController extends BaseController
             'columns'      => $this->datatableColumns(),
             'totalRows'    => $this->baseQuery()->count(),
             'newRows'      => $counts['new_rows'] ?? 0,
+            'hasEdit'      => $this->hasEdit(),
             'hasCsv'       => $this->hasCsv(),
             'hasSap'       => $this->hasSap(),
             'hasGetFromSap'=> $this->hasGetFromSap(),

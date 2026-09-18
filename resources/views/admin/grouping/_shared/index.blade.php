@@ -307,11 +307,18 @@ function groupingTable() {
             const cols = @json(array_keys($columns));
             const editBase  = '{{ url(str_replace(".", "/", $routePrefix)) }}';
             const hasQr     = {{ ($hasQr ?? false) ? 'true' : 'false' }};
+            const hasEdit   = {{ ($hasEdit ?? false) ? 'true' : 'false' }};
             const dtCols = [{ data: 'DT_RowIndex', orderable: false, searchable: false, width: '40px' }];
             cols.forEach(c => dtCols.push({ data: c, name: c, defaultContent: '-' }));
             dtCols.push({
                 data: null, orderable: false, searchable: false,
                 render: (d, t, r) => {
+                    const editBtn = hasEdit ? `
+                        <a href="${editBase}/${r.id}/edit" class="btn-action btn-edit" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </a>` : '';
                     const qrBtn = hasQr ? `
                         <button onclick="window.open('${editBase}/${r.id}/print-qr', '_blank', 'width=420,height=560')"
                                 class="btn-action btn-qr" title="Print QR">
@@ -321,11 +328,7 @@ function groupingTable() {
                         </button>` : '';
                     return `
                     <div class="flex gap-1">
-                        <a href="${editBase}/${r.id}/edit" class="btn-action btn-edit" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                        </a>
+                        ${editBtn}
                         ${qrBtn}
                         <button onclick="this.closest('[x-data]').__x.$data.confirmDelete('${editBase}/${r.id}')"
                                 class="btn-action btn-danger" title="Delete">
