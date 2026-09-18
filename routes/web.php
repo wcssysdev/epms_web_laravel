@@ -587,6 +587,8 @@ Route::middleware(['auth.check'])->group(function () {
 
         Route::prefix('mandor_employee')->name('mandor_employee.')->group(function () use ($groupRoutes) {
             $groupRoutes(MandorEmployeeController::class);
+            Route::get('/mandor-lookup', [MandorEmployeeController::class, 'mandorLookup'])->name('mandor-lookup');
+            Route::get('/employee-lookup', [MandorEmployeeController::class, 'employeeLookup'])->name('employee-lookup');
         });
 
         Route::prefix('field_assistant_division')->name('field_assistant_division.')->group(function () use ($groupRoutes) {

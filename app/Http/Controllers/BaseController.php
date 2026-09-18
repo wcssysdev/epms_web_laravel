@@ -31,14 +31,19 @@ abstract class BaseController extends Controller
         return $this->currentUser?->user_name ?? session('user_name', '');
     }
 
+    protected function currentUser(): ?User
+    {
+        return $this->currentUser ?? Auth::user();
+    }
+
     protected function companyId(): ?int
     {
-        return $this->currentUser?->company_id ?? session('company_id');
+        return $this->currentUser()?->company_id ?? session('company_id');
     }
 
     protected function companyCode(): string
     {
-        return $this->currentUser?->company_code ?? session('company_code', '');
+        return $this->currentUser()?->company_code ?? session('company_code', '');
     }
 
     protected function countryId(): ?int

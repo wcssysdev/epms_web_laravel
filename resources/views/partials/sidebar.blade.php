@@ -509,12 +509,12 @@
                             </button>
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
                                 {{-- Mandor - Employee: CI3 roles 1,2,3 --}}
-                                <li><a href="{{ route('grouping.mandor_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.mandor_employee') ? 'font-semibold text-primary' : '' }}">Mandor Employee</a></li>
+                                <li><a href="{{ route('grouping.mandor_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.mandor_employee') ? 'font-semibold text-primary' : '' }}">Mandor - Employee</a></li>
                                 {{-- Gang / Field Staff / Asst Manager Division: CI3 role 1 (admin) only --}}
                                 @if($canGroupingFull)
-                                <li><a href="{{ route('grouping.field_assistant_division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_assistant') ? 'font-semibold text-primary' : '' }}">Field Assistant Division</a></li>
-                                <li><a href="{{ route('grouping.gang_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.gang_employee') ? 'font-semibold text-primary' : '' }}">Gang Employee</a></li>
-                                <li><a href="{{ route('grouping.field_staff.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_staff') ? 'font-semibold text-primary' : '' }}">Field Staff</a></li>
+                                <li><a href="{{ route('grouping.field_assistant_division.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_assistant') ? 'font-semibold text-primary' : '' }}">Assistant Manager - Division</a></li>
+                                <li><a href="{{ route('grouping.gang_employee.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.gang_employee') ? 'font-semibold text-primary' : '' }}">Gang - Employee</a></li>
+                                <li><a href="{{ route('grouping.field_staff.index') }}" class="sidebar-subitem {{ str_starts_with($route,'grouping.field_staff') ? 'font-semibold text-primary' : '' }}">Field Staff - Gang</a></li>
                                 @endif
                             </ul>
                         </li>
