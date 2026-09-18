@@ -252,7 +252,7 @@ document.addEventListener('alpine:init', () => {
             if (this.busy) return;
             this.busy = 'get'; this.sapMessage = '';
             try {
-                const res  = await fetch('{{ route($routePrefix . ".get-from-sap") }}', {
+                const res  = await fetch('{{ Route::has($routePrefix . ".get-from-sap") ? route($routePrefix . ".get-from-sap") : '' }}', {
                     method: 'POST', headers: { 'X-CSRF-TOKEN': this._csrf() }
                 });
                 const json = await res.json();
@@ -268,7 +268,7 @@ document.addEventListener('alpine:init', () => {
             if (this.busy) return;
             this.sapMessage = '';
             try {
-                const res  = await fetch('{{ route($routePrefix . ".staging-info") }}', {
+                const res  = await fetch('{{ Route::has($routePrefix . ".staging-info") ? route($routePrefix . ".staging-info") : '' }}', {
                     headers: { 'X-CSRF-TOKEN': this._csrf() }
                 });
                 const json = await res.json();
@@ -282,7 +282,7 @@ document.addEventListener('alpine:init', () => {
             if (this.busy || this.newRows === 0) return;
             this.busy = 'refresh'; this.sapMessage = '';
             try {
-                const res  = await fetch('{{ route($routePrefix . ".refresh-from-sap") }}', {
+                const res  = await fetch('{{ Route::has($routePrefix . ".refresh-from-sap") ? route($routePrefix . ".refresh-from-sap") : '' }}', {
                     method: 'POST', headers: { 'X-CSRF-TOKEN': this._csrf() }
                 });
                 const json = await res.json();
