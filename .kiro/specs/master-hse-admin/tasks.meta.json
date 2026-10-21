@@ -1,0 +1,792 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create migrations for the five identity-keyed portal-synced master tables": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558935888
+      },
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558954751
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559049469
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559062718
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559411197
+      }
+    ],
+    "1.2 Create migrations for the five natural-key portal-synced master tables": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936048
+      },
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558956244
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559049606
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559063947
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559412280
+      }
+    ],
+    "1.3 Create migration for `m_incident_time` master table": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936128
+      },
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558957276
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559049754
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559065057
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559413272
+      }
+    ],
+    "1.4 Create migrations for the `m_master_*` staging mirror tables": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936209
+      },
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558958716
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559049885
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559066354
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559414625
+      }
+    ],
+    "1.5 Create migration for `zhse_hirarc_template` staging table": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936295
+      },
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558959301
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050006
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559068070
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559415437
+      }
+    ],
+    "1.6 Create migrations for `m_hse_email_receiver` and `m_hse_email_template`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936375
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050128
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559423589
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559861281
+      }
+    ],
+    "1.7 Create migration adding `hse_api_url varchar(500)` to `m_config`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936465
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050239
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559425039
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559860024
+      }
+    ],
+    "2.1 Create models for all 14 HSE master + staging tables": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936565
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050355
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560133538
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560375924
+      }
+    ],
+    "3.1 Implement `App\\Services\\HsePortalService` core transport": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936660
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050475
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560134364
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560377106
+      }
+    ],
+    "3.2 Implement `fetchMasterData()` with response-shape normalization and pagination": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936810
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050605
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560394792
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560480852
+      }
+    ],
+    "4.1 Create `BaseHseMasterController` extending `BaseMasterController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936896
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050744
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560499409
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560603189
+      }
+    ],
+    "4.2 Implement `getFromHse()` (STEP 1)": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558936980
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559050920
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560609352
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560748488
+      }
+    ],
+    "4.3 Implement `stagingInfo()` (STEP 2)": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937069
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559051108
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560755399
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560873465
+      }
+    ],
+    "4.4 Implement `replaceFromStaging()` (STEP 3) with transaction, rollback, and concurrency guard": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937145
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559051271
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560882647
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792561111100
+      }
+    ],
+    "4.5 Implement manual identity-key assignment in the replace loop": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937238
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559051433
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560883451
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792561111887
+      }
+    ],
+    "5. Checkpoint — core portal sync engine": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937345
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559051594
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792563863340
+      }
+    ],
+    "6.1 Implement `InjuriesCategoryController` and `InjuriesTypeController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937451
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559051755
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792563870657
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564150447
+      }
+    ],
+    "6.2 Implement `DiseaseTypeController`, `AccidentTypeController`, and `FirstAidKitController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937564
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052058
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792563871961
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564151854
+      }
+    ],
+    "6.3 Implement `ProcessLocationController`, `LikelihoodController`, and `SeverityController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937689
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052232
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792563873391
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564152744
+      }
+    ],
+    "6.4 Implement `RiskPriorityOrderController` and `CourseController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937823
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052387
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792563874239
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564153848
+      }
+    ],
+    "6.5 Create Blade views + DataTables for the 10 portal-synced masters": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558937966
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052538
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564619236
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565243138
+      }
+    ],
+    "7.1 Implement `IncidentTimeController` (CRUD + CSV)": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558938087
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052698
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564163726
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564609618
+      }
+    ],
+    "7.2 Implement `HirarcTemplateController` (fetch-to-staging only)": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558938268
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559052852
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564164897
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564608901
+      }
+    ],
+    "8.1 Implement `EmailReceiverController`": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558939266
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053005
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564165838
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564606575
+      }
+    ],
+    "8.2 Implement `EmailTemplateController` CRUD with CKEditor body": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558939693
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053174
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564166981
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564607413
+      }
+    ],
+    "8.3 Implement `EmailTemplateController::preview()` with placeholder substitution": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558940107
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053344
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564619973
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565242326
+      }
+    ],
+    "9.1 Register the `masters.hse.*` route group": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558940522
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053494
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565255246
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792566092729
+      }
+    ],
+    "9.2 Apply authorization middleware to the `masters.hse.*` group": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558941237
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053688
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792566101492
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568303393
+      }
+    ],
+    "9.3 Add Master SHE sidebar/menu entries for the Admin role": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558941545
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559053865
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565256226
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792566091955
+      }
+    ],
+    "10.1 Confirm CSV import/template and dedupe across masters": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558941813
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559054036
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568312528
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568792966
+      }
+    ],
+    "10.2 Confirm delete-with-confirmation and `is_active` display wiring": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558942082
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559054205
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568313289
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568793905
+      }
+    ],
+    "11. Final verification": [
+      {
+        "executionId": "339527a2-18d9-4aaf-bd36-4e4243663cf1",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792558942347
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559054375
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568802674
+      },
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792570163354
+      }
+    ],
+    "1. Create database migrations for HSE master, staging, and config schema": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792559861460
+      }
+    ],
+    "2. Create Eloquent models under `App\\Models\\Master\\Hse`": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560376107
+      }
+    ],
+    "3. Implement `HsePortalService` (external HSE Portal HTTP contract)": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792560481165
+      }
+    ],
+    "4. Implement `BaseHseMasterController` (abstract three-step portal flow)": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792561112080
+      }
+    ],
+    "7. Implement Incident Time and HIRARC Template controllers": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792564609874
+      }
+    ],
+    "8. Implement Email Receiver and Email Template full CRUD": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565242421
+      }
+    ],
+    "6. Implement the 10 concrete portal-synced controllers": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792565243259
+      }
+    ],
+    "9. Wire routing, sidebar, and authorization": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568303533
+      }
+    ],
+    "10. Wire shared CSV, delete-with-confirmation, and `is_active` behaviour": [
+      {
+        "executionId": "384f1f9a-7904-4476-b23c-dde17c51f2fc",
+        "chatSessionId": "sess_e8853f85-b7b1-4fdf-a7b2-94f27f08c804",
+        "timestamp": 1792568794099
+      }
+    ]
+  }
+}

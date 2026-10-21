@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | HSE Portal
+    |--------------------------------------------------------------------------
+    |
+    | External HSE (SHE) Portal REST API. The base URL is stored per-company in
+    | m_company_config.hse_api_url; the API key is application/environment
+    | configured (not a DB column) and read here via config('services.hse.api_key').
+    |
+    */
+    'hse' => [
+        'api_key' => env('HSE_PORTAL_API_KEY', 'Kyv61GnBqNNw0HGnoP/fr8Yme3IhT2oPgpDL2x53gXc='),
+    ],
+
 ];

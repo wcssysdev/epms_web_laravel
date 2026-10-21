@@ -67,6 +67,21 @@ use App\Http\Controllers\Admin\Masters\Durian\PesticideController as DurianPesti
 use App\Http\Controllers\Admin\Masters\Durian\DiseaseController as DurianDiseaseController;
 use App\Http\Controllers\Admin\Masters\Durian\SoilConditionController as DurianSoilConditionController;
 use App\Http\Controllers\Admin\Masters\Durian\ActivityController as DurianActivityController;
+// Masters â€” HSE / Master SHE (Admin)
+use App\Http\Controllers\Admin\Masters\Hse\InjuriesCategoryController;
+use App\Http\Controllers\Admin\Masters\Hse\InjuriesTypeController;
+use App\Http\Controllers\Admin\Masters\Hse\DiseaseTypeController;
+use App\Http\Controllers\Admin\Masters\Hse\AccidentTypeController;
+use App\Http\Controllers\Admin\Masters\Hse\FirstAidKitController;
+use App\Http\Controllers\Admin\Masters\Hse\ProcessLocationController;
+use App\Http\Controllers\Admin\Masters\Hse\LikelihoodController;
+use App\Http\Controllers\Admin\Masters\Hse\SeverityController;
+use App\Http\Controllers\Admin\Masters\Hse\RiskPriorityOrderController;
+use App\Http\Controllers\Admin\Masters\Hse\CourseController;
+use App\Http\Controllers\Admin\Masters\Hse\IncidentTimeController;
+use App\Http\Controllers\Admin\Masters\Hse\EmailReceiverController;
+use App\Http\Controllers\Admin\Masters\Hse\EmailTemplateController;
+use App\Http\Controllers\Admin\Masters\Hse\HirarcTemplateController;
 // Planning (Estate Manager 40 + Asst Manager 50)
 use App\Http\Controllers\Planning\WorkplanController;
 use App\Http\Controllers\Planning\HarvestingPlanController;
@@ -549,6 +564,98 @@ Route::middleware(['auth.check'])->group(function () {
             Route::prefix('uom')->name('uom.')->group(fn() => $globalRoutes(UomController::class));
             Route::prefix('harvest_method')->name('harvest_method.')->group(fn() => $globalRoutes(HarvestMethodController::class));
             Route::prefix('movement_type')->name('movement_type.')->group(fn() => $globalRoutes(MovementTypeController::class));
+
+        });
+
+        // â”€â”€ HSE / Master SHE (Admin) â€” global (non-tenant) HSE masters â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Inherits the masters group's roles + company.scope middleware and the
+        // `masters.` name prefix; this sub-group adds the `hse.` segment so names
+        // resolve to `masters.hse.*` exactly as each controller's routePrefix()
+        // expects. HSE reads are global (BaseHseMasterController drops the
+        // company_id filter); task 9.2 refines auth.
+        Route::prefix('hse')->name('hse.')->group(function () {
+
+            // Three-step HSE Portal flow for the 10 portal-synced masters:
+            // index/datatable + CSV (upload/preview/save/cancel) + Get/StagingInfo/
+            // Replace + export/generate-csv. No get-from-sap/refresh-from-master.
+            $hseMasterRoutes = function (string $controller) {
+                Route::get('/',                    [$controller, 'index'])->name('index');
+                Route::get('/datatable',           [$controller, 'getDatatable'])->name('datatable');
+                Route::get('/upload',              [$controller, 'upload'])->name('upload');
+                Route::post('/preview',            [$controller, 'preview'])->name('preview');
+                Route::post('/save-uploaded-data', [$controller, 'saveUploadedData'])->name('save-uploaded-data');
+                Route::get('/cancel',              [$controller, 'cancelUpload'])->name('cancel');
+                // HSE Portal three-step flow
+                Route::post('/get-from-hse',        [$controller, 'getFromHse'])->name('get-from-hse');
+                Route::get('/staging-info',         [$controller, 'stagingInfo'])->name('staging-info');
+                Route::post('/replace-from-staging',[$controller, 'replaceFromStaging'])->name('replace-from-staging');
+                // CSV
+                Route::get('/export',              [$controller, 'exportMasterData'])->name('export');
+                Route::get('/generate-csv',        [$controller, 'generateCsv'])->name('generate-csv');
+            };
+
+            // 10 portal-synced masters. Prefix/name segments match each controller's
+            // routePrefix() (masters.hse.<segment>) verbatim.
+            Route::prefix('injuries_category')->name('injuries_category.')->group(fn() => $hseMasterRoutes(InjuriesCategoryController::class));
+            Route::prefix('injuries_type')->name('injuries_type.')->group(fn() => $hseMasterRoutes(InjuriesTypeController::class));
+            Route::prefix('disease_type')->name('disease_type.')->group(fn() => $hseMasterRoutes(DiseaseTypeController::class));
+            Route::prefix('accident_type')->name('accident_type.')->group(fn() => $hseMasterRoutes(AccidentTypeController::class));
+            Route::prefix('first_aid_kit')->name('first_aid_kit.')->group(fn() => $hseMasterRoutes(FirstAidKitController::class));
+            Route::prefix('process_location')->name('process_location.')->group(fn() => $hseMasterRoutes(ProcessLocationController::class));
+            Route::prefix('likelihood')->name('likelihood.')->group(fn() => $hseMasterRoutes(LikelihoodController::class));
+            Route::prefix('severity')->name('severity.')->group(fn() => $hseMasterRoutes(SeverityController::class));
+            Route::prefix('risk_priority_order')->name('risk_priority_order.')->group(fn() => $hseMasterRoutes(RiskPriorityOrderController::class));
+            Route::prefix('course')->name('course.')->group(fn() => $hseMasterRoutes(CourseController::class));
+
+            // â”€â”€ Incident Time (CRUD + CSV; BaseGlobalLookupController) â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // VARCHAR PK (incident_time_name) â€” no whereNumber on {id}.
+            Route::prefix('incident_time')->name('incident_time.')->group(function () {
+                Route::get('/',             [IncidentTimeController::class, 'index'])->name('index');
+                Route::get('/datatable',    [IncidentTimeController::class, 'getDatatable'])->name('datatable');
+                Route::get('/add',          [IncidentTimeController::class, 'add'])->name('add');
+                Route::post('/',            [IncidentTimeController::class, 'save'])->name('save');
+                Route::get('/{id}/edit',    [IncidentTimeController::class, 'edit'])->name('edit');
+                Route::put('/{id}',         [IncidentTimeController::class, 'update'])->name('update');
+                Route::delete('/{id}',      [IncidentTimeController::class, 'destroy'])->name('destroy');
+                Route::get('/generate-csv', [IncidentTimeController::class, 'generateCsv'])->name('generate-csv');
+                // CSV import (R10.3): upload -> preview -> save / cancel.
+                Route::get('/upload',              [IncidentTimeController::class, 'upload'])->name('upload');
+                Route::post('/preview',            [IncidentTimeController::class, 'preview'])->name('preview');
+                Route::post('/save-uploaded-data', [IncidentTimeController::class, 'saveUploadedData'])->name('save-uploaded-data');
+                Route::get('/cancel',              [IncidentTimeController::class, 'cancelUpload'])->name('cancel');
+                Route::get('/lookup',       [IncidentTimeController::class, 'lookup'])->name('lookup');
+            });
+
+            // â”€â”€ Email Receiver (CRUD; no generate-csv per task 8.1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            Route::prefix('email_receiver')->name('email_receiver.')->group(function () {
+                Route::get('/',          [EmailReceiverController::class, 'index'])->name('index');
+                Route::get('/datatable', [EmailReceiverController::class, 'getDatatable'])->name('datatable');
+                Route::get('/add',       [EmailReceiverController::class, 'add'])->name('add');
+                Route::post('/',         [EmailReceiverController::class, 'save'])->name('save');
+                Route::get('/{id}/edit', [EmailReceiverController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [EmailReceiverController::class, 'update'])->name('update');
+                Route::delete('/{id}',   [EmailReceiverController::class, 'destroy'])->name('destroy');
+            });
+
+            // â”€â”€ Email Template (CRUD + generate-csv + preview; task 8.3) â”€â”€â”€â”€â”€â”€
+            Route::prefix('email_template')->name('email_template.')->group(function () {
+                Route::get('/',             [EmailTemplateController::class, 'index'])->name('index');
+                Route::get('/datatable',    [EmailTemplateController::class, 'getDatatable'])->name('datatable');
+                Route::get('/add',          [EmailTemplateController::class, 'add'])->name('add');
+                Route::post('/',            [EmailTemplateController::class, 'save'])->name('save');
+                Route::get('/{id}/edit',    [EmailTemplateController::class, 'edit'])->name('edit');
+                Route::put('/{id}',         [EmailTemplateController::class, 'update'])->name('update');
+                Route::delete('/{id}',      [EmailTemplateController::class, 'destroy'])->name('destroy');
+                Route::get('/generate-csv', [EmailTemplateController::class, 'generateCsv'])->name('generate-csv');
+                Route::get('/{id}/preview', [EmailTemplateController::class, 'preview'])->name('preview');
+            });
+
+            // â”€â”€ HIRARC Template (fetch-to-staging only; no apply route) â”€â”€â”€â”€â”€â”€â”€
+            Route::prefix('hirarc_template')->name('hirarc_template.')->group(function () {
+                Route::get('/',             [HirarcTemplateController::class, 'index'])->name('index');
+                Route::post('/get-template',[HirarcTemplateController::class, 'getTemplate'])->name('get-template');
+                Route::get('/refresh-info', [HirarcTemplateController::class, 'refreshInfo'])->name('refresh-info');
+            });
 
         });
 

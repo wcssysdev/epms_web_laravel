@@ -18,6 +18,7 @@ class CompanyConfig extends Model
         'system_is_rubber', 'system_is_durian',
         'integration_type', 'have_internet_connection',
         'sap_api_url', 'sap_user_id', 'sap_password',
+        'hse_api_url',
         'cutter_distribution_value', 'carrier_distribution_value',
         'cutter_lf_distribution_value', 'carrier_lf_distribution_value',
         'attendance_default_value', 'attendance_normal_default_value',

@@ -301,6 +301,61 @@
                 </nav>
             </div>
 
+            {{-- ── Master SHE (HSE masters — same gating as Master Data: admins + IT staff) ── --}}
+            <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'masters.hse.') ? 'true':'false' }} }">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <button @click="open = !open" :aria-expanded="open.toString()"
+                                    class="sidebar-item w-full text-left">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="size-6 shrink-0">
+                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h2v2h-2v2h-2v-2H9V9h2V7z"/>
+                                </svg>
+                                <span>Master SHE</span>
+                                <svg width="16" height="8" viewBox="0 0 16 8" fill="currentColor"
+                                     class="ml-auto transition-transform duration-200"
+                                     :class="open ? 'rotate-0' : 'rotate-180'">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.553.728a.687.687 0 01.895 0l6.416 5.5a.688.688 0 01-.895 1.044L8 2.155 2.03 7.272a.688.688 0 11-.894-1.044l6.417-5.5z"/>
+                                </svg>
+                            </button>
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-10">
+                                @php
+                                // Order mirrors the CI3 "Master HSE" sidebar. Route names match
+                                // each HSE controller's routePrefix() (task 9.1 registers these).
+                                $hseLinks = [
+                                    'Category of Injuries' => 'masters.hse.injuries_category.index',
+                                    'Type of Injury'       => 'masters.hse.injuries_type.index',
+                                    'Type of Disease'      => 'masters.hse.disease-type.index',
+                                    'Type of Accident'     => 'masters.hse.accident-type.index',
+                                    'First Aid Kit'        => 'masters.hse.first-aid-kit.index',
+                                    'Process Location'     => 'masters.hse.process_location.index',
+                                    'Likelihood'           => 'masters.hse.likelihood.index',
+                                    'Severity'             => 'masters.hse.severity.index',
+                                    'Risk Priority Order'  => 'masters.hse.risk_priority_order.index',
+                                    'Course'               => 'masters.hse.course.index',
+                                    'Incident Time'        => 'masters.hse.incident_time.index',
+                                    'HIRARC Template'      => 'masters.hse.hirarc_template.index',
+                                    'Email Receiver'       => 'masters.hse.email_receiver.index',
+                                    'Email Template'       => 'masters.hse.email_template.index',
+                                ];
+                                @endphp
+                                @foreach($hseLinks as $label => $routeName)
+                                    @if(\Illuminate\Support\Facades\Route::has($routeName))
+                                    <li>
+                                        @php $hseBase = substr($routeName, 0, strrpos($routeName, '.')); @endphp
+                                        <a href="{{ route($routeName) }}"
+                                           class="sidebar-subitem {{ str_starts_with($route, $hseBase) ? 'font-semibold text-primary' : '' }}">
+                                            {{ $label }}
+                                        </a>
+                                    </li>
+                                    @endif
+                                @endforeach
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
             @endif {{-- /canMasters --}}
 
             {{-- ── Trans GI & GR (CI3 roles 23, 33 + Admins & Staff) ────────────────────────── --}}
