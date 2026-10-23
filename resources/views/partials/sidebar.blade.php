@@ -7,7 +7,7 @@
     $route       = request()->route()?->getName() ?? '';
     $isItStaff   = $roleCode === 'it_staff';
 
-    // ── Role families mirroring CI3 sidebar rules ─────────────────────────────
+    // â”€â”€ Role families mirroring CI3 sidebar rules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // "Admin menu" (Master Data, full Grouping, Estate Settings, Substitution,
     // Master GI&GR) = CI3 role 1 (Estate Admin) + the multi-scope admins that
     // inherit "all ci3 admin menu" (Company/Country/Super Admin).
@@ -39,7 +39,7 @@
     $canReport       = $adminFamily || $isItStaff || $isEstateStaffFamily || $isEstateManager || $isAsstManager;
 @endphp
 
-<aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark w-full"
+<aside class="fixed left-0 top-0 z-40 h-screen max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark"
        :class="sidebarOpen ? 'w-full' : 'w-0'"
        aria-label="Main navigation">
 
@@ -50,7 +50,7 @@
             <a href="{{ route('dashboard') }}" class="block py-2.5">
                 <div class="flex items-center gap-3">
                     <div class="flex h-8 w-8 items-center justify-center rounded bg-primary text-white text-xs font-bold shrink-0">
-                        🌴
+                        ðŸŒ´
                     </div>
                     <span class="text-2xl font-bold sidebar-logo-text">EPMS WEB</span>
                 </div>
@@ -60,7 +60,7 @@
         {{-- Scrollable nav --}}
         <div class="custom-scrollbar mt-10 flex-1 overflow-y-auto pr-3">
 
-            {{-- ── MAIN section ─────────────────────────────────────────── --}}
+            {{-- â”€â”€ MAIN section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <div class="mb-6">
                 <h2 class="mb-5 text-sm font-medium uppercase tracking-widest sidebar-section-title">
                     {{ strtoupper(session('role_name', 'User')) }}
@@ -82,7 +82,7 @@
                 </nav>
             </div>
 
-            {{-- ── Planning (CI3 role 3 — Assistant Manager only) ────────── --}}
+            {{-- â”€â”€ Planning (CI3 role 3 â€” Assistant Manager only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             @if($canPlanning)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'planning.') ? 'true':'false' }} }">
                 <nav>
@@ -113,7 +113,7 @@
             </div>
             @endif
 
-            {{-- ── Approval (Estate Manager: workplan/GI; Asst Manager: unplanned/oph/overtime) ── --}}
+            {{-- â”€â”€ Approval (Estate Manager: workplan/GI; Asst Manager: unplanned/oph/overtime) â”€â”€ --}}
             @if($canApproval)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
                 <nav>
@@ -272,7 +272,7 @@
                 </nav>
             </div>
 
-            {{-- ── Master GI & GR (Company Admin) ────────────────────────── --}}
+            {{-- â”€â”€ Master GI & GR (Company Admin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <div class="mb-6" x-data="{ open: {{ (str_starts_with($route,'masters.sloc') || str_starts_with($route,'masters.gl_account') || str_starts_with($route,'masters.gla_order')) ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -301,7 +301,7 @@
                 </nav>
             </div>
 
-            {{-- ── Master SHE (HSE masters — same gating as Master Data: admins + IT staff) ── --}}
+            {{-- â”€â”€ Master SHE (HSE masters â€” same gating as Master Data: admins + IT staff) â”€â”€ --}}
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'masters.hse.') ? 'true':'false' }} }">
                 <nav>
                     <ul class="space-y-2">
@@ -358,7 +358,7 @@
 
             @endif {{-- /canMasters --}}
 
-            {{-- ── Trans GI & GR (CI3 roles 23, 33 + Admins & Staff) ────────────────────────── --}}
+            {{-- â”€â”€ Trans GI & GR (CI3 roles 23, 33 + Admins & Staff) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             @if($canTransGiGr)
             <div class="mb-6" x-data="{ open: {{ (str_starts_with($route,'transactions.goods_receipt') || str_starts_with($route,'transactions.goods_issue')) ? 'true':'false' }} }">
                 <nav>
@@ -386,7 +386,7 @@
             </div>
             @endif
 
-            {{-- ── Transactions (GI Plan: admins/asst/EM; Monitoring: + PC/CS/staff) ── --}}
+            {{-- â”€â”€ Transactions (GI Plan: admins/asst/EM; Monitoring: + PC/CS/staff) â”€â”€ --}}
             @if($canTransactions)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'transactions.') ? 'true':'false' }} }">
                 <nav>
@@ -452,8 +452,8 @@
             </div>
             @endif
 
-            {{-- ── Grouping (Asst Manager 50 + IT Staff) ─────────────────── --}}
-                        {{-- ── Reports ──────────────────────────────────────── --}}
+            {{-- â”€â”€ Grouping (Asst Manager 50 + IT Staff) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                        {{-- â”€â”€ Reports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             @if($canReport)
             <div class="mb-6" x-data="{ open: {{ str_starts_with($route,'reporting.') ? 'true':'false' }} }">
                 <nav>
@@ -579,7 +579,7 @@
 
             @endif {{-- /canGrouping --}}
 
-            {{-- ── Standalone items ─────────────────────────────────────── --}}
+            {{-- â”€â”€ Standalone items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <div class="mb-6">
                 <nav>
                     <ul class="space-y-2">
@@ -633,7 +633,7 @@
                         </li>
                         @endif
 
-                        {{-- ── Closing SAP ───────────────────────────────── --}}
+                        {{-- â”€â”€ Closing SAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                         @if(in_array($roleCode, ['company_admin','admin','estate_manager','asst_manager','estate_staff','staff','pc','cs','it_staff']))
                         <li x-data="{ closingSapOpen: {{ str_starts_with($route,'closing.') ? 'true':'false' }} }">
                             <button @click="closingSapOpen = !closingSapOpen" :aria-expanded="closingSapOpen.toString()"
@@ -671,7 +671,7 @@
                         </li>
                         @endif
 
-                        {{-- ── SAP Closing Approval (Estate Manager) ────────── --}}
+                        {{-- â”€â”€ SAP Closing Approval (Estate Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                         @if(in_array($roleCode, ['estate_manager','admin','company_admin']))
                         <li x-data="{ sapApprovalOpen: {{ str_starts_with($route,'sap-approval.') ? 'true':'false' }} }">
                             <button @click="sapApprovalOpen = !sapApprovalOpen" :aria-expanded="sapApprovalOpen.toString()"
@@ -697,7 +697,7 @@
                         </li>
                         @endif
 
-                        {{-- ── Planning (Estate Manager) ────────────────────── --}}
+                        {{-- â”€â”€ Planning (Estate Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                         @if(in_array($roleCode, ['estate_manager','admin','company_admin']))
                         <li x-data="{ planningOpen: {{ str_starts_with($route,'planning.') ? 'true':'false' }} }">
                             <button @click="planningOpen = !planningOpen" :aria-expanded="planningOpen.toString()"
@@ -721,7 +721,7 @@
                         </li>
                         @endif
 
-                        {{-- ── Approval (Assistant Manager) ─────────────────── --}}
+                        {{-- â”€â”€ Approval (Assistant Manager) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                         @if(in_array($roleCode, ['asst_manager','admin','company_admin']))
                         <li x-data="{ approvalOpen: {{ str_starts_with($route,'approval.') ? 'true':'false' }} }">
                             <button @click="approvalOpen = !approvalOpen" :aria-expanded="approvalOpen.toString()"
@@ -784,7 +784,7 @@
                 </nav>
             </div>
 
-            {{-- ── HELP section ──────────────────────────────────────────── --}}
+            {{-- â”€â”€ HELP section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <div class="mb-6">
                 <h2 class="mb-5 text-sm font-medium uppercase tracking-widest sidebar-section-title">HELP</h2>
                 <nav>

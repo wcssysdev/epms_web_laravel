@@ -4,7 +4,7 @@
     {{-- LEFT: Toggle + Title --}}
     <div class="flex items-center gap-4">
         <button @click="sidebarOpen = !sidebarOpen"
-                class="epms-toggle-btn rounded-lg border px-2 py-2 transition-colors">
+                class="epms-toggle-btn cursor-pointer rounded-lg border px-2 py-2 transition-colors">
             <svg width="25" height="24" viewBox="0 0 25 24" fill="currentColor" style="color: var(--epms-text);">
                 <path d="M3.5625 6C3.5625 5.58579 3.89829 5.25 4.3125 5.25H20.3125C20.7267 5.25 21.0625 5.58579 21.0625 6C21.0625 6.41421 20.7267 6.75 20.3125 6.75L4.3125 6.75C3.89829 6.75 3.5625 6.41422 3.5625 6Z"/>
                 <path d="M3.5625 18C3.5625 17.5858 3.89829 17.25 4.3125 17.25L20.3125 17.25C20.7267 17.25 21.0625 17.5858 21.0625 18C21.0625 18.4142 20.7267 18.75 20.3125 18.75L4.3125 18.75C3.89829 18.75 3.5625 18.4142 3.5625 18Z"/>
@@ -45,15 +45,15 @@
         </div>
 
         @if(session('is_locked'))
-        <span class="rounded px-2 py-1 text-xs font-bold bg-red-500 text-white animate-pulse">🔒 LOCKED</span>
+        <span class="rounded px-2 py-1 text-xs font-bold bg-red-500 text-white animate-pulse">Ã°Å¸â€â€™ LOCKED</span>
         @endif
         @endauth
 
         {{-- Dark Mode Toggle (pill) --}}
         <button @click="toggleDark()"
-                class="epms-pill-toggle rounded-full p-[5px] outline-none">
+                class="epms-pill-toggle cursor-pointer rounded-full p-[5px] outline-none">
             <span class="relative flex gap-2.5">
-                {{-- Sliding indicator — position controlled by Alpine --}}
+                {{-- Sliding indicator Ã¢â‚¬â€ position controlled by Alpine --}}
                 <span class="epms-pill-indicator absolute size-[38px] rounded-full border transition-all duration-300"
                       :style="isDark ? 'transform:translateX(48px)' : 'transform:translateX(0)'">
                 </span>
@@ -73,7 +73,7 @@
         </button>
 
         {{-- Notification Bell --}}
-        <button class="epms-icon-btn relative grid size-12 place-items-center rounded-full border">
+        <button class="epms-icon-btn cursor-pointer relative grid size-12 place-items-center rounded-full border">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M10 1.042A6.458 6.458 0 003.542 7.5v.587c0 .58-.172 1.148-.495 1.631l-.957 1.436a2.934 2.934 0 001.67 4.459c.63.171 1.264.316 1.903.435l.002.005c.64 1.71 2.353 2.905 4.335 2.905 1.982 0 3.694-1.196 4.335-2.905l.002-.005a23.736 23.736 0 001.903-.435 2.934 2.934 0 001.67-4.459l-.958-1.436a2.941 2.941 0 01-.494-1.631V7.5A6.458 6.458 0 0010 1.042zm2.813 15.239a23.71 23.71 0 01-5.627 0c.593.85 1.623 1.427 2.814 1.427 1.19 0 2.221-.576 2.813-1.427zM4.792 7.5a5.208 5.208 0 1110.416 0v.587c0 .827.245 1.636.704 2.325l.957 1.435c.638.957.151 2.257-.958 2.56a22.467 22.467 0 01-11.822 0 1.684 1.684 0 01-.959-2.56l.958-1.435a4.192 4.192 0 00.704-2.325V7.5z" fill="currentColor"/>
             </svg>
@@ -83,7 +83,7 @@
         {{-- User Dropdown --}}
         <div class="shrink-0" x-data="{ open: false }">
             <div class="relative">
-                <button @click="open = !open" @click.outside="open = false" class="rounded align-middle outline-none">
+                <button @click="open = !open" @click.outside="open = false" class="cursor-pointer rounded align-middle outline-none">
                     <figure class="flex items-center gap-3">
                         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white font-semibold text-lg">
                             {{ strtoupper(substr(session('user_name', 'U'), 0, 1)) }}
@@ -123,7 +123,7 @@
                         <li class="border-t mt-1 pt-1" style="border-color: var(--epms-border);">
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-gray-100">
+                                <button type="submit" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-gray-100 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                     </svg>
