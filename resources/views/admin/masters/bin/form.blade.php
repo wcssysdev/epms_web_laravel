@@ -33,7 +33,7 @@
             @csrf
             @if($item) @method('PUT') @endif
 
-            {{-- Estate --}}
+            {{-- Estate (Tom Select) --}}
             <x-form.select name="estate_code" label="Estate" required
                            :value="old('estate_code', $item?->estate_code)">
                 <option value="">— Select Estate —</option>
@@ -70,20 +70,43 @@
 </div>
 @endsection
 
+@push('styles')
+    <link href="{{ asset('vendor/tom-select/tom-select.css') }}" rel="stylesheet">
+    @include('admin.masters._shared.tomselect-theme')
+@endpush
+
 @push('scripts')
+<script src="{{ asset('vendor/tom-select/tom-select.complete.min.js') }}"></script>
 <script>
 function binForm() {
     return {
         divisions:   @json($divisions),
-        selEstate:   @js(old('estate_code', $item?->estate_code ?? '')),
+        selEstate:   '',
         selDivision: @js(old('division_code', $item?->division_code ?? '')),
+        estateTs:    null,
 
         init() {
             this.estateEl   = this.$root.querySelector('[name="estate_code"]');
             this.divisionEl = this.$root.querySelector('[name="division_code"]');
 
-            this.estateEl.addEventListener('change', () => {
-                this.selEstate = this.estateEl.value;
+            // Sync with the value actually selected in the markup (fixes the
+            // empty-division bug: on Add the browser auto-selects the first
+            // estate option, so read the real value rather than assuming '').
+            this.selEstate = this.estateEl.value;
+
+            // Enhance the Estate field with Tom Select (searchable dropdown).
+            this.estateTs = new TomSelect(this.estateEl, {
+                create: false,
+                allowEmptyOption: true,
+                maxOptions: 1000,
+                placeholder: '— Select Estate —',
+            });
+
+            // Re-fill divisions whenever the estate changes (Tom Select fires
+            // a native change on the underlying <select>).
+            this.estateTs.on('change', (val) => {
+                this.selEstate = val;
+                this.selDivision = '';
                 this.fillDivisions();
             });
 

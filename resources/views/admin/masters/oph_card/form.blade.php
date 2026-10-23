@@ -33,7 +33,7 @@
             @csrf
             @if($item) @method('PUT') @endif
 
-            {{-- Estate --}}
+            {{-- Estate (Tom Select) --}}
             <x-form.select name="estate_code" label="Estate" required
                            :value="old('estate_code', $item?->estate_code)">
                 <option value="">— Select Estate —</option>
@@ -70,21 +70,40 @@
 </div>
 @endsection
 
+@push('styles')
+    <link href="{{ asset('vendor/tom-select/tom-select.css') }}" rel="stylesheet">
+    @include('admin.masters._shared.tomselect-theme')
+@endpush
+
 @push('scripts')
+<script src="{{ asset('vendor/tom-select/tom-select.complete.min.js') }}"></script>
 <script>
 function cardForm() {
     return {
         divisions:   @json($divisions),
-        selEstate:   @js(old('estate_code', $item?->estate_code ?? '')),
+        selEstate:   '',
         selDivision: @js(old('division_code', $item?->division_code ?? '')),
+        estateTs:    null,
 
         init() {
             this.estateEl   = this.$root.querySelector('[name="estate_code"]');
             this.divisionEl = this.$root.querySelector('[name="division_code"]');
-            this.estateEl.addEventListener('change', () => {
-                this.selEstate = this.estateEl.value;
+
+            this.selEstate = this.estateEl.value;
+
+            this.estateTs = new TomSelect(this.estateEl, {
+                create: false,
+                allowEmptyOption: true,
+                maxOptions: 1000,
+                placeholder: '— Select Estate —',
+            });
+
+            this.estateTs.on('change', (val) => {
+                this.selEstate = val;
+                this.selDivision = '';
                 this.fillDivisions();
             });
+
             this.fillDivisions();
         },
 
