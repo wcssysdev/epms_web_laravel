@@ -118,6 +118,9 @@ use App\Http\Controllers\Transaction\Monitoring\OphMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\AttendanceMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\OvertimeMonitoringController;
 use App\Http\Controllers\Transaction\Monitoring\WorkdoneMonitoringController;
+// HSE Transaction Reports
+use App\Http\Controllers\Transaction\Hse\TrainingReportController;
+
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PUBLIC â€” Auth routes (no auth required)
@@ -1015,7 +1018,21 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::delete('/{id}',   [GoodsReceiptController::class, 'destroy'])->name('destroy');
             });
             Route::get('goods_receipt', fn() => redirect()->route('transactions.goods_receipt.index'));
+
+            // HSE Training Reports (FM_CW_047 Individual Training Record)
+            Route::prefix('hse/report')->name('hse.report.')->group(function () {
+                Route::get('/individual', [TrainingReportController::class, 'individual'])->name('individual');
+                Route::get('/print_individual', [TrainingReportController::class, 'printIndividual'])->name('print_individual');
+            });
         });
+
+    // HSE Transaction Reports alias (singular 'transaction')
+    Route::middleware(['roles:company_admin,admin,estate_manager,asst_manager,estate_staff,staff,pc,cs', 'company.scope'])
+        ->prefix('transaction/hse/report')->name('transaction.hse.report.')->group(function () {
+            Route::get('/individual', [TrainingReportController::class, 'individual'])->name('individual');
+            Route::get('/print_individual', [TrainingReportController::class, 'printIndividual'])->name('print_individual');
+        });
+
 
     // â”€â”€ Reporting routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     Route::prefix('reporting')->name('reporting.')->group(function () {
